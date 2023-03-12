@@ -154,6 +154,8 @@ event.register(tes3.event.mobileActivated, function(e)
             -- mwse.log("MActivated=%s", tostring(e.reference))
             if e.reference.object.objectType == tes3.objectType.npc then
                 randomizer.randomizeContainerItems(e.reference, randomizer.config.data.NPCs.items.region.min, randomizer.config.data.NPCs.items.region.max)
+            elseif e.reference.object.objectType == tes3.objectType.creature then
+                randomizer.randomizeContainerItems(e.reference, randomizer.config.data.creatures.items.region.min, randomizer.config.data.creatures.items.region.max)
             end
 
             randomizer.randomizeMobileActor(e.mobile)
