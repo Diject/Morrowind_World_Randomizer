@@ -494,6 +494,9 @@ end
 local positiveAttrs = { "chameleon", "waterBreathing", "waterWalking", "swiftSwim", }
 local negativeAttrs = { "sound", "silence", "blind", "paralyze" }
 local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistCommonDisease", "resistBlightDisease", "resistCorprus", "resistPoison", "resistParalysis", "shield" }
+local combatSkillIds = {tes3.skill.block, tes3.skill.armorer,  tes3.skill.mediumArmor, tes3.skill.heavyArmor, tes3.skill.bluntWeapon, tes3.skill.longBlade, tes3.skill.axe, tes3.skill.spear, tes3.skill.athletics,}
+local magicSkillIds = {tes3.skill.enchant, tes3.skill.destruction,  tes3.skill.alteration, tes3.skill.illusion, tes3.skill.conjuration, tes3.skill.mysticism, tes3.skill.restoration, tes3.skill.alchemy, tes3.skill.unarmored,}
+local stealthSkillIds = {tes3.skill.security, tes3.skill.sneak,  tes3.skill.acrobatics, tes3.skill.lightArmor, tes3.skill.shortBlade, tes3.skill.marksman, tes3.skill.mercantile, tes3.skill.speechcraft, tes3.skill.handToHand,}
 
 function this.randomizeMobileActor(mobile)
     local objectData = dataSaver.getObjectData(mobile.reference)
@@ -566,11 +569,12 @@ function this.randomizeMobileActor(mobile)
         end
     end
 
-    local setNew = function(attribute, region, limit)
+    local setNew = function(attribute, region, limit, useRangeVal)
         if limit == nil then limit = math.huge end
         local base = attribute.base
         local normalized = attribute.normalized
-        local newVal = math.floor(math.min(base * (region.min + math.random() * (region.max - region.min)), limit))
+        local newVal = useRangeVal and random.GetRandom(base, limit, region.min, region.max) or
+            math.floor(math.min(base * (region.min + math.random() * (region.max - region.min)), limit))
         attribute.base = newVal
         attribute.current = newVal * normalized
     end
@@ -578,18 +582,26 @@ function this.randomizeMobileActor(mobile)
 
     if mobile.actorType == tes3.actorType.npc then
         if configTable.attributes.randomize then
-            local alimit = math.huge
-            if configTable.attributes.limit then alimit = 100 end
             for i, attributeVal in ipairs(mobile.attributes) do
-                setNew(attributeVal, configTable.attributes.region, alimit)
+                setNew(attributeVal, configTable.attributes.region, configTable.attributes.limit)
             end
         end
     end
     if configTable.skills.randomize then
-        local slimit = math.huge
-        if configTable.skills.limit then slimit = 100 end
-        for i, skillVal in ipairs(mobile.skills) do
-            setNew(skillVal, configTable.skills.region, slimit)
+        if mobile.actorType == tes3.actorType.npc then
+            for _, skillId in pairs(combatSkillIds) do
+                setNew(mobile.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            end
+            for _, skillId in pairs(magicSkillIds) do
+                setNew(mobile.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            end
+            for _, skillId in pairs(stealthSkillIds) do
+                setNew(mobile.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
+            end
+        elseif mobile.actorType == tes3.actorType.creature then
+            setNew(mobile.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            setNew(mobile.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            setNew(mobile.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
         end
     end
 

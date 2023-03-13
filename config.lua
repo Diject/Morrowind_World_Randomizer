@@ -150,7 +150,15 @@ this.default = {
         skills = {
             randomize = true,
             limit = 100,
-            region = {min = 0.5, max = 1.5},
+            combat = {
+                region = {min = 0.2, max = 0.2},
+            },
+            magic = {
+                region = {min = 0.2, max = 0.2},
+            },
+            stealth = {
+                region = {min = 0.2, max = 0.2},
+            },
         },
         scale = {
             randomize = true,
@@ -241,7 +249,15 @@ this.default = {
         skills = {
             randomize = true,
             limit = 100,
-            region = {min = 0.5, max = 1.5},
+            combat = {
+                region = {min = 0.2, max = 0.2},
+            },
+            magic = {
+                region = {min = 0.2, max = 0.2},
+            },
+            stealth = {
+                region = {min = 0.2, max = 0.2},
+            },
         },
         head = {
             randomize = true,
