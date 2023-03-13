@@ -97,7 +97,7 @@ this.default = {
     },
     gold = {
         randomize = true,
-        region = {min = 1, max = 100},
+        region = {min = 0.25, max = 1.75},
     },
     creatures = {
         randomize = true,
@@ -114,25 +114,25 @@ this.default = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 1,
-                count = 20,
+                chance = 0.1,
+                count = 3,
                 levelReference = 20,
             },
         },
         abilities = {
             randomize = false,
-            region = {min = 0.1, max = 0.1},
+            region = {min = 0.5, max = 0.5},
             add = {
                 chance = 1,
                 count = 0,
             },
         },
         diseases = {
-            randomize = true,
+            randomize = false,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 1,
-                count = 0,
+                chance = 0.1,
+                count = 1,
             },
         },
         health = {
@@ -149,7 +149,7 @@ this.default = {
         },
         skills = {
             randomize = true,
-            limit = false,
+            limit = 100,
             region = {min = 0.5, max = 1.5},
         },
         scale = {
@@ -160,14 +160,14 @@ this.default = {
             positive = {
                 add = {
                     chance = 1,
-                    count = 10,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
             negative = {
                 add = {
                     chance = 1,
-                    count = 10,
+                    count = 0,
                     region = {min = 0, max = 100},
                 },
             },
@@ -201,7 +201,7 @@ this.default = {
             region = {min = 0.1, max = 0.1},
             add = {
                 chance = 1,
-                count = 20,
+                count = 3,
                 levelReference = 20,
             },
         },
@@ -214,11 +214,11 @@ this.default = {
             },
         },
         diseases = {
-            randomize = true,
+            randomize = false,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 1,
-                count = 0,
+                chance = 0.05,
+                count = 1,
             },
         },
         health = {
@@ -227,7 +227,7 @@ this.default = {
         },
         magicka = {
             randomize = true,
-            region = {min = 5.5, max = 10.5},
+            region = {min = 0.5, max = 1.5},
         },
         fatigue = {
             randomize = true,
@@ -235,12 +235,12 @@ this.default = {
         },
         attributes = {
             randomize = true,
-            limit = false,
+            limit = 100,
             region = {min = 0.5, max = 1.5},
         },
         skills = {
             randomize = true,
-            limit = false,
+            limit = 100,
             region = {min = 0.5, max = 1.5},
         },
         head = {
@@ -261,14 +261,14 @@ this.default = {
             positive = {
                 add = {
                     chance = 1,
-                    count = 10,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
             negative = {
                 add = {
                     chance = 1,
-                    count = 10,
+                    count = 0,
                     region = {min = 0, max = 100},
                 },
             },
@@ -298,7 +298,7 @@ this.default = {
     },
     transport = {
         randomize = true,
-        unrandomizedCount = 0,
+        unrandomizedCount = 1,
         toDoorsCount = 0,
         toRandomPointCount = 0,
     },
@@ -322,7 +322,7 @@ this.default = {
         randomize = true,
         region = {min = 1, max = 1},
         add = {
-            chance = 0.25,
+            chance = 0.1,
             levelMultiplier = 5,
             onlyDestructionSchool = false,
         },
