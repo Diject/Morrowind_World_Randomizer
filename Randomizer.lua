@@ -959,25 +959,30 @@ function this.randomizeWeatherChance(cell)
 end
 
 function this.randomizeLockTrap(reference)
-    local config = this.config.data
-    if reference.baseObject.objectType == tes3.objectType.door or reference.baseObject.objectType == tes3.objectType.container then
-        if reference.lockNode ~= nil and config.locks.randomize and reference.lockNode.level > 0 then
-            local newLevel = random.GetRandom(reference.lockNode.level, 100, config.locks.region.min, config.locks.region.max)
+    local configTable
+    if reference.baseObject.objectType == tes3.objectType.door then
+        configTable = this.config.data.doors
+    elseif reference.baseObject.objectType == tes3.objectType.container then
+        configTable = this.config.data.containers
+    end
+    if configTable ~= nil then
+        if reference.lockNode ~= nil and configTable.lock.randomize and reference.lockNode.level > 0 then
+            local newLevel = random.GetRandom(reference.lockNode.level, 100, configTable.lock.region.min, configTable.lock.region.max)
 
             tes3.setLockLevel{ reference = reference, level = newLevel }
         end
-        if (reference.lockNode == nil or reference.lockNode.level == 0) and config.locks.add.chance > math.random() then
-            local newLevel = math.random(1, math.min(100, config.locks.add.levelMultiplier * tes3.player.object.level))
+        if (reference.lockNode == nil or reference.lockNode.level == 0) and configTable.lock.add.chance > math.random() then
+            local newLevel = math.random(1, math.min(100, configTable.lock.add.levelMultiplier * tes3.player.object.level))
 
             tes3.setLockLevel{ reference = reference, level = newLevel }
             reference.lockNode.locked = true
         end
-        if reference.lockNode ~= nil and config.traps.randomize and reference.lockNode.trap ~= nil then
+        if reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil then
             local trap = spellsData.TouchRange[reference.lockNode.trap.id:lower()][1]
             if trap ~= nil then
                 local trapGroup = spellsData.SpellGroups[tostring(trap.SubType)]
                 if trapGroup ~= nil then
-                    local newTrapSpellId = random.GetRandom(trap.Position, trapGroup.Count, config.traps.region.min, config.traps.region.max)
+                    local newTrapSpellId = random.GetRandom(trap.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
                     local newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
                     if newTrapSpell ~= nil then
                         reference.lockNode.trap = newTrapSpell
@@ -985,15 +990,15 @@ function this.randomizeLockTrap(reference)
                 end
             end
         end
-        if (reference.lockNode == nil or reference.lockNode.trap == nil) and config.traps.add.chance > math.random() then
+        if (reference.lockNode == nil or reference.lockNode.trap == nil) and configTable.trap.add.chance > math.random() then
             local newGroup
-            if config.traps.add.onlyDestructionSchool then
+            if configTable.trap.add.onlyDestructionSchool then
                 newGroup = spellsData.SpellGroups["110"]
             else
                 newGroup = spellsData.SpellGroups[tostring(math.random(110, 115))]
             end
             local newTrapSpellPos = math.random(1, math.floor(math.min(newGroup.Count,
-                newGroup.Count * config.traps.add.levelMultiplier * tes3.player.object.level * 0.01)))
+                newGroup.Count * configTable.trap.add.levelMultiplier * tes3.player.object.level * 0.01)))
             local newSpell = tes3.getObject(newGroup.Items[newTrapSpellPos])
             -- reference.lockNode.trap = newSpell
             local trapped = tes3.setTrap({ reference = reference, spell = newSpell })

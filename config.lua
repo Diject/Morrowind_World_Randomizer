@@ -83,6 +83,23 @@ this.default = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
         },
+        lock = {
+            randomize = true,
+            region = {min = 0.3, max = 0.3},
+            add = {
+                chance = 0.1,
+                levelMultiplier = 5,
+            },
+        },
+        trap = {
+            randomize = true,
+            region = {min = 1, max = 1},
+            add = {
+                chance = 0.1,
+                levelMultiplier = 5,
+                onlyDestructionSchool = false,
+            },
+        },
     },
     items = {
         randomize = true,
@@ -325,22 +342,22 @@ this.default = {
         chance = 1,
         cooldown = 10,
         restoreOriginal = true,
-    },
-    locks = {
-        randomize = true,
-        region = {min = 0.3, max = 0.3},
-        add = {
-            chance = 0.1,
-            levelMultiplier = 5,
+        lock = {
+            randomize = true,
+            region = {min = 0.3, max = 0.3},
+            add = {
+                chance = 0.1,
+                levelMultiplier = 5,
+            },
         },
-    },
-    traps = {
-        randomize = true,
-        region = {min = 1, max = 1},
-        add = {
-            chance = 0.1,
-            levelMultiplier = 5,
-            onlyDestructionSchool = false,
+        trap = {
+            randomize = true,
+            region = {min = 1, max = 1},
+            add = {
+                chance = 0.1,
+                levelMultiplier = 5,
+                onlyDestructionSchool = false,
+            },
         },
     },
     weather = {
