@@ -101,8 +101,8 @@ end
 local function saveDoorOrigDestination(reference)
     local data = dataSaver.getObjectData(reference)
     if data.origDestination == nil then
-        local cellStr = reference.cell.editorName
-        if reference.cell.isInterior == false then
+        local cellStr = reference.destination.cell.id
+        if reference.destination.cell.isInterior == false then
             cellStr = ""
         end
         data.origDestination = {x = reference.destination.marker.position.x, y = reference.destination.marker.position.y,
@@ -111,6 +111,7 @@ local function saveDoorOrigDestination(reference)
 end
 
 function this.randomizeDoor(reference)
+    this.resetDoorDestination(reference)
     local data = dataSaver.getObjectData(reference)
     if not this.forbiddenDoorIds[reference.baseObject.id:lower()] and this.config.data.doors.randomize and this.config.data.doors.chance >= math.random() and
             data ~= nil and (data.doorCDTimestamp == nil or data.doorCDTimestamp < tes3.getSimulationTimestamp()) and
@@ -226,9 +227,8 @@ function this.resetDoorDestination(reference)
         local cell
         local dest = data.origDestination
         if dest.cell ~= "" then
-            cell = tes3.getCell{ id = dest.Cell }
+            cell = tes3.getCell{ id = dest.cell }
         end
-
         tes3.setDestination{ reference = reference, position = tes3vector3.new(dest.x, dest.y, dest.z),
             orientation = tes3vector3.new(0, 0, dest.rotZ), cell = cell }
     end
