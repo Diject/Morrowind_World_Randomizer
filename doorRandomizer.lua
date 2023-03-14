@@ -35,7 +35,6 @@ function this.findDoors()
 
     for _, cell in pairs(tes3.dataHandler.nonDynamicData.cells) do
         for door in cell:iterateReferences(tes3.objectType.door) do
-            mwse.log(door.id:lower())
             if not door.deleted and not door.disabled and not door.script and not this.forbiddenDoorIds[door.id:lower()] and isValidDestination(door.destination) then
                 local destIsEx = door.destination.cell.isOrBehavesAsExterior
                 local isEx = door.cell.isOrBehavesAsExterior
