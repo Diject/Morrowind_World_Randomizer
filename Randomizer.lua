@@ -1015,6 +1015,9 @@ end
 function this.randomizeLockTrap(reference)
     local configTable
     if reference.baseObject.objectType == tes3.objectType.door then
+        if this.doors.forbiddenDoorIds[reference.baseObject.id:lower()] then
+            return
+        end
         configTable = this.config.data.doors
     elseif reference.baseObject.objectType == tes3.objectType.container then
         configTable = this.config.data.containers

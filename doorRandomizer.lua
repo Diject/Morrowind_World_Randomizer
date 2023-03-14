@@ -2,6 +2,18 @@ local dataSaver = include("Morrowind World Randomizer.dataSaver")
 
 local this = {}
 
+this.forbiddenDoorIds = {
+    ["chargen customs door"] = true,
+    ["chargen door captain"] = true,
+    ["chargen door exit"] = true,
+    ["chargen door hall"] = true,
+    ["chargen exit door"] = true,
+    ["chargen_cabindoor"] = true,
+    ["chargen_ship_trapdoor"] = true,
+    ["chargen_shipdoor"] = true,
+    ["chargendoorjournal"] = true,
+}
+
 this.config = nil
 
 this.doorsData = {All = {}, InToIn = {}, InToEx = {}, ExToIn = {}, ExToEx = {}}
@@ -18,16 +30,15 @@ local function isValidDestination(destination)
 end
 
 function this.findDoors()
-    mwse.log("Doors gen tms = %s", tostring(os.time()))
+    mwse.log("Doors generation", tostring(os.time()))
     this.doorsData = {All = {}, InToIn = {}, InToEx = {}, ExToIn = {}, ExToEx = {}}
 
     for _, cell in pairs(tes3.dataHandler.nonDynamicData.cells) do
         for door in cell:iterateReferences(tes3.objectType.door) do
-            if not door.deleted and not door.disabled and not door.script and isValidDestination(door.destination) then
+            mwse.log(door.id:lower())
+            if not door.deleted and not door.disabled and not door.script and not this.forbiddenDoorIds[door.id:lower()] and isValidDestination(door.destination) then
                 local destIsEx = door.destination.cell.isOrBehavesAsExterior
                 local isEx = door.cell.isOrBehavesAsExterior
-                -- local newDoorData = {destination = {marker = {position = door.destination.marker.position, orientation = door.destination.marker.orientation},
-                --     cell = door.destination.cell}}
                 if isEx and destIsEx then
                     table.insert(this.doorsData.ExToEx, door)
                 elseif not isEx and destIsEx then
@@ -43,7 +54,6 @@ function this.findDoors()
     end
 
     mwse.log("#doors InToIn = %i, InToEx = %i, ExToIn = %i, ExToEx = %i", #this.doorsData.InToIn, #this.doorsData.InToEx, #this.doorsData.ExToIn, #this.doorsData.ExToEx)
-    mwse.log("tme = %s", tostring(os.time()))
 end
 
 
@@ -103,7 +113,7 @@ end
 
 function this.randomizeDoor(reference)
     local data = dataSaver.getObjectData(reference)
-    if this.config.data.doors.randomize and this.config.data.doors.chance >= math.random() and
+    if not this.forbiddenDoorIds[reference.baseObject.id:lower()] and this.config.data.doors.randomize and this.config.data.doors.chance >= math.random() and
             data ~= nil and (data.doorCDTimestamp == nil or data.doorCDTimestamp < tes3.getSimulationTimestamp()) and
             reference.object.objectType == tes3.objectType.door and reference.destination ~= nil then
 

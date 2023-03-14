@@ -63,7 +63,7 @@ this.globalDefault = {
         usePregeneratedHerbData = false,
         usePregeneratedTravelData = false,
     },
-    globalConfig = true,
+    globalConfig = false,
 }
 
 if this.global == nil then
@@ -73,7 +73,7 @@ else
 end
 
 this.default = {
-    enabled = true,
+    enabled = false,
     trees = {
         randomize = true,
         exceptScale = 2.5,

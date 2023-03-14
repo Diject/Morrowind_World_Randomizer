@@ -22,7 +22,7 @@ event.register(tes3.event.activate, function(e)
 
             randomizer.StopRandomization(e.target)
         end
-        -- mwse.log("Activate=%s", tostring(e.target))
+
         randomizer.doors.resetDoorDestination(e.target)
         randomizer.doors.randomizeDoor(e.target)
     end
@@ -39,45 +39,22 @@ event.register(tes3.event.cellActivated, function(e)
         end
     end
 
-    -- mwse.log("%s CellActivated=%s", tostring(os.time()), tostring(e.cell.editorName))
 end)
 
 event.register(tes3.event.cellDeactivated, function(e)
     mwse.log("%s CellDeactivated=%s", tostring(os.time()), tostring(e.cell.editorName))
 end)
 
-local function enableRandomizerCallback(e)
-    if e.button == 0 then
-        local cells = tes3.getActiveCells()
-        if cells ~= nil then
-            for i, cell in pairs(cells) do
-                timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
-            end
-        end
-    end
-end
-
-event.register(tes3.event.cellChanged, function(e)
-    mwse.log("CHAR GEN %s", tostring(tes3.worldController.charGenState.value))
-    mwse.log("%s CellChanged=%s %s", tostring(os.time()), tostring(e.cell.editorName), tostring(e.previousCell))
-end)
-
 event.register(tes3.event.load, function(e)
     cellLastRandomizeTime = {}
     randomizer.config.resetConfig()
-    mwse.log("Pl %s", tostring(tes3.player))
     mwse.log("%s Load", tostring(os.time()))
 end)
 
 event.register(tes3.event.loaded, function(e)
     randomizer.doors.findDoors()
     randomizer.genNonStaticData()
-    timer.start{ duration = 1, iterations = 1, type = timer.simulate, callback = function()
-        if tes3.worldController.charGenState.value == -1 then
-            tes3.messageBox({ message = "Would you like to enable randomizer? It cannot be undone,", buttons = {"Yes, enable it", "No"},
-                callback = enableRandomizerCallback, showInDialog = false})
-        end
-    end }
+
     if randomizer.config.getConfig().enabled then
         local cells = tes3.getActiveCells()
         if cells ~= nil then
@@ -87,13 +64,11 @@ event.register(tes3.event.loaded, function(e)
         end
     end
 
-    mwse.log("Pl %s", tostring(tes3.player))
     mwse.log("%s Loaded", tostring(os.time()))
 end)
 
 local goldToAdd = 0
 event.register(tes3.event.leveledItemPicked, function(e)
-    mwse.log("it p Pl %s", tostring(tes3.player))
     if randomizer.config.getConfig().enabled then
         if randomizer.config.data.containers.items.randomize and e.pick ~= nil and e.pick.id ~= nil and
                 not randomizer.isRandomizationStoppedTemp(e.spawner) then
@@ -133,17 +108,10 @@ event.register(tes3.event.leveledCreaturePicked, function(e)
             end
         end
     end
-    -- mwse.log("%s Creature Picked=%s", tostring(os.time()), tostring(e.pick or ""))
 end)
 
 event.register(tes3.event.initialized, function(e)
     math.randomseed(os.time())
-    for i, mod in pairs(tes3.dataHandler.nonDynamicData.activeMods) do
-        mwse.log("Path %s", tostring(mod.filename))
-        if mod.filename:lower() == "tamriel_data.esm" then
-            mwse.log("Ver %i", tonumber(string.match(mod.description, "%d+")))
-        end
-    end
     randomizer.genStaticData()
 end)
 
@@ -164,5 +132,29 @@ event.register(tes3.event.mobileActivated, function(e)
             randomizer.StopRandomizationTemp(e.reference)
             randomizer.randomizeActorBaseObject(e.mobile.object.baseObject, e.mobile.actorType)
         end
+    end
+end)
+
+local function enableRandomizerCallback(e)
+    if e.button == 0 then
+        randomizer.config.data.enabled = true
+        local cells = tes3.getActiveCells()
+        if cells ~= nil then
+            for i, cell in pairs(cells) do
+                timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
+            end
+        end
+    end
+end
+
+event.register(tes3.event.activate, function(e)
+    if e.target.baseObject.id == "chargen_shipdoor" and not randomizer.config.global.globalConfig and
+            dataSaver.getObjectData(tes3.player) and not dataSaver.getObjectData(tes3.player).messageShown and
+            not randomizer.config.getConfig().enabled then
+
+        dataSaver.getObjectData(tes3.player).messageShown = true
+        e.block = true
+        tes3.messageBox({ message = "Would you like to enable the randomizer? It cannot be fully undone.", buttons = {"Yes, enable it", "No"},
+            callback = enableRandomizerCallback, showInDialog = false})
     end
 end)
