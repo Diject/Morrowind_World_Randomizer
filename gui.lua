@@ -249,7 +249,6 @@ function this.registerModConfig()
                     event.trigger(updateEventStr)
                 end,
                 components = {
-                    -- createOnOffIngameButton("Enable Randomizer", this.config.data, "enabled"),
                     {
                         label = "Use a separate config for each character",
                         class = "OnOffButton",
@@ -263,6 +262,77 @@ function this.registerModConfig()
                                 this.config.load()
                                 event.trigger(updateEventStr)
                             end,
+                        },
+                    },
+
+                    {
+                        class = "Category",
+                        label = "Pregenerated data tables",
+                        description = "",
+                        components = {
+                            {
+                                label = "Force to use Tamriel Rebuilt data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "forceTRData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated item data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedItemData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated creature data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedCreatureData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated head/hairs data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedHeadHairData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated spell data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedSpellData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated herb data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedHerbData",
+                                },
+                            },
+                            {
+                                label = "Use pregenerated travel destination data",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    table = this.config.global.dataTables,
+                                    id = "usePregeneratedTravelData",
+                                },
+                            },
                         },
                     },
                 },
@@ -949,6 +1019,31 @@ function this.registerModConfig()
                 label = "World",
                 class = "FilterPage",
                 components = {
+                    {
+                        class = "Category",
+                        label = "Herbs",
+                        description = "",
+                        components = {
+                            createOnOffIngameButton("Randomize herbs", this.config.data.herbs, "randomize"),
+                            createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = "Number of herb species per cell %s"}),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = "Trees",
+                        description = "",
+                        components = {
+                            createOnOffIngameButton("Randomize trees", this.config.data.trees, "randomize"),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = "Stones",
+                        description = "",
+                        components = {
+                            createOnOffIngameButton("Randomize stones", this.config.data.stones, "randomize"),
+                        },
+                    },
                     {
                         class = "Category",
                         label = "Weather",
