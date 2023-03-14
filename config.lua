@@ -54,7 +54,15 @@ this.global = mwse.loadConfig(globalConfigName)
 this.data = nil
 
 this.globalDefault = {
-    useDataTables = false,
+    dataTables = {
+        forceTRData = false,
+        usePregeneratedItemData = false,
+        usePregeneratedCreatureData = false,
+        usePregeneratedHeadHairData = false,
+        usePregeneratedSpellData = false,
+        usePregeneratedHerbData = false,
+        usePregeneratedTravelData = false,
+    },
     globalConfig = true,
 }
 

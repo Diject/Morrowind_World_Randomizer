@@ -1,38 +1,92 @@
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local random = require("Morrowind World Randomizer.Random")
-local itemsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Items")
-local creaturesData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Creatures")
+
 local treesData = require("Morrowind World Randomizer.Data.TreesData_TR")
 local rocksData = require("Morrowind World Randomizer.Data.RocksData_TR")
+
+local generator = require("Morrowind World Randomizer.generator")
+
+local itemsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Items")
+local creaturesData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Creatures")
 local herbsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Herbs")
 local headPartsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\HeadsHairs")
 local travelDestinationsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations")
 local spellsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Spells")
 
+
 local this = {}
 
+this.config = require("Morrowind World Randomizer.config")
+this.doors = require("Morrowind World Randomizer.doorRandomizer")
+this.doors.initConfig(this.config)
+
 function this.genStaticData()
-    itemsData = require("Morrowind World Randomizer.generator").fillItems()
-    creaturesData = require("Morrowind World Randomizer.generator").fillCreatures()
-    headPartsData = require("Morrowind World Randomizer.generator").fillHeadsHairs()
-    spellsData = require("Morrowind World Randomizer.generator").fillSpells()
-    herbsData = require("Morrowind World Randomizer.generator").fillHerbs()
-    travelDestinationsData = require("Morrowind World Randomizer.generator").findTravelDestinations()
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\Items", itemsData)
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\Creatures", creaturesData)
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\HeadsHairs", headPartsData)
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\Spells", spellsData)
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\Herbs", herbsData)
-    json.savefile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations", travelDestinationsData)
+    local TRDataVersion = 0
+    for i, mod in pairs(tes3.dataHandler.nonDynamicData.activeMods) do
+        if mod.filename:lower() == "tamriel_data.esm" then
+            TRDataVersion = tonumber(string.match(mod.description, "%d+") or "0")
+        end
+    end
+
+    if this.config.global.dataTables.usePregeneratedItemData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            itemsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Items_TR")
+        end
+    else
+        itemsData = generator.fillItems()
+    end
+
+    if this.config.global.dataTables.usePregeneratedCreatureData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            creaturesData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Creatures_TR")
+        end
+    else
+        creaturesData = generator.fillCreatures()
+    end
+
+    if this.config.global.dataTables.usePregeneratedHeadHairData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            headPartsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\HeadsHairs_TR")
+        end
+    else
+        headPartsData = generator.fillHeadsHairs()
+    end
+
+    if this.config.global.dataTables.usePregeneratedSpellData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            spellsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Spells_TR")
+        end
+    else
+        spellsData = generator.fillSpells()
+    end
+
+    if this.config.global.dataTables.usePregeneratedHerbData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            herbsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\Herbs_TR")
+        end
+    else
+        herbsData = generator.fillHerbs()
+    end
+
+    if this.config.global.dataTables.usePregeneratedTravelData then
+        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+            travelDestinationsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations_TR")
+        end
+    else
+        travelDestinationsData = generator.findTravelDestinations()
+    end
+
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Items_TR", itemsData)
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Creatures_TR", creaturesData)
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\HeadsHairs_TR", headPartsData)
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Spells_TR", spellsData)
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Herbs_TR", herbsData)
+    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations_TR", travelDestinationsData)
 end
 
 function this.genNonStaticData()
     
 end
-
-this.config = require("Morrowind World Randomizer.config")
-this.doors = require("Morrowind World Randomizer.doorRandomizer")
-this.doors.initConfig(this.config)
 
 local function iterItems(ref)
     local function iterator()
