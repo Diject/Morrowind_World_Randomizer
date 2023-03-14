@@ -1,8 +1,8 @@
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local random = require("Morrowind World Randomizer.Random")
 
-local treesData = require("Morrowind World Randomizer.Data.TreesData_TR")
-local rocksData = require("Morrowind World Randomizer.Data.RocksData_TR")
+local treesData = require("Morrowind World Randomizer.Data.TreesData")
+local rocksData = require("Morrowind World Randomizer.Data.RocksData")
 
 local generator = require("Morrowind World Randomizer.generator")
 
@@ -26,6 +26,11 @@ function this.genStaticData()
         if mod.filename:lower() == "tamriel_data.esm" then
             TRDataVersion = tonumber(string.match(mod.description, "%d+") or "0")
         end
+    end
+
+    if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+        treesData = require("Morrowind World Randomizer.Data.TreesData_TR")
+        rocksData = require("Morrowind World Randomizer.Data.RocksData_TR")
     end
 
     if this.config.global.dataTables.usePregeneratedItemData then
@@ -391,50 +396,52 @@ function this.randomizeCell(cell)
                 elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
                     if config.stones.randomize and (this.isOrigin(object) or not object.disabled) then
                         local newId = newRockGroup.Items[math.random(1, newRockGroup.Count)]
-                        local newAdvData = rocksData.RocksOffset[newId:lower()]
-                        local newRockOffset
-                        if newAdvData == nil then
-                            newRockOffset = 0
-                        else
-                            newRockOffset = newAdvData.Offset
+                        if newId then
+                            local newAdvData = rocksData.RocksOffset[newId:lower()]
+                            local newRockOffset
+                            if newAdvData == nil then
+                                newRockOffset = 0
+                            else
+                                newRockOffset = newAdvData.Offset
+                            end
+                            local scale = objectScale
+
+                            if newRockOffset >= 450 then
+                                scale = math.min(objectScale, 1.0)
+                            elseif newRockOffset >= 250 then
+                                scale = math.min(objectScale, 2.0)
+                            end
+
+                            scale = (0.5 + math.random() * 0.5) * scale
+
+                            if objectScale <= 0.4 and scale > 0.4 then
+                                scale = objectScale
+                            end
+
+                            local distanceToDoor =  minDistanceBetweenVectors(objectPos, doorPoss)
+                            if distanceToDoor < 300 then
+                                scale = math.min(scale, 0.25)
+                            elseif distanceToDoor < 1000 then
+                                scale = math.min(scale, 0.25 + 0.75 * distanceToDoor / 1000)
+                            end
+
+                            local offset = newRockOffset
+                            if newRockOffset >= 600 then
+                                offset = offset + math.random(100, 200)
+                            elseif newRockOffset >= 150 then
+                                offset = offset + math.random(0, 100)
+                            end
+
+                            local posVector = getMinGroundPosInCircle(objectPos, 500, offset * scale)
+
+                            if posVector == nil then
+                                posVector = tes3vector3.new(objectPos.x, objectPos.y, (newRockOffset - rockAdvData.Offset) * scale)
+                            end
+
+                            table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
+                            putOriginMark(object)
+                            object:disable()
                         end
-                        local scale = objectScale
-
-                        if newRockOffset >= 450 then
-                            scale = math.min(objectScale, 1.0)
-                        elseif newRockOffset >= 250 then
-                            scale = math.min(objectScale, 2.0)
-                        end
-
-                        scale = (0.5 + math.random() * 0.5) * scale
-
-                        if objectScale <= 0.4 and scale > 0.4 then
-                            scale = objectScale
-                        end
-
-                        local distanceToDoor =  minDistanceBetweenVectors(objectPos, doorPoss)
-                        if distanceToDoor < 300 then
-                            scale = math.min(scale, 0.25)
-                        elseif distanceToDoor < 1000 then
-                            scale = math.min(scale, 0.25 + 0.75 * distanceToDoor / 1000)
-                        end
-
-                        local offset = newRockOffset
-                        if newRockOffset >= 600 then
-                            offset = offset + math.random(100, 200)
-                        elseif newRockOffset >= 150 then
-                            offset = offset + math.random(0, 100)
-                        end
-
-                        local posVector = getMinGroundPosInCircle(objectPos, 500, offset * scale)
-
-                        if posVector == nil then
-                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newRockOffset - rockAdvData.Offset) * scale)
-                        end
-
-                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
-                        putOriginMark(object)
-                        object:disable()
 
                     elseif this.isOrigin(object) and object.disabled then
                         this.deleteOriginMark(object)
@@ -1034,7 +1041,7 @@ function this.randomizeLockTrap(reference)
             tes3.setLockLevel{ reference = reference, level = newLevel }
             reference.lockNode.locked = true
         end
-        if reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil then
+        if reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil and reference.lockNode.trap.id ~= nil then
             local trap = spellsData.TouchRange[reference.lockNode.trap.id:lower()][1]
             if trap ~= nil then
                 local trapGroup = spellsData.SpellGroups[tostring(trap.SubType)]
