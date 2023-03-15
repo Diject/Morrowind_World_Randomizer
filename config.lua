@@ -416,7 +416,7 @@ end
 
 function this.save()
     mwse.saveConfig(globalConfigName, this.global)
-    if this.global then
+    if this.global.globalConfig then
         mwse.saveConfig(configName, this.data)
     elseif tes3.player then
         local playerData = dataSaver.getObjectData(tes3.player)
