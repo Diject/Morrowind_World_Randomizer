@@ -110,6 +110,41 @@ local function saveDoorOrigDestination(reference)
     end
 end
 
+local function getNearestDoorFromMarkerReference(reference)
+    if reference then
+        local nearestDoor
+        local minDistance = math.huge
+        for door in reference.cell:iterateReferences(tes3.objectType.door) do
+            local distance = door.position:distance(reference.position)
+            if minDistance > distance then
+                nearestDoor = door
+                minDistance = distance
+            end
+        end
+        return nearestDoor
+    end
+    return nil
+end
+
+local function replaceDoorDestinations(door1, door2)
+    if door1 and door2 then
+        local oldDoorCell = door1.destination.cell
+        local oldDoorOrient = door1.destination.marker.orientation
+        local oldDoorPos = door1.destination.marker.position
+        local newDoorCell = door2.destination.cell
+        local newDoorOrient = door2.destination.marker.orientation
+        local newDoorPos = door2.destination.marker.position
+        saveDoorOrigDestination(door1)
+        saveDoorOrigDestination(door2)
+
+        dataSaver.getObjectData(door1).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
+        dataSaver.getObjectData(door2).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
+
+        tes3.setDestination{ reference = door1, position = newDoorPos, orientation = newDoorOrient, cell = newDoorCell }
+        tes3.setDestination{ reference = door2, position = oldDoorPos, orientation = oldDoorOrient, cell = oldDoorCell }
+    end
+end
+
 function this.randomizeDoor(reference)
     this.resetDoorDestination(reference)
     local data = dataSaver.getObjectData(reference)
@@ -119,9 +154,11 @@ function this.randomizeDoor(reference)
 
         saveDoorOrigDestination(reference)
 
+        local shouldChangeReverseDoor = (reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior) and true or false
+
         local doors = {}
         if this.config.data.doors.onlyNearest then
-            -- local destinations = {}
+            
             if reference.destination.cell.isOrBehavesAsExterior then
                 local cellsToCheck = {}
                 if reference.destination.cell.behavesAsExterior then
@@ -201,21 +238,19 @@ function this.randomizeDoor(reference)
 
         if #doors > 0 then
             local newDoor = doors[math.random(1, #doors)]
-            local oldDoorCell = reference.destination.cell
-            local oldDoorOrient = reference.destination.marker.orientation
-            local oldDoorPos = reference.destination.marker.position
-            local newDoorCell = newDoor.destination.cell
-            local newDoorOrient = newDoor.destination.marker.orientation
-            local newDoorPos = newDoor.destination.marker.position
 
-            data.doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
+            if newDoor ~= reference then
+                if shouldChangeReverseDoor then
+                    local backDoor = getNearestDoorFromMarkerReference(reference.destination.marker)
+                    local newBackDoor = getNearestDoorFromMarkerReference(newDoor.destination.marker)
 
-            local newDoorData = dataSaver.getObjectData(newDoor)
-            saveDoorOrigDestination(newDoor)
-            newDoorData.doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
+                    if backDoor and newBackDoor then
+                        replaceDoorDestinations(backDoor, newBackDoor)
+                    end
+                end
 
-            tes3.setDestination{ reference = reference, position = newDoorPos, orientation = newDoorOrient, cell = newDoorCell }
-            tes3.setDestination{ reference = newDoor, position = oldDoorPos, orientation = oldDoorOrient, cell = oldDoorCell }
+                replaceDoorDestinations(reference, newDoor)
+            end
         end
     end
 end
