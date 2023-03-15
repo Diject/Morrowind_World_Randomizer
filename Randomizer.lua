@@ -1019,6 +1019,42 @@ function this.randomizeWeatherChance(cell)
     end
 end
 
+local function saveLockTrapInitialState(reference)
+    local data = dataSaver.getObjectData(reference)
+    if data and not data.lockNode and reference.lockNode then
+        data.lockNode = {
+            level = reference.lockNode.level,
+            locked = reference.lockNode.locked,
+        }
+        if reference.lockNode.trap and reference.lockNode.trap.id then
+            data.lockNode.trapId = reference.lockNode.trap.id
+        end
+    end
+end
+
+local function getLockTrapCDTimestamp(data)
+    return data.lockTrapCDTimestamp or 0
+end
+
+local function setLockTrapCDTimestamp(data, value)
+    data.lockTrapCDTimestamp = value
+end
+
+function this.resetLockTrapToDefault(reference)
+    local data = dataSaver.getObjectData(reference)
+    if data and data.lockNode and getLockTrapCDTimestamp(data) < tes3.getSimulationTimestamp() then
+        if data.lockNode.level ~= reference.lockNode.level then
+            tes3.setLockLevel{ reference = reference, level = data.lockNode.level }
+        end
+        if data.lockNode.locked ~= reference.lockNode.locked then
+            reference.lockNode.locked = data.lockNode.locked
+        end
+        if reference.lockNode.trap and data.lockNode.trapId and reference.lockNode.trap.id ~= data.lockNode.trapId then
+            tes3.setTrap{ reference = reference, spell = data.lockNode.trapId }
+        end
+    end
+end
+
 function this.randomizeLockTrap(reference)
     local configTable
     if reference.baseObject.objectType == tes3.objectType.door then
@@ -1029,7 +1065,12 @@ function this.randomizeLockTrap(reference)
     elseif reference.baseObject.objectType == tes3.objectType.container then
         configTable = this.config.data.containers
     end
-    if configTable ~= nil then
+    local data = dataSaver.getObjectData(reference)
+    if configTable and data and getLockTrapCDTimestamp(data) < tes3.getSimulationTimestamp() then
+        saveLockTrapInitialState(reference)
+        this.resetLockTrapToDefault(reference)
+        setLockTrapCDTimestamp(data, tes3.getSimulationTimestamp() + configTable.lockTrapCooldown)
+
         if reference.lockNode ~= nil and configTable.lock.randomize and reference.lockNode.level > 0 then
             local newLevel = random.GetRandom(reference.lockNode.level, 100, configTable.lock.region.min, configTable.lock.region.max)
 
@@ -1064,7 +1105,6 @@ function this.randomizeLockTrap(reference)
             local newTrapSpellPos = math.random(1, math.floor(math.min(newGroup.Count,
                 newGroup.Count * configTable.trap.add.levelMultiplier * tes3.player.object.level * 0.01)))
             local newSpell = tes3.getObject(newGroup.Items[newTrapSpellPos])
-            -- reference.lockNode.trap = newSpell
             local trapped = tes3.setTrap({ reference = reference, spell = newSpell })
         end
     end

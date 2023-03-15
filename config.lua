@@ -91,6 +91,7 @@ this.default = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
         },
+        lockTrapCooldown = 72,
         lock = {
             randomize = true,
             region = {min = 0.3, max = 0.3},
@@ -350,6 +351,7 @@ this.default = {
         chance = 1,
         cooldown = 10,
         restoreOriginal = true,
+        lockTrapCooldown = 72,
         lock = {
             randomize = true,
             region = {min = 0.3, max = 0.3},
