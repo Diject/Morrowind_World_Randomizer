@@ -54,13 +54,15 @@ local skillByEffectId = {[0]=11,[1]=11,[2]=11,[3]=11,[4]=11,[5]=11,[6]=11,[7]=11
 local herbsOffsets = {["flora_bittergreen_07"]=70,["flora_bittergreen_06"]=40,["flora_bittergreen_08"]=50,["flora_bittergreen_09"]=60,["flora_bittergreen_10"]=50,["flora_sedge_01"]=25,["flora_sedge_02"]=25,["flora_kreshweed_02"]=120,["flora_green_lichen_02"]=0,["flora_green_lichen_01"]=5,["flora_ash_yam_02"]=10,["flora_muckspunge_01"]=80,["flora_kreshweed_01"]=80,["flora_muckspunge_05"]=110,["flora_muckspunge_06"]=100,["flora_muckspunge_02"]=90,["flora_ash_yam_01"]=20,["flora_kreshweed_03"]=90,["flora_muckspunge_04"]=80,["flora_muckspunge_03"]=80,["flora_stoneflower_02"]=45,["flora_marshmerrow_02"]=60,["flora_bc_mushroom_07"]=0,["flora_marshmerrow_03"]=70,["flora_saltrice_01"]=50,["flora_bc_mushroom_06"]=10,["flora_saltrice_02"]=50,["flora_bc_mushroom_05"]=15,["flora_wickwheat_01"]=40,["flora_bc_mushroom_03"]=15,["flora_wickwheat_03"]=20,["flora_wickwheat_04"]=25,["flora_bc_shelffungus_03"]=0,["flora_bc_shelffungus_04"]=0,["flora_bc_shelffungus_02"]=0,["flora_chokeweed_02"]=100,["flora_roobrush_02"]=30,["flora_marshmerrow_01"]=70,["flora_wickwheat_02"]=20,["flora_bc_mushroom_01"]=15,["flora_bc_shelffungus_01"]=0,["flora_stoneflower_01"]=40,["flora_plant_05"]=30,["flora_black_lichen_02"]=5,["flora_plant_02"]=30,["flora_black_lichen_01"]=5,["flora_plant_03"]=20,["flora_plant_06"]=30,["flora_plant_08"]=-10,["flora_plant_07"]=5,["flora_fire_fern_01"]=30,["flora_fire_fern_03"]=20,["flora_black_anther_02"]=20,["flora_bc_podplant_01"]=10,["flora_fire_fern_02"]=20,["flora_bc_podplant_02"]=10,["flora_heather_01"]=5,["flora_rm_scathecraw_02"]=70,["flora_comberry_01"]=50,["flora_rm_scathecraw_01"]=100,["flora_bc_mushroom_02"]=15,["flora_bc_mushroom_04"]=15,["flora_bc_mushroom_08"]=10,["flora_plant_04"]=20,["flora_bc_fern_01"]=70,["flora_black_anther_01"]=50,["flora_gold_kanet_01"]=30,["flora_bm_belladonna_01"]=30,["flora_corkbulb"]=0,["flora_bm_belladonna_02"]=30,["flora_gold_kanet_02"]=30,["flora_bittergreen_01"]=60,["flora_bm_holly_02"]=160,["flora_bm_holly_04"]=160,["flora_bm_holly_01"]=160,["flora_bm_holly_05"]=160,["flora_gold_kanet_02_uni"]=30,["flora_bm_belladonna_03"]=30,["flora_bm_wolfsbane_01"]=25,["tramaroot_04"]=40,["flora_bittergreen_04"]=20,["tramaroot_05"]=30,["flora_bittergreen_05"]=50,["tramaroot_03"]=45,["flora_bittergreen_02"]=50,["tramaroot_02"]=85,["flora_willow_flower_01"]=40,["flora_willow_flower_02"]=30,["flora_bittergreen_03"]=80,["contain_trama_shrub_05"]=140,["contain_trama_shrub_01"]=120,["flora_bc_podplant_03"]=10,["flora_bc_podplant_04"]=10,["flora_red_lichen_01"]=5,["flora_red_lichen_02"]=5,["flora_hackle-lo_02"]=20,["flora_hackle-lo_01"]=20,["contain_trama_shrub_02"]=140,["tramaroot_01"]=50,["contain_trama_shrub_03"]=70,["contain_trama_shrub_04"]=120,["contain_trama_shrub_06"]=120,["kollop_01_pearl"]=5,["kollop_02_pearl"]=5,["kollop_03_pearl"]=5,}
 
 local function addItemToTable(out, objectId, objectTypeId, objectSubTypeId)
-    if not out.ItemGroups[objectTypeId] then out.ItemGroups[objectTypeId] = {} end
-    if not out.ItemGroups[objectTypeId][objectSubTypeId] then
-        out.ItemGroups[objectTypeId][objectSubTypeId] = {Count = 0, Items = {}}
+    local objectTypeStr = mwse.longToString(objectTypeId)
+    local objectSubTypeStr = tostring(objectSubTypeId)
+    if not out.ItemGroups[objectTypeStr] then out.ItemGroups[objectTypeStr] = {} end
+    if not out.ItemGroups[objectTypeStr][objectSubTypeStr] then
+        out.ItemGroups[objectTypeStr][objectSubTypeStr] = {Count = 0, Items = {}}
     end
-    local gr = out.ItemGroups[objectTypeId][objectSubTypeId]
+    local gr = out.ItemGroups[objectTypeStr][objectSubTypeStr]
     gr.Count = gr.Count + 1
-    out.Items[objectId:lower()] = {Type = objectTypeId, SubType = objectSubTypeId, Position = gr.Count}
+    out.Items[objectId:lower()] = {Type = objectTypeStr, SubType = objectSubTypeStr, Position = gr.Count}
     table.insert(gr.Items, objectId)
 end
 

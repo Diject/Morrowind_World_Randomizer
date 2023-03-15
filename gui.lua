@@ -4,31 +4,15 @@ local EasyMCM = require("easyMCM.EasyMCM")
 
 this.name = "Morrowind World Randomizer"
 
--- local strYes = tes3.findGMST(tes3.gmst.sYes).value
--- local strNo = tes3.findGMST(tes3.gmst.sNo).value
-local strDisabled = "---"
-
-local updateEventStr = "MWWRandomizer_UpdateGUI_event"
-
 this.config = nil
+this.updateStaticDataFunc = nil
 
 local regionDescr = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
     "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with a range of 30 to 50."
 
-function this.init(config)
+function this.init(config, updateStaticDataFunc)
     this.config = config
-end
-
-local function enableElement(self)
-    if self and self.elements and self.elements.label then
-        self.elements.label.color = tes3ui.getPalette("normal_color")
-    end
-end
-
-local function disableElement(self)
-    if self and self.elements and self.elements.label then
-        self.elements.label.color = tes3ui.getPalette("disabled_color")
-    end
+    this.updateStaticDataFunc = updateStaticDataFunc
 end
 
 local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
@@ -40,6 +24,7 @@ local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, st
         max = max,
         step = step,
         jump = step * 10,
+        inGameOnly = true,
         variable = EasyMCM.createVariable{
             get = function(self)
                 if varTable ~= nil and varTable[varStr] ~= nil then
@@ -53,15 +38,6 @@ local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, st
                 end
             end,
         },
-        postCreate = function(self)
-            event.register(updateEventStr, function()
-                if this.config.fullyLoaded then
-                    enableElement(self)
-                else
-                    disableElement(self)
-                end
-            end)
-        end,
     }
     return slider
 end
@@ -75,6 +51,7 @@ local function createSettingsBlock_minmaxp(varRegionTable, varStr, varMul, min, 
         max = max,
         step = step,
         jump = step * 10,
+        inGameOnly = true,
         variable = EasyMCM.createVariable{
             get = function(self)
                 if varRegionTable ~= nil and varRegionTable[varStr] ~= nil then
@@ -91,15 +68,6 @@ local function createSettingsBlock_minmaxp(varRegionTable, varStr, varMul, min, 
                 end
             end,
         },
-        postCreate = function(self)
-            event.register(updateEventStr, function()
-                if this.config.fullyLoaded then
-                    enableElement(self)
-                else
-                    disableElement(self)
-                end
-            end)
-        end,
     }
     return slider
 end
@@ -113,6 +81,7 @@ local function createSettingsBlock_region(varTable, labels)
         max = 200,
         step = 1,
         jump = 5,
+        inGameOnly = true,
         variable = EasyMCM.createVariable{
             get = function(self)
                 if varTable ~= nil then
@@ -128,18 +97,6 @@ local function createSettingsBlock_region(varTable, labels)
                 end
             end,
         },
-        postCreate = function(self)
-            event.register(updateEventStr, function()
-                if this.config.fullyLoaded then
-                    enableElement(self)
-                    -- self:enable()
-                else
-                    disableElement(self)
-                    -- self:disable()
-                end
-                -- self:update()
-            end)
-        end,
     }
     return slider
 end
@@ -153,6 +110,7 @@ local function createSettingsBlock_offset(varTable, labels)
         max = 100,
         step = 1,
         jump = 5,
+        inGameOnly = true,
         variable = EasyMCM.createVariable{
             get = function(self)
                 if varTable ~= nil then
@@ -168,59 +126,20 @@ local function createSettingsBlock_offset(varTable, labels)
                 end
             end,
         },
-        postCreate = function(self)
-            event.register(updateEventStr, function()
-                if this.config.fullyLoaded then
-                    enableElement(self)
-                    -- self:enable()
-                else
-                    disableElement(self)
-                    -- self:disable()
-                end
-                -- self:update()
-            end)
-        end,
     }
     return slider
 end
 
 local function createOnOffIngameButton(label, varTable, varId)
-    local buttonText
-    if this.config.fullyLoaded then
-        buttonText = varTable[varId] and tes3.findGMST(tes3.gmst.sOn).value or tes3.findGMST(tes3.gmst.sOff).value
-    else
-        buttonText = strDisabled
-    end
     local data = {
-        class = "Button",
+        class = "OnOffButton",
         label = label,
-        buttonText = buttonText,
-        callback = function (self)
-            if varTable ~= nil and varTable[varId] ~= nil and this.config.fullyLoaded then
-                varTable[varId] = not varTable[varId]
-                self.buttonText = varTable[varId] and tes3.findGMST(tes3.gmst.sOn).value or tes3.findGMST(tes3.gmst.sOff).value
-            else
-                self.buttonText = strDisabled
-            end
-            self:setText(self:getText())
-            -- self:update()
-        end,
-        postCreate = function(self)
-            event.register(updateEventStr, function()
-                if this.config.fullyLoaded then
-                    self.buttonText = varTable[varId] and tes3.findGMST(tes3.gmst.sOn).value or tes3.findGMST(tes3.gmst.sOff).value
-                    enableElement(self)
-                else
-                    self.buttonText = strDisabled
-                    disableElement(self)
-                end
-                -- if self.elements and self.elements.button and self.elements.button.text then
-                --     self:setText(self:getText())
-                --     -- self:update()
-                --     mwse.log("TEST"..tostring(os.time()))
-                -- end
-            end)
-        end,
+        inGameOnly = true,
+        variable = {
+            id = varId,
+            class = "TableVariable",
+            table = varTable,
+        },
     }
     return data
 end
@@ -235,9 +154,6 @@ function this.registerModConfig()
             {
                 label = "Main",
                 class = "Page",
-                -- postCreate = function(self)
-                --     event.trigger(updateEventStr)
-                -- end,
                 components = {
                     createOnOffIngameButton("Enable Randomizer", this.config.data, "enabled"),
                 },
@@ -245,26 +161,7 @@ function this.registerModConfig()
             {
                 label = "Global",
                 class = "Page",
-                postCreate = function(self)
-                    event.trigger(updateEventStr)
-                end,
                 components = {
-                    {
-                        label = "Use a separate config for each character",
-                        class = "OnOffButton",
-                        variable = {
-                            class = "Variable",
-                            get = function(self)
-                                return not this.config.global.globalConfig
-                            end,
-                            set = function(self, val)
-                                this.config.global.globalConfig = not val
-                                this.config.load()
-                                event.trigger(updateEventStr)
-                            end,
-                        },
-                    },
-
                     {
                         class = "Category",
                         label = "Pregenerated data tables",
@@ -274,63 +171,84 @@ function this.registerModConfig()
                                 label = "Force to use Tamriel Rebuilt data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "forceTRData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.forceTRData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.forceTRData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated item data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedItemData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedItemData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedItemData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated creature data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedCreatureData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedCreatureData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedCreatureData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated head/hairs data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedHeadHairData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedHeadHairData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedHeadHairData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated spell data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedSpellData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedSpellData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedSpellData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated herb data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedHerbData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedHerbData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedHerbData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                             {
                                 label = "Use pregenerated travel destination data",
                                 class = "OnOffButton",
                                 variable = {
-                                    class = "TableVariable",
-                                    table = this.config.global.dataTables,
-                                    id = "usePregeneratedTravelData",
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.dataTables.usePregeneratedTravelData end,
+                                    set = function(self, val)
+                                        this.config.global.dataTables.usePregeneratedTravelData = val
+                                        this.updateStaticDataFunc()
+                                    end,
                                 },
                             },
                         },
@@ -340,9 +258,6 @@ function this.registerModConfig()
             {
                 label = "Items",
                 class = "FilterPage",
-                -- postCreate = function(self)
-                --     event.trigger(updateEventStr)
-                -- end,
                 components = {
                     createOnOffIngameButton("Randomize items in containers", this.config.data.containers.items, "randomize"),
                     createSettingsBlock_region(this.config.data.containers.items.region, {label = "Region size %s%%", descr = regionDescr}),
@@ -372,9 +287,6 @@ function this.registerModConfig()
             {
                 label = "Creatures",
                 class = "FilterPage",
-                -- postCreate = function(self)
-                --     event.trigger(updateEventStr)
-                -- end,
                 components = {
                     {
                         class = "Category",
@@ -617,9 +529,6 @@ function this.registerModConfig()
             {
                 label = "NPCs",
                 class = "FilterPage",
-                -- postCreate = function(self)
-                --     event.trigger(updateEventStr)
-                -- end,
                 components = {
                     {
                         class = "Category",
