@@ -83,22 +83,13 @@ function this.genStaticData()
         herbsData = generator.fillHerbs()
     end
 
-    if this.config.global.dataTables.usePregeneratedTravelData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            travelDestinationsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations_TR")
-        else
-            travelDestinationsData = json.loadfile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations")
-        end
-    else
-        travelDestinationsData = generator.findTravelDestinations()
-    end
+    travelDestinationsData = generator.findTravelDestinations()
 
     -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Creatures", creaturesData)
     -- json.savefile("mods\\Morrowind World Randomizer\\Data\\HeadsHairs", headPartsData)
     -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Spells", spellsData)
     -- json.savefile("mods\\Morrowind World Randomizer\\Data\\Herbs", herbsData)
-    -- json.savefile("mods\\Morrowind World Randomizer\\Data\\TravelDestinations", travelDestinationsData)
 end
 
 function this.genNonStaticData()

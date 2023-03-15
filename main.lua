@@ -33,9 +33,9 @@ event.register(tes3.event.cellActivated, function(e)
     if randomizer.config.getConfig().enabled then
 
         if cellLastRandomizeTime[e.cell.editorName] == nil then
+            cellLastRandomizeTime[e.cell.editorName] = os.time()
             randomizer.randomizeWeatherChance(e.cell)
             timer.delayOneFrame(function() randomizer.randomizeCell(e.cell) end)
-            cellLastRandomizeTime[e.cell.editorName] = os.time()
         end
     end
 
@@ -55,10 +55,20 @@ event.register(tes3.event.loaded, function(e)
     randomizer.genNonStaticData()
 
     if randomizer.config.getConfig().enabled then
+        if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.enabled() and
+                mge.render.distantStatics then
+            mge.render.distantStatics = false
+            mge.render.distantLand = false
+            mge.render.distantWater = false
+        end
         local cells = tes3.getActiveCells()
         if cells ~= nil then
             for i, cell in pairs(cells) do
-                timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
+                if cellLastRandomizeTime[cell.editorName] == nil then
+                    cellLastRandomizeTime[cell.editorName] = os.time()
+                    randomizer.randomizeWeatherChance(e.cell)
+                    timer.delayOneFrame(function() randomizer.randomizeCell(e.cell) end)
+                end
             end
         end
     end

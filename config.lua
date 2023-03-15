@@ -61,7 +61,6 @@ this.globalDefault = {
         usePregeneratedHeadHairData = false,
         usePregeneratedSpellData = false,
         usePregeneratedHerbData = false,
-        usePregeneratedTravelData = false,
     },
     globalConfig = false,
 }
@@ -372,6 +371,9 @@ this.default = {
     },
     weather = {
         randomize = true,
+    },
+    other = {
+        disableMGEDistantStatics = true,
     },
 }
 

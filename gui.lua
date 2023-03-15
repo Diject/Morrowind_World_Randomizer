@@ -239,18 +239,6 @@ function this.registerModConfig()
                                     end,
                                 },
                             },
-                            {
-                                label = "Use pregenerated travel destination data",
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedTravelData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedTravelData = val
-                                        this.updateStaticDataFunc()
-                                    end,
-                                },
-                            },
                         },
                     },
                 },
