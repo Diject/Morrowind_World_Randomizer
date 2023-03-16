@@ -6,12 +6,14 @@ this.name = "Morrowind World Randomizer"
 
 this.config = nil
 this.funcs = nil
+this.i18n = nil
 
 local regionDescr = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
     "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with a range of 30 to 50."
 
-function this.init(config, functions)
+function this.init(config, i18n, functions)
     this.config = config
+    this.i18n = i18n
     this.funcs = functions
 end
 
@@ -152,12 +154,12 @@ function this.registerModConfig()
         end),
         pages = {
             {
-                label = "Main",
+                label = this.i18n("modConfig.label.mainPage"),
                 class = "Page",
                 components = {
                     {
                         class = "OnOffButton",
-                        label = "Enable Randomizer",
+                        label = this.i18n("modConfig.label.enableRandomizer"),
                         inGameOnly = true,
                         variable = {
                             class = "Variable",
@@ -175,16 +177,16 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "Global",
+                label = this.i18n("modConfig.label.globalPage"),
                 class = "Page",
                 components = {
                     {
                         class = "Category",
-                        label = "Pregenerated data tables",
+                        label = this.i18n("modConfig.label.pregeneratedDataTables"),
                         description = "",
                         components = {
                             {
-                                label = "Force to use Tamriel Rebuilt data",
+                                label = this.i18n("modConfig.label.forceTTRData"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -196,7 +198,7 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Use pregenerated item data",
+                                label = this.i18n("modConfig.label.pregeneratedItems"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -208,7 +210,7 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Use pregenerated creature data",
+                                label = this.i18n("modConfig.label.pregeneratedCreatures"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -220,7 +222,7 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Use pregenerated head/hairs data",
+                                label = this.i18n("modConfig.label.pregeneratedHeadHair"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -232,7 +234,7 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Use pregenerated spell data",
+                                label = this.i18n("modConfig.label.pregeneratedSpells"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -244,7 +246,7 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Use pregenerated herb data",
+                                label = this.i18n("modConfig.label.pregeneratedHerbs"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
@@ -260,150 +262,150 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "Items",
+                label = this.i18n("modConfig.label.items"),
                 class = "FilterPage",
                 components = {
-                    createOnOffIngameButton("Randomize items in containers", this.config.data.containers.items, "randomize"),
-                    createSettingsBlock_region(this.config.data.containers.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                    createSettingsBlock_offset(this.config.data.containers.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemInCont"), this.config.data.containers.items, "randomize"),
+                    createSettingsBlock_region(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                    createSettingsBlock_offset(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton("Randomize items without a container", this.config.data.items, "randomize"), -- ????
-                    createSettingsBlock_region(this.config.data.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                    createSettingsBlock_offset(this.config.data.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemWithoutCont"), this.config.data.items, "randomize"), -- ????
+                    createSettingsBlock_region(this.config.data.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                    createSettingsBlock_offset(this.config.data.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton("Randomize items in NPCs", this.config.data.NPCs.items, "randomize"),
-                    createSettingsBlock_region(this.config.data.NPCs.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                    createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCItems"), this.config.data.NPCs.items, "randomize"),
+                    createSettingsBlock_region(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                    createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton("Randomize items in creatures", this.config.data.creatures.items, "randomize"),
-                    createSettingsBlock_region(this.config.data.creatures.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                    createSettingsBlock_offset(this.config.data.creatures.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureItems"), this.config.data.creatures.items, "randomize"),
+                    createSettingsBlock_region(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                    createSettingsBlock_offset(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton("Randomize souls in soulgems", this.config.data.soulGems.soul, "randomize"),
-                    createSettingsBlock_region(this.config.data.soulGems.soul.region, {label = "Region size %s%%", descr = regionDescr}),
-                    createSettingsBlock_offset(this.config.data.soulGems.soul.region, {label = "Offset %s%%", descr = regionDescr}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeSoulsInGems"), this.config.data.soulGems.soul, "randomize"),
+                    createSettingsBlock_region(this.config.data.soulGems.soul.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                    createSettingsBlock_offset(this.config.data.soulGems.soul.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton("Randomize the amount of gold", this.config.data.gold, "randomize"),
-                    createSettingsBlock_minmaxp(this.config.data.gold.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                    createSettingsBlock_minmaxp(this.config.data.gold.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeGold"), this.config.data.gold, "randomize"),
+                    createSettingsBlock_minmaxp(this.config.data.gold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                    createSettingsBlock_minmaxp(this.config.data.gold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                 },
             },
             {
-                label = "Creatures",
+                label = this.i18n("modConfig.label.creatures"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Creatures",
+                        label = this.i18n("modConfig.label.creatures"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize ceatures", this.config.data.creatures, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatures"), this.config.data.creatures, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Items",
+                        label = this.i18n("modConfig.label.items"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize items", this.config.data.creatures.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItems"), this.config.data.creatures.items, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Health",
+                        label = this.i18n("modConfig.label.health"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize health points", this.config.data.creatures.health, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeHealth"), this.config.data.creatures.health, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Magicka",
+                        label = this.i18n("modConfig.label.magicka"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize magicka points", this.config.data.creatures.magicka, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeMagicka"), this.config.data.creatures.magicka, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Fatigue",
+                        label = this.i18n("modConfig.label.fatigue"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize fatigue points", this.config.data.creatures.fatigue, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeFatigue"), this.config.data.creatures.fatigue, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Attack damage",
+                        label = this.i18n("modConfig.label.attackDamage"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize attack damage", this.config.data.creatures.attack, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDamage"), this.config.data.creatures.attack, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Scale",
+                        label = this.i18n("modConfig.label.scale"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize the object's scale", this.config.data.creatures.scale, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "min", 100, 10, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "max", 100, 10, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeScale"), this.config.data.creatures.scale, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "min", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "max", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Skills",
+                        label = this.i18n("modConfig.label.skills"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize skill values", this.config.data.creatures.skills, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.creatures.skills, "randomize"),
                             createSettingsBlock_slider(this.config.data.creatures.skills, "limit", 1, 1, 255, 1, {label = "The maximum value of a skill is %s"}),
 
                             {
                                 class = "Category",
-                                label = "Combat skills",
+                                label = this.i18n("modConfig.label.combatSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.combat.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.combat.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.creatures.skills.combat.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.creatures.skills.combat.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
 
                             {
                                 class = "Category",
-                                label = "Magic skills",
+                                label = this.i18n("modConfig.label.magicSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.magic.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.magic.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.creatures.skills.magic.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.creatures.skills.magic.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
 
                             {
                                 class = "Category",
-                                label = "Stealth skills",
+                                label = this.i18n("modConfig.label.stealthSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.stealth.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.stealth.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.creatures.skills.stealth.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.creatures.skills.stealth.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
                         },
@@ -411,39 +413,39 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "AI",
+                        label = this.i18n("modConfig.label.AI"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize fight parameter", this.config.data.creatures.ai.fight, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.fight.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.fight.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFight"), this.config.data.creatures.ai.fight, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.ai.fight.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.ai.fight.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize flee parameter", this.config.data.creatures.ai.flee, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.flee.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.flee.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFlee"), this.config.data.creatures.ai.flee, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.ai.flee.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.ai.flee.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize alarm parameter", this.config.data.creatures.ai.alarm, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.alarm.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.alarm.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIAlarm"), this.config.data.creatures.ai.alarm, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.ai.alarm.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.ai.alarm.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize hello parameter", this.config.data.creatures.ai.hello, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.hello.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.hello.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIHello"), this.config.data.creatures.ai.hello, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.ai.hello.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.ai.hello.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Spells",
+                        label = this.i18n("modConfig.label.spells"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize spells", this.config.data.creatures.spells, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.spells.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.spells.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeSpells"), this.config.data.creatures.spells, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.spells.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.spells.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new spells",
+                                label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.creatures.spells.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new spell."}),
@@ -456,16 +458,16 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Abilities",
+                        label = this.i18n("modConfig.label.abilities"),
                         description = "Abilities like the dunmer fire resistance.",
                         components = {
-                            createOnOffIngameButton("Randomize abilities", this.config.data.creatures.abilities, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.abilities.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.abilities.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.creatures.abilities, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.abilities.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new abilities",
+                                label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.creatures.abilities.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new ability."}),
@@ -477,16 +479,16 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Diseases",
+                        label = this.i18n("modConfig.label.diseases"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize creature diseases", this.config.data.creatures.diseases, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.diseases.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.creatures.diseases.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDiseases"), this.config.data.creatures.diseases, "randomize"),
+                            createSettingsBlock_region(this.config.data.creatures.diseases.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.creatures.diseases.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new diseases",
+                                label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.creatures.diseases.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new disease."}),
@@ -498,12 +500,12 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Add positive or negative effects",
+                        label = this.i18n("modConfig.label.addNewEffects"),
                         description = "",
                         components = {
                             {
                                 class = "Category",
-                                label = "Positive effects",
+                                label = this.i18n("modConfig.label.positiveEffects"),
                                 description = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
@@ -516,7 +518,7 @@ function this.registerModConfig()
 
                             {
                                 class = "Category",
-                                label = "Negative effects",
+                                label = this.i18n("modConfig.label.negativeEffects"),
                                 description = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
@@ -531,121 +533,121 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "NPCs",
+                label = this.i18n("modConfig.label.NPCs"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Items",
+                        label = this.i18n("modConfig.label.items"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize items", this.config.data.NPCs.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItems"), this.config.data.NPCs.items, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Health",
+                        label = this.i18n("modConfig.label.health"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize health points", this.config.data.NPCs.health, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeHealth"), this.config.data.NPCs.health, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Magicka",
+                        label = this.i18n("modConfig.label.magicka"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize magicka points", this.config.data.NPCs.magicka, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeMagicka"), this.config.data.NPCs.magicka, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Fatigue",
+                        label = this.i18n("modConfig.label.fatigue"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize fatigue points", this.config.data.NPCs.fatigue, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeFatigue"), this.config.data.NPCs.fatigue, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Scale",
+                        label = this.i18n("modConfig.label.scale"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize the object's scale", this.config.data.NPCs.scale, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "min", 100, 10, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "max", 100, 10, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeScale"), this.config.data.NPCs.scale, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "min", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "max", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Head",
+                        label = this.i18n("modConfig.label.head"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize the object's head", this.config.data.NPCs.head, "randomize"),
-                            createOnOffIngameButton("Limit by race", this.config.data.NPCs.head, "raceLimit"),
-                            createOnOffIngameButton("Limit by gender", this.config.data.NPCs.head, "genderLimit"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeHead"), this.config.data.NPCs.head, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.limitByRace"), this.config.data.NPCs.head, "raceLimit"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.limitByGender"), this.config.data.NPCs.head, "genderLimit"),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Hairs",
+                        label = this.i18n("modConfig.label.hairs"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize the object's hairs", this.config.data.NPCs.hair, "randomize"),
-                            createOnOffIngameButton("Limit by race", this.config.data.NPCs.hair, "raceLimit"),
-                            createOnOffIngameButton("Limit by gender", this.config.data.NPCs.hair, "genderLimit"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeHair"), this.config.data.NPCs.hair, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.limitByRace"), this.config.data.NPCs.hair, "raceLimit"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.limitByGender"), this.config.data.NPCs.hair, "genderLimit"),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Skills",
+                        label = this.i18n("modConfig.label.skills"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize skill values", this.config.data.NPCs.skills, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.NPCs.skills, "randomize"),
                             createSettingsBlock_slider(this.config.data.NPCs.skills, "limit", 1, 1, 255, 1, {label = "The maximum value of a skill is %s"}),
 
                             {
                                 class = "Category",
-                                label = "Combat skills",
+                                label = this.i18n("modConfig.label.combatSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.combat.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.combat.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.NPCs.skills.combat.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.NPCs.skills.combat.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
 
                             {
                                 class = "Category",
-                                label = "Magic skills",
+                                label = this.i18n("modConfig.label.magicSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.magic.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.magic.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.NPCs.skills.magic.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.NPCs.skills.magic.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
 
                             {
                                 class = "Category",
-                                label = "Stealth skills",
+                                label = this.i18n("modConfig.label.stealthSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.stealth.region, {label = "Region size %s%%", descr = regionDescr}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.stealth.region, {label = "Offset %s%%", descr = regionDescr}),
+                                    createSettingsBlock_region(this.config.data.NPCs.skills.stealth.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.NPCs.skills.stealth.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                                 },
                             },
                         },
@@ -653,10 +655,10 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Attributes",
+                        label = this.i18n("modConfig.label.attributes"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize attributes", this.config.data.NPCs.attributes, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAttributes"), this.config.data.NPCs.attributes, "randomize"),
                             createSettingsBlock_slider(this.config.data.NPCs.attributes, "limit", 1, 1, 255, 1, {label = "The maximum value of a attribute is %s"}),
 
                             createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "min", 100, 0, 100, 1, {label = "Minimum attribute value %s%% relative to the limit",}),
@@ -666,39 +668,39 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "AI",
+                        label = this.i18n("modConfig.label.AI"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize fight parameter", this.config.data.NPCs.ai.fight, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.fight.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.fight.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFight"), this.config.data.NPCs.ai.fight, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.ai.fight.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.ai.fight.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize flee parameter", this.config.data.NPCs.ai.flee, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.flee.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.flee.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFlee"), this.config.data.NPCs.ai.flee, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.ai.flee.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.ai.flee.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize alarm parameter", this.config.data.NPCs.ai.alarm, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.alarm.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.alarm.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIAlarm"), this.config.data.NPCs.ai.alarm, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.ai.alarm.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.ai.alarm.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                            createOnOffIngameButton("Randomize hello parameter", this.config.data.NPCs.ai.hello, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.hello.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.hello.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIHello"), this.config.data.NPCs.ai.hello, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.ai.hello.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.ai.hello.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Spells",
+                        label = this.i18n("modConfig.label.spells"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize spells", this.config.data.NPCs.spells, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.spells.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.spells.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeSpells"), this.config.data.NPCs.spells, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.spells.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.spells.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new spells",
+                                label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new spell."}),
@@ -711,16 +713,16 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Abilities",
+                        label = this.i18n("modConfig.label.abilities"),
                         description = "Abilities like the dunmer fire resistance.",
                         components = {
-                            createOnOffIngameButton("Randomize creature abilities", this.config.data.NPCs.abilities, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.abilities.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.abilities.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.NPCs.abilities, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.abilities.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new abilities",
+                                label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new ability."}),
@@ -732,16 +734,16 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Diseases",
+                        label = this.i18n("modConfig.label.diseases"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize creature diseases", this.config.data.NPCs.diseases, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.diseases.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.NPCs.diseases.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDiseases"), this.config.data.NPCs.diseases, "randomize"),
+                            createSettingsBlock_region(this.config.data.NPCs.diseases.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.NPCs.diseases.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
                             {
                                 class = "Category",
-                                label = "Add new diseases",
+                                label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new disease."}),
@@ -753,12 +755,12 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Add positive or negative effects",
+                        label = this.i18n("modConfig.label.addNewEffects"),
                         description = "",
                         components = {
                             {
                                 class = "Category",
-                                label = "Positive effects",
+                                label = this.i18n("modConfig.label.positiveEffects"),
                                 description = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
@@ -771,7 +773,7 @@ function this.registerModConfig()
 
                             {
                                 class = "Category",
-                                label = "Negative effects",
+                                label = this.i18n("modConfig.label.negativeEffects"),
                                 description = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
@@ -786,23 +788,23 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "Barter/Transport",
+                label = this.i18n("modConfig.label.barterTransport"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Barter gold",
+                        label = this.i18n("modConfig.label.barterGold"),
                         description = "",
                         components = {
                             createOnOffIngameButton("Randomize merchant's gold supply", this.config.data.barterGold, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "min", 100, 0, 1000, 1, {label = "Minimum multiplier %s%%",}),
-                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "max", 100, 0, 1000, 1, {label = "Maximum multiplier %s%%",}),
+                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
+                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Transporters",
+                        label = this.i18n("modConfig.label.transport"),
                         description = "",
                         components = {
                             createOnOffIngameButton("Randomize transport destinations", this.config.data.transport, "randomize"),
@@ -813,31 +815,31 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "Containers",
+                label = this.i18n("modConfig.label.containers"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Items",
+                        label = this.i18n("modConfig.label.items"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize items in containers", this.config.data.containers.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.items.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.containers.items.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemInCont"), this.config.data.containers.items, "randomize"),
+                            createSettingsBlock_region(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "A lock",
+                        label = this.i18n("modConfig.label.locks"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize lock value", this.config.data.containers.lock, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.lock.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.containers.lock.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeLock"), this.config.data.containers.lock, "randomize"),
+                            createSettingsBlock_region(this.config.data.containers.lock.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.containers.lock.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                             {
                                 class = "Category",
-                                label = "Lock object without a look",
+                                label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.containers.lock.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to lock"}),
@@ -849,20 +851,20 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "A trap",
+                        label = this.i18n("modConfig.label.traps"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize trap spells", this.config.data.containers.trap, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.trap.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.containers.trap.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrap"), this.config.data.containers.trap, "randomize"),
+                            createSettingsBlock_region(this.config.data.containers.trap.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.containers.trap.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                             {
                                 class = "Category",
-                                label = "Add a trap to an object without it",
+                                label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.containers.trap.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add"}),
                                     createSettingsBlock_slider(this.config.data.containers.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = "Multiplier of the maximum value of the trap spell list %s", descr = "Spell list size %% = multiplier * player level"}),
-                                    createOnOffIngameButton("Use only destruction spells", this.config.data.containers.trap.add, "onlyDestructionSchool"),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.containers.trap.add, "onlyDestructionSchool"),
                                 },
                             },
                         },
@@ -870,33 +872,33 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "Doors",
+                label = this.i18n("modConfig.label.doors"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Destination",
+                        label = this.i18n("modConfig.label.destination"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize door destinations", this.config.data.doors, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoors"), this.config.data.doors, "randomize"),
                             createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = "%s%% chance to randomize"}),
                             createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = "Cooldown %s game hours"}),
-                            createOnOffIngameButton("Change destination to nearest doors only", this.config.data.doors, "onlyNearest"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
                             createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 0, 10, 1, {label = "Radius in cells for list of nearest cells"}),
                         },
                     },
 
                     {
                         class = "Category",
-                        label = "Locks",
+                        label = this.i18n("modConfig.label.locks"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize lock value", this.config.data.doors.lock, "randomize"),
-                            createSettingsBlock_region(this.config.data.doors.lock.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.doors.lock.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeLock"), this.config.data.doors.lock, "randomize"),
+                            createSettingsBlock_region(this.config.data.doors.lock.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.doors.lock.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                             {
                                 class = "Category",
-                                label = "Lock object without a look",
+                                label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.doors.lock.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to lock"}),
@@ -908,20 +910,20 @@ function this.registerModConfig()
 
                     {
                         class = "Category",
-                        label = "Traps",
+                        label = this.i18n("modConfig.label.traps"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize trap spells", this.config.data.doors.trap, "randomize"),
-                            createSettingsBlock_region(this.config.data.doors.trap.region, {label = "Region size %s%%", descr = regionDescr}),
-                            createSettingsBlock_offset(this.config.data.doors.trap.region, {label = "Offset %s%%", descr = regionDescr}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrap"), this.config.data.doors.trap, "randomize"),
+                            createSettingsBlock_region(this.config.data.doors.trap.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_offset(this.config.data.doors.trap.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
                             {
                                 class = "Category",
-                                label = "Add a trap to an object without it",
+                                label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add"}),
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = "Multiplier of the maximum value of the trap spell list %s", descr = "Spell list size %% = multiplier * player level"}),
-                                    createOnOffIngameButton("Use only destruction spells", this.config.data.doors.trap.add, "onlyDestructionSchool"),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.doors.trap.add, "onlyDestructionSchool"),
                                 },
                             },
                         },
@@ -929,17 +931,18 @@ function this.registerModConfig()
                 },
             },
             {
-                label = "World",
+                label = this.i18n("modConfig.label.world"),
                 class = "FilterPage",
                 components = {
                     {
                         class = "Category",
-                        label = "Global",
+                        label = this.i18n("modConfig.label.globalPage"),
                         description = "",
                         components = {
                             {
-                                label = "Disable Distant Land",
+                                label = this.i18n("modConfig.label.disableDistantLand"),
                                 class = "OnOffButton",
+                                inGameOnly = true,
                                 variable = {
                                     class = "Variable",
                                     get = function(self) return this.config.data.other.disableMGEDistantLand end,
@@ -954,8 +957,9 @@ function this.registerModConfig()
                                 },
                             },
                             {
-                                label = "Disable only Distant Statics",
+                                label = this.i18n("modConfig.label.disableDistantStatics"),
                                 class = "OnOffButton",
+                                inGameOnly = true,
                                 variable = {
                                     class = "Variable",
                                     get = function(self) return this.config.data.other.disableMGEDistantStatics end,
@@ -972,35 +976,35 @@ function this.registerModConfig()
                     },
                     {
                         class = "Category",
-                        label = "Herbs",
+                        label = this.i18n("modConfig.label.herbs"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize herbs", this.config.data.herbs, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeHerbs"), this.config.data.herbs, "randomize"),
                             createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = "Number of herb species per cell %s"}),
                         },
                     },
                     {
                         class = "Category",
-                        label = "Trees",
+                        label = this.i18n("modConfig.label.trees"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize trees", this.config.data.trees, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrees"), this.config.data.trees, "randomize"),
                         },
                     },
                     {
                         class = "Category",
-                        label = "Stones",
+                        label = this.i18n("modConfig.label.stones"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize stones", this.config.data.stones, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeStones"), this.config.data.stones, "randomize"),
                         },
                     },
                     {
                         class = "Category",
-                        label = "Weather",
+                        label = this.i18n("modConfig.label.weather"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize weather", this.config.data.weather, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeWeather"), this.config.data.weather, "randomize"),
                         },
                     },
                 },
