@@ -5,8 +5,8 @@ local gui = require("Morrowind World Randomizer.gui")
 local cellLastRandomizeTime = {}
 
 local function randomizeActor(reference)
-    if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
-        local mobile = reference.mobile
+    local mobile = reference.mobile
+    if mobile and not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
         if reference.object.objectType == tes3.objectType.npc then
             randomizer.randomizeContainerItems(reference, randomizer.config.data.NPCs.items.region.min, randomizer.config.data.NPCs.items.region.max)
         elseif reference.object.objectType == tes3.objectType.creature then
