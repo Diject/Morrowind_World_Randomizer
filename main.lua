@@ -38,11 +38,6 @@ local function randomizeLoadedCells()
     end
 end
 
-
-gui.init(randomizer.config, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = randomizeLoadedCells})
-event.register(tes3.event.modConfigReady, gui.registerModConfig)
-
-
 event.register(tes3.event.itemDropped, function(e)
     if randomizer.config.getConfig().enabled then
         if e.reference ~= nil and e.reference.data ~= nil then
@@ -209,3 +204,7 @@ event.register(tes3.event.activate, function(e)
             callback = enableRandomizerCallback, showInDialog = false})
     end
 end)
+
+
+gui.init(randomizer.config, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end})
+event.register(tes3.event.modConfigReady, gui.registerModConfig)
