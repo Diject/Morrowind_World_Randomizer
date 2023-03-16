@@ -172,9 +172,9 @@ function this.randomizeDoor(reference)
                         if door.destination then
                             for ndoor in door.destination.cell:iterateReferences(tes3.objectType.door) do
                                 if isValidDestination(ndoor.destination) and ndoor.destination.cell.id == cell.id then
-                                    -- table.insert(destinations, ndoor.destination)
                                     local newDoorData = dataSaver.getObjectData(ndoor)
-                                    if (newDoorData and (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                                    if (newDoorData and not this.forbiddenDoorIds[ndoor.baseObject.id:lower()] and
+                                            (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
                                         table.insert(doors, ndoor)
                                     end
                                 end
@@ -193,9 +193,9 @@ function this.randomizeDoor(reference)
                 for cellId, cell in pairs(cellsToCheck) do
                     for door in cell:iterateReferences(tes3.objectType.door) do
                         if isValidDestination(door.destination) then
-                            -- table.insert(destinations, door.destination)
                             local newDoorData = dataSaver.getObjectData(door)
-                            if (newDoorData and (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                            if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
+                                    (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
                                 table.insert(doors, door)
                             end
                         end
@@ -212,7 +212,8 @@ function this.randomizeDoor(reference)
                         if door.destination then
                             -- table.insert(destinations, door.destination)
                             local newDoorData = dataSaver.getObjectData(door)
-                            if (newDoorData and (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                            if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
+                                    (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
                                 table.insert(doors, door)
                             end
                         end
