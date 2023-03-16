@@ -482,7 +482,7 @@ function this.randomizeCell(cell)
                         object:enable()
                     end
 
-                else
+                elseif object.baseObject.script == nil then
                     this.randomizeContainerItems(object, this.config.data.containers.items.region.min, this.config.data.containers.items.region.max)
                     this.randomizeLockTrap(object)
                 end
