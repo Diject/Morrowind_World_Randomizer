@@ -347,7 +347,7 @@ this.default = {
         randomize = true,
         onlyNearest = true,
         nearestCellDepth = 2,
-        chance = 1,
+        chance = 0.2,
         cooldown = 10,
         restoreOriginal = true,
         lockTrapCooldown = 72,
@@ -363,7 +363,7 @@ this.default = {
             randomize = true,
             region = {min = 1, max = 1},
             add = {
-                chance = 0.1,
+                chance = 0.2,
                 levelMultiplier = 5,
                 onlyDestructionSchool = false,
             },
@@ -373,8 +373,8 @@ this.default = {
         randomize = true,
     },
     other = {
-        disableMGEDistantLand = true,
-        disableMGEDistantStatics = true,
+        disableMGEDistantLand = false,
+        disableMGEDistantStatics = false,
     },
 }
 
