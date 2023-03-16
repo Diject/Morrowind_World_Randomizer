@@ -1,6 +1,7 @@
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local randomizer = require("Morrowind World Randomizer.Randomizer")
 local gui = require("Morrowind World Randomizer.gui")
+local i18n = mwse.loadTranslations("Morrowind World Randomizer")
 
 local cellLastRandomizeTime = {}
 
@@ -25,8 +26,11 @@ local function randomizeLoadedCells()
     local cells = tes3.getActiveCells()
     if cells ~= nil then
         for i, cell in pairs(cells) do
-            if cellLastRandomizeTime[cell.editorName] == nil then
-                cellLastRandomizeTime[cell.editorName] = os.time()
+            if cellLastRandomizeTime[cell.editorName] == nil or
+                    (tes3.getSimulationTimestamp() - cellLastRandomizeTime[cell.editorName].gameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
+                    (os.time() - cellLastRandomizeTime[cell.editorName].timestamp) > randomizer.config.global.cellRandomizationCooldown then
+
+                cellLastRandomizeTime[cell.editorName] = {timestamp = os.time(), gameTime = tes3.getSimulationTimestamp()}
                 randomizer.randomizeWeatherChance(cell)
                 timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
 
@@ -64,8 +68,11 @@ event.register(tes3.event.cellActivated, function(e)
     mwse.log("%s CellActivated=%s", tostring(os.time()), tostring(e.cell.editorName))
     if randomizer.config.getConfig().enabled then
 
-        if cellLastRandomizeTime[e.cell.editorName] == nil then
-            cellLastRandomizeTime[e.cell.editorName] = os.time()
+        if cellLastRandomizeTime[e.cell.editorName] == nil or
+                (tes3.getSimulationTimestamp() - cellLastRandomizeTime[e.cell.editorName].gameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
+                (os.time() - cellLastRandomizeTime[e.cell.editorName].timestamp) > randomizer.config.global.cellRandomizationCooldown then
+
+            cellLastRandomizeTime[e.cell.editorName] = {timestamp = os.time(), gameTime = tes3.getSimulationTimestamp()}
             randomizer.randomizeWeatherChance(e.cell)
             timer.delayOneFrame(function() randomizer.randomizeCell(e.cell) end)
         end
@@ -182,9 +189,9 @@ local function enableRandomizerCallback(e)
     if e.button == 0 then
         randomizer.config.getConfig().enabled = true
         if mge.enabled() and (mge.render.distantStatics or mge.render.distantLand) then
-            tes3.messageBox({ message = "Randomization of statics does not work properly with Distant Land. You can fully disable Distant Land "..
-                "or disable Distant Statics (statics will be displayed only in nearby cells). This only applies to this character.",
-                buttons = {"Disable Distant Land", "Disable Distant Statics", "Disable randomization of statics", "Do nothing"},
+            tes3.messageBox({ message = i18n("messageBox.selectDistantLandOption.message"),
+                buttons = {i18n("messageBox.selectDistantLandOption.button.disableDistantLand"), i18n("messageBox.selectDistantLandOption.button.disableDistantStatics"),
+                i18n("messageBox.selectDistantLandOption.button.disableRandomization"), i18n("messageBox.selectDistantLandOption.button.doNothing")},
                 callback = distantLandOptionsCallback, showInDialog = false})
         else
             cellLastRandomizeTime = {}
@@ -200,11 +207,11 @@ event.register(tes3.event.activate, function(e)
 
         dataSaver.getObjectData(tes3.player).messageShown = true
         e.block = true
-        tes3.messageBox({ message = "Would you like to enable the randomizer? It cannot be completely undone.", buttons = {"Yes, enable it", "No"},
-            callback = enableRandomizerCallback, showInDialog = false})
+        tes3.messageBox({ message = i18n("messageBox.enableRandomizer.message"), buttons = {i18n("messageBox.enableRandomizer.button.yes"),
+            i18n("messageBox.enableRandomizer.button.no")}, callback = enableRandomizerCallback, showInDialog = false})
     end
 end)
 
 
-gui.init(randomizer.config, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end})
+gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)

@@ -63,6 +63,8 @@ this.globalDefault = {
         usePregeneratedHerbData = false,
     },
     globalConfig = false,
+    cellRandomizationCooldown = 300,
+    cellRandomizationCooldown_gametime = 24,
 }
 
 if this.global == nil then
