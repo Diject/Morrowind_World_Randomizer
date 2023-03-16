@@ -5,14 +5,14 @@ local EasyMCM = require("easyMCM.EasyMCM")
 this.name = "Morrowind World Randomizer"
 
 this.config = nil
-this.updateStaticDataFunc = nil
+this.funcs = nil
 
 local regionDescr = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
     "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with a range of 30 to 50."
 
-function this.init(config, updateStaticDataFunc)
+function this.init(config, functions)
     this.config = config
-    this.updateStaticDataFunc = updateStaticDataFunc
+    this.funcs = functions
 end
 
 local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
@@ -155,7 +155,23 @@ function this.registerModConfig()
                 label = "Main",
                 class = "Page",
                 components = {
-                    createOnOffIngameButton("Enable Randomizer", this.config.data, "enabled"),
+                    {
+                        class = "OnOffButton",
+                        label = "Enable Randomizer",
+                        inGameOnly = true,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.enabled
+                            end,
+                            set = function(self, val)
+                                this.config.data.enabled = val
+                                if val then
+                                    this.funcs.randomizeLoadedCellsFunc()
+                                end
+                            end,
+                        },
+                    },
                 },
             },
             {
@@ -175,7 +191,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.forceTRData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.forceTRData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },
@@ -187,7 +203,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.usePregeneratedItemData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.usePregeneratedItemData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },
@@ -199,7 +215,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.usePregeneratedCreatureData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.usePregeneratedCreatureData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },
@@ -211,7 +227,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.usePregeneratedHeadHairData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.usePregeneratedHeadHairData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },
@@ -223,7 +239,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.usePregeneratedSpellData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.usePregeneratedSpellData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },
@@ -235,7 +251,7 @@ function this.registerModConfig()
                                     get = function(self) return this.config.global.dataTables.usePregeneratedHerbData end,
                                     set = function(self, val)
                                         this.config.global.dataTables.usePregeneratedHerbData = val
-                                        this.updateStaticDataFunc()
+                                        this.funcs.generateStaticFunc()
                                     end,
                                 },
                             },

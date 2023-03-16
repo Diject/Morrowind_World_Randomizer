@@ -1,8 +1,6 @@
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local randomizer = require("Morrowind World Randomizer.Randomizer")
 local gui = require("Morrowind World Randomizer.gui")
-gui.init(randomizer.config, randomizer.genStaticData)
-event.register(tes3.event.modConfigReady, gui.registerModConfig)
 
 local cellLastRandomizeTime = {}
 
@@ -39,6 +37,11 @@ local function randomizeLoadedCells()
         end
     end
 end
+
+
+gui.init(randomizer.config, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = randomizeLoadedCells})
+event.register(tes3.event.modConfigReady, gui.registerModConfig)
+
 
 event.register(tes3.event.itemDropped, function(e)
     if randomizer.config.getConfig().enabled then
