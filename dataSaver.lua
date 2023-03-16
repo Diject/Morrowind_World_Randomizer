@@ -21,6 +21,7 @@ function this.getObjectData(object)
     if data[fieldName] == nil then
         data[fieldName] = {}
     end
+    if object.modified ~= nil then object.modified = true end
     return data[fieldName]
 end
 

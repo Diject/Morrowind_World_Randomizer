@@ -6,6 +6,40 @@ event.register(tes3.event.modConfigReady, gui.registerModConfig)
 
 local cellLastRandomizeTime = {}
 
+local function randomizeActor(reference)
+    if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
+        local mobile = reference.mobile
+        if reference.object.objectType == tes3.objectType.npc then
+            randomizer.randomizeContainerItems(reference, randomizer.config.data.NPCs.items.region.min, randomizer.config.data.NPCs.items.region.max)
+        elseif reference.object.objectType == tes3.objectType.creature then
+            randomizer.randomizeContainerItems(reference, randomizer.config.data.creatures.items.region.min, randomizer.config.data.creatures.items.region.max)
+        end
+
+        randomizer.randomizeMobileActor(mobile)
+        randomizer.randomizeBody(mobile)
+        randomizer.randomizeScale(reference)
+        randomizer.StopRandomizationTemp(reference)
+        randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
+    end
+end
+
+local function randomizeLoadedCells()
+    local cells = tes3.getActiveCells()
+    if cells ~= nil then
+        for i, cell in pairs(cells) do
+            if cellLastRandomizeTime[cell.editorName] == nil then
+                cellLastRandomizeTime[cell.editorName] = os.time()
+                randomizer.randomizeWeatherChance(cell)
+                timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
+
+                for ref in cell:iterateReferences({ tes3.objectType.npc, tes3.objectType.creature }) do
+                    randomizeActor(ref)
+                end
+            end
+        end
+    end
+end
+
 event.register(tes3.event.itemDropped, function(e)
     if randomizer.config.getConfig().enabled then
         if e.reference ~= nil and e.reference.data ~= nil then
@@ -55,22 +89,18 @@ event.register(tes3.event.loaded, function(e)
     randomizer.genNonStaticData()
 
     if randomizer.config.getConfig().enabled then
-        if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.enabled() and
-                mge.render.distantStatics then
-            mge.render.distantStatics = false
-            mge.render.distantLand = false
-            mge.render.distantWater = false
-        end
-        local cells = tes3.getActiveCells()
-        if cells ~= nil then
-            for i, cell in pairs(cells) do
-                if cellLastRandomizeTime[cell.editorName] == nil then
-                    cellLastRandomizeTime[cell.editorName] = os.time()
-                    randomizer.randomizeWeatherChance(e.cell)
-                    timer.delayOneFrame(function() randomizer.randomizeCell(e.cell) end)
-                end
+        if mge.enabled() then
+            if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.render.distantStatics then
+                mge.render.distantStatics = false
+                mge.render.distantWater = false
+            end
+            if randomizer.config.getConfig().other.disableMGEDistantLand == true and (mge.render.distantLand or mge.render.distantWater) then
+                mge.render.distantStatics = false
+                mge.render.distantLand = false
+                mge.render.distantWater = false
             end
         end
+        randomizeLoadedCells()
     end
 
     mwse.log("%s Loaded", tostring(os.time()))
@@ -128,30 +158,39 @@ event.register(tes3.event.mobileActivated, function(e)
     if randomizer.config.getConfig().enabled then
         if (e.reference.object.objectType == tes3.objectType.npc or e.reference.object.objectType == tes3.objectType.creature) and
                 not randomizer.isRandomizationStopped(e.reference) and not randomizer.isRandomizationStoppedTemp(e.reference) then
-            -- mwse.log("MActivated=%s", tostring(e.reference))
-            if e.reference.object.objectType == tes3.objectType.npc then
-                randomizer.randomizeContainerItems(e.reference, randomizer.config.data.NPCs.items.region.min, randomizer.config.data.NPCs.items.region.max)
-            elseif e.reference.object.objectType == tes3.objectType.creature then
-                randomizer.randomizeContainerItems(e.reference, randomizer.config.data.creatures.items.region.min, randomizer.config.data.creatures.items.region.max)
-            end
-
-            randomizer.randomizeMobileActor(e.mobile)
-            randomizer.randomizeBody(e.mobile)
-            randomizer.randomizeScale(e.reference)
-            randomizer.StopRandomizationTemp(e.reference)
-            randomizer.randomizeActorBaseObject(e.mobile.object.baseObject, e.mobile.actorType)
+            randomizeActor(e.reference)
         end
     end
 end)
 
+local function distantLandOptionsCallback(e)
+    if e.button == 0 then
+        randomizer.config.getConfig().other.disableMGEDistantLand = true
+        mge.render.distantStatics = false
+        mge.render.distantLand = false
+        mge.render.distantWater = false
+    elseif e.button == 1 then
+        randomizer.config.getConfig().other.disableMGEDistantStatics = true
+        mge.render.distantStatics = false
+    elseif e.button == 2 then
+        randomizer.config.getConfig().trees.randomize = false
+        randomizer.config.getConfig().stones.randomize = false
+    end
+    cellLastRandomizeTime = {}
+    randomizeLoadedCells()
+end
+
 local function enableRandomizerCallback(e)
     if e.button == 0 then
-        randomizer.config.data.enabled = true
-        local cells = tes3.getActiveCells()
-        if cells ~= nil then
-            for i, cell in pairs(cells) do
-                timer.delayOneFrame(function() randomizer.randomizeCell(cell) end)
-            end
+        randomizer.config.getConfig().enabled = true
+        if mge.enabled() and (mge.render.distantStatics or mge.render.distantLand) then
+            tes3.messageBox({ message = "Randomization of statics does not work properly with Distant Land. You can fully disable Distant Land "..
+                "or disable Distant Statics (statics will be displayed only in nearby cells). This only applies to this character.",
+                buttons = {"Disable Distant Land", "Disable Distant Statics", "Disable randomization of statics", "Do nothing"},
+                callback = distantLandOptionsCallback, showInDialog = false})
+        else
+            cellLastRandomizeTime = {}
+            randomizeLoadedCells()
         end
     end
 end
@@ -163,7 +202,7 @@ event.register(tes3.event.activate, function(e)
 
         dataSaver.getObjectData(tes3.player).messageShown = true
         e.block = true
-        tes3.messageBox({ message = "Would you like to enable the randomizer? It cannot be fully undone.", buttons = {"Yes, enable it", "No"},
+        tes3.messageBox({ message = "Would you like to enable the randomizer? It cannot be completely undone.", buttons = {"Yes, enable it", "No"},
             callback = enableRandomizerCallback, showInDialog = false})
     end
 end)

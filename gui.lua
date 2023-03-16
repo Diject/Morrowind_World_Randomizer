@@ -918,6 +918,44 @@ function this.registerModConfig()
                 components = {
                     {
                         class = "Category",
+                        label = "Global",
+                        description = "",
+                        components = {
+                            {
+                                label = "Disable Distant Land",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self) return this.config.data.other.disableMGEDistantLand end,
+                                    set = function(self, val)
+                                        this.config.data.other.disableMGEDistantLand = val
+                                        if mge.enabled() and this.config.data.other.disableMGEDistantLand then
+                                            mge.render.distantStatics = false
+                                            mge.render.distantLand = false
+                                            mge.render.distantWater = false
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                label = "Disable only Distant Statics",
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self) return this.config.data.other.disableMGEDistantStatics end,
+                                    set = function(self, val)
+                                        this.config.data.other.disableMGEDistantStatics = val
+                                        if mge.enabled() and this.config.data.other.disableMGEDistantStatics then
+                                            mge.render.distantStatics = false
+                                            mge.render.distantWater = false
+                                        end
+                                    end,
+                                },
+                            },
+                        },
+                    },
+                    {
+                        class = "Category",
                         label = "Herbs",
                         description = "",
                         components = {

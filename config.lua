@@ -373,6 +373,7 @@ this.default = {
         randomize = true,
     },
     other = {
+        disableMGEDistantLand = true,
         disableMGEDistantStatics = true,
     },
 }
