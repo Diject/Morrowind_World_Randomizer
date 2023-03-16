@@ -1086,11 +1086,12 @@ function this.randomizeLockTrap(reference)
             reference.lockNode.locked = true
         end
         if reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil and reference.lockNode.trap.id ~= nil then
-            local trap = spellsData.TouchRange[reference.lockNode.trap.id:lower()][1]
-            if trap ~= nil then
-                local trapGroup = spellsData.SpellGroups[tostring(trap.SubType)]
+            local trapEffData = spellsData.TouchRange[reference.lockNode.trap.id:lower()]
+            if trapEffData ~= nil and #trapEffData > 0 then
+                local trapData = trapEffData[math.random(1, #trapEffData)]
+                local trapGroup = spellsData.SpellGroups[tostring(trapData.SubType)]
                 if trapGroup ~= nil then
-                    local newTrapSpellId = random.GetRandom(trap.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
+                    local newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
                     local newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
                     if newTrapSpell ~= nil then
                         reference.lockNode.trap = newTrapSpell

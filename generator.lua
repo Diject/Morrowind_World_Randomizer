@@ -234,12 +234,16 @@ function this.fillSpells()
             if spells[object.castType] == nil then spells[object.castType] = {} end
 
             local baseCost = 0
+            local effectCount = 0
             for _, effect in pairs(object.effects) do
                 if effect.id > 0 then
                     baseCost = baseCost + effect.cost
+                    effectCount = effectCount + 1
                 end
             end
-            table.insert(spells[object.castType], {object = object, cost = baseCost})
+            if effectCount > 0 then
+                table.insert(spells[object.castType], {object = object, cost = baseCost})
+            end
         end
     end
     for objType, data in pairs(spells) do
