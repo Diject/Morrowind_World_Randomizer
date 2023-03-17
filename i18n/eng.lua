@@ -126,4 +126,49 @@ return {
     ["modConfig.label.trees"] = "Trees",
     ["modConfig.label.stones"] = "Stones",
     ["modConfig.label.weather"] = "Weather",
+
+    ["modConfig.label.maxValueOfSkill"] = "The maximum value of a skill is %%s",
+    ["modConfig.label.chanceToAdd"] = "%%s%%%% chance to add",
+    ["modConfig.label.addXMore"] = "Add %%s more",
+
+    ["modConfig.description.listLimiter"] = "The level of the creature, in proportion to which the list of spells is limited. If a creature has this level, the whole spell list will be available for randomization.",
+    ["modConfig.description.positiveEffects"] = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
+    ["modConfig.description.negativeEffects"] = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
+
+    ["modConfig.label.maxValueOfAttribute"] = "The maximum value of a attribute is %%s",
+    ["modConfig.label.minAttributeVal"] = "Minimum attribute value %%s%%%% relative to the limit",
+    ["modConfig.label.maxAttributeVal"] = "Maximum attribute value %%s%%%% relative to the limit",
+    ["modConfig.label.numOfDestinationsWithoutRand"] = "Number of Destinations without randomization %%s",
+    ["modConfig.label.numOfDestinationsToDoor"] = "Number of Destinations to a door %%s",
+
+    ["modConfig.label.randomizeTransport"] = "Randomize transport destinations",
+    ["modConfig.label.randomizeMerchantGold"] = "Randomize merchant's gold supply",
+
+    ["modConfig.label.maxValMulOfTrapSpell"] = "Multiplier of the maximum value of the trap spell list %%s",
+
+    ["modConfig.description.trapSpellListSize"] = "Spell list size %%%% = multiplier * player level",
+
+    ["modConfig.label.chanceToRandomize"] = "%%s%%%% chance to randomize",
+    ["modConfig.label.cooldownGameHours"] = "Cooldown %%s game hours",
+
+    ["modConfig.label.radiusInCellsForCell"] = "Radius in cells for list of nearest cells",
+
+    ["modConfig.label.chanceToLock"] = "%%s%%%% chance to lock",
+    ["modConfig.label.lockLevMul"] = "Lock level multiplier %%s",
+
+    ["modConfig.description.lockLevMul"] = "New lock level = random (1, multiplier * player level)",
+
+    ["modConfig.label.herbSpeciesPerCell"] = "Number of herb species per cell %%s",
+
+    ["modConfig.label.minEffectVal"] = "Minimum effect value %%s",
+    ["modConfig.label.maxEffectVal"] = "Maximum effect value %%s",
+
+    ["modConfig.description.abilitiesCategory"] = "Abilities like the dunmer fire resistance.",
+
+    ["modConfig.label.levelLimiter"] = "Level limiter %%s",
+
+    ["modConfig.description.chanceToAddAbility"] = "Chance to add for each new ability.",
+    ["modConfig.description.chanceToAddDisease"] = "Chance to add for each new disease.",
+    ["modConfig.description.chanceToAddEffect"] = "Chance to add for each new effect.",
+    ["modConfig.description.chanceToAddSpell"] = "Chance to add for each new spell.",
 }

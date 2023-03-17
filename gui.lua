@@ -269,7 +269,7 @@ function this.registerModConfig()
                     createSettingsBlock_region(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
                     createSettingsBlock_offset(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
-                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemWithoutCont"), this.config.data.items, "randomize"), -- ????
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemWithoutCont"), this.config.data.items, "randomize"),
                     createSettingsBlock_region(this.config.data.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
                     createSettingsBlock_offset(this.config.data.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
 
@@ -377,7 +377,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.creatures.skills, "randomize"),
-                            createSettingsBlock_slider(this.config.data.creatures.skills, "limit", 1, 1, 255, 1, {label = "The maximum value of a skill is %s"}),
+                            createSettingsBlock_slider(this.config.data.creatures.skills, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
 
                             {
                                 class = "Category",
@@ -448,9 +448,9 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new spell."}),
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "count", 1, 0, 50, 1, {label = "Add %s more spells"}),
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "levelReference", 1, 1, 50, 1, {label = "Level limiter %s", descr = "The level of the creature, in proportion to which the list of spells is limited. If a creature has this level, the whole spell list will be available for randomization."}),
+                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "levelReference", 1, 1, 50, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
                                 },
                             },
                         },
@@ -459,7 +459,7 @@ function this.registerModConfig()
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.abilities"),
-                        description = "Abilities like the dunmer fire resistance.",
+                        description = this.i18n("modConfig.description.abilitiesCategory"),
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.creatures.abilities, "randomize"),
                             createSettingsBlock_region(this.config.data.creatures.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
@@ -470,8 +470,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new ability."}),
-                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "count", 1, 0, 50, 1, {label = "Add %s more abilities"}),
+                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -491,8 +491,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new disease."}),
-                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "count", 1, 0, 50, 1, {label = "Add %s more diseases"}),
+                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -506,26 +506,26 @@ function this.registerModConfig()
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.positiveEffects"),
-                                description = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
+                                description = this.i18n("modConfig.description.positiveEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "count", 1, 0, 10, 1, {label = "Add %s more effects"}),
+                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "min", 1, 0, 100, 1, {label = "Minimum effect value %s",}),
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "max", 1, 0, 100, 1, {label = "Maximum effect value %s",}),
+                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
                                 },
                             },
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.negativeEffects"),
-                                description = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
+                                description = this.i18n("modConfig.description.negativeEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "count", 1, 0, 10, 1, {label = "Add %s more effects"}),
+                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "min", 1, 0, 100, 1, {label = "Minimum effect value %s",}),
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "max", 1, 0, 100, 1, {label = "Maximum effect value %s",}),
+                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
                                 },
                             },
                         },
@@ -619,7 +619,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.NPCs.skills, "randomize"),
-                            createSettingsBlock_slider(this.config.data.NPCs.skills, "limit", 1, 1, 255, 1, {label = "The maximum value of a skill is %s"}),
+                            createSettingsBlock_slider(this.config.data.NPCs.skills, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
 
                             {
                                 class = "Category",
@@ -659,10 +659,10 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAttributes"), this.config.data.NPCs.attributes, "randomize"),
-                            createSettingsBlock_slider(this.config.data.NPCs.attributes, "limit", 1, 1, 255, 1, {label = "The maximum value of a attribute is %s"}),
+                            createSettingsBlock_slider(this.config.data.NPCs.attributes, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfAttribute")}),
 
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "min", 100, 0, 100, 1, {label = "Minimum attribute value %s%% relative to the limit",}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "max", 100, 0, 100, 1, {label = "Maximum attribute value %s%% relative to the limit",}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "min", 100, 0, 100, 1, {label = this.i18n("modConfig.label.minAttributeVal"),}),
+                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "max", 100, 0, 100, 1, {label = this.i18n("modConfig.label.maxAttributeVal"),}),
                         },
                     },
 
@@ -703,9 +703,9 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new spell."}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "count", 1, 0, 50, 1, {label = "Add %s more spells"}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "levelReference", 1, 1, 50, 1, {label = "Level limiter %s", descr = "The level of the creature, in proportion to which the list of spells is limited. If a creature has this level, the whole spell list will be available for randomization."}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "levelReference", 1, 1, 50, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
                                 },
                             },
                         },
@@ -714,7 +714,7 @@ function this.registerModConfig()
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.abilities"),
-                        description = "Abilities like the dunmer fire resistance.",
+                        description = this.i18n("modConfig.description.abilitiesCategory"),
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.NPCs.abilities, "randomize"),
                             createSettingsBlock_region(this.config.data.NPCs.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
@@ -725,8 +725,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new ability."}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "count", 1, 0, 50, 1, {label = "Add %s more abilities"}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -746,8 +746,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new disease."}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "count", 1, 0, 50, 1, {label = "Add %s more diseases"}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -761,26 +761,26 @@ function this.registerModConfig()
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.positiveEffects"),
-                                description = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
+                                description = this.i18n("modConfig.description.positiveEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "count", 1, 0, 10, 1, {label = "Add %s more effects"}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "min", 1, 0, 100, 1, {label = "Minimum effect value %s",}),
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "max", 1, 0, 100, 1, {label = "Maximum effect value %s",}),
+                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
                                 },
                             },
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.negativeEffects"),
-                                description = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
+                                description = this.i18n("modConfig.description.negativeEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add", descr = "Chance to add for each new effect."}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "count", 1, 0, 10, 1, {label = "Add %s more effects"}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "min", 1, 0, 100, 1, {label = "Minimum effect value %s",}),
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "max", 1, 0, 100, 1, {label = "Maximum effect value %s",}),
+                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
                                 },
                             },
                         },
@@ -796,7 +796,7 @@ function this.registerModConfig()
                         label = this.i18n("modConfig.label.barterGold"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize merchant's gold supply", this.config.data.barterGold, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeMerchantGold"), this.config.data.barterGold, "randomize"),
                             createSettingsBlock_minmaxp(this.config.data.barterGold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
                             createSettingsBlock_minmaxp(this.config.data.barterGold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
                         },
@@ -807,9 +807,9 @@ function this.registerModConfig()
                         label = this.i18n("modConfig.label.transport"),
                         description = "",
                         components = {
-                            createOnOffIngameButton("Randomize transport destinations", this.config.data.transport, "randomize"),
-                            createSettingsBlock_slider(this.config.data.transport, "unrandomizedCount", 1, 0, 4, 1, {label = "Number of Destinations without randomization %s"}),
-                            createSettingsBlock_slider(this.config.data.transport, "toDoorsCount", 1, 0, 4, 1, {label = "Number of Destinations to a door %s"}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeTransport"), this.config.data.transport, "randomize"),
+                            createSettingsBlock_slider(this.config.data.transport, "unrandomizedCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsWithoutRand")}),
+                            createSettingsBlock_slider(this.config.data.transport, "toDoorsCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsToDoor")}),
                         },
                     },
                 },
@@ -842,8 +842,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to lock"}),
-                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = "Lock level multiplier %s", descr = "New lock level = random (1, multiplier * player level)"}),
+                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
+                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
                         },
@@ -862,8 +862,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add"}),
-                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = "Multiplier of the maximum value of the trap spell list %s", descr = "Spell list size %% = multiplier * player level"}),
+                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
+                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.containers.trap.add, "onlyDestructionSchool"),
                                 },
                             },
@@ -881,10 +881,10 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoors"), this.config.data.doors, "randomize"),
-                            createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = "%s%% chance to randomize"}),
-                            createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = "Cooldown %s game hours"}),
+                            createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
+                            createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                            createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 0, 10, 1, {label = "Radius in cells for list of nearest cells"}),
+                            createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 0, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
                         },
                     },
 
@@ -901,8 +901,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to lock"}),
-                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = "Lock level multiplier %s", descr = "New lock level = random (1, multiplier * player level)"}),
+                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
+                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
                         },
@@ -921,8 +921,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = "%s%% chance to add"}),
-                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = "Multiplier of the maximum value of the trap spell list %s", descr = "Spell list size %% = multiplier * player level"}),
+                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
+                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.doors.trap.add, "onlyDestructionSchool"),
                                 },
                             },
@@ -980,7 +980,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHerbs"), this.config.data.herbs, "randomize"),
-                            createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = "Number of herb species per cell %s"}),
+                            createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = this.i18n("modConfig.label.herbSpeciesPerCell")}),
                         },
                     },
                     {
