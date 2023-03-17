@@ -57,10 +57,13 @@ event.register(tes3.event.activate, function(e)
                 e.target.baseObject.objectType == tes3.objectType.npc))) then
 
             randomizer.StopRandomization(e.target)
-        end
 
-        randomizer.doors.resetDoorDestination(e.target)
-        randomizer.doors.randomizeDoor(e.target)
+        elseif e.target  ~= nil and e.target.baseObject.objectType == tes3.objectType.door then
+
+            randomizer.doors.resetDoorDestination(e.target)
+            randomizer.doors.randomizeDoor(e.target)
+
+        end
     end
 end)
 
