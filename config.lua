@@ -1,3 +1,4 @@
+local log = require("Morrowind World Randomizer.log")
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 
 local this = {}
@@ -395,6 +396,16 @@ function this.getValueByPath(path)
     return value
 end
 
+local function logTable(table, pathStr)
+    for label, val in pairs(table) do
+        if type(val) == "table" then
+            logTable(val, pathStr..label..".")
+        else
+            log(pathStr..label.." = "..tostring(val))
+        end
+    end
+end
+
 function this.getConfig()
     if not this.fullyLoaded then
         this.load()
@@ -437,11 +448,8 @@ function this.load()
         local data = mwse.loadConfig(configName)
         if data == nil then
             applyChanges(this.data, this.default)
-            -- this.data = deepcopy(this.default)
             this.fullyLoaded = true
         else
-            -- addMissing(data, this.default)
-            -- this.data = data
             applyChanges(this.data, data)
             this.fullyLoaded = true
         end
@@ -449,25 +457,27 @@ function this.load()
         local playerData = dataSaver.getObjectData(tes3.player)
         if playerData then
             if playerData.config then
-                -- addMissing(playerData.config, this.default)
-                -- this.data = playerData.config
                 applyChanges(this.data, playerData.config)
                 this.fullyLoaded = true
             else
-                -- this.data = deepcopy(this.default)
                 applyChanges(this.data, this.default)
                 playerData.config = this.data
                 this.fullyLoaded = true
             end
         else
-            mwse.log("[Morrowind World Randomizer] Failed to load config")
+            log("Failed to load config")
             this.fullyLoaded = false
-            -- this.data = deepcopy(this.default)
         end
     else
-        mwse.log("[Morrowind World Randomizer] Failed to load config")
+        log("Failed to load config")
         this.fullyLoaded = false
-        -- this.data = deepcopy(this.default)
+    end
+
+    if this.fullyLoaded then
+        log("Global config:")
+        logTable(this.global, "")
+        log("Main config:")
+        logTable(this.data, "")
     end
 end
 

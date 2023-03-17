@@ -1,4 +1,5 @@
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
+local log = require("Morrowind World Randomizer.log")
 
 local this = {}
 
@@ -30,7 +31,7 @@ local function isValidDestination(destination)
 end
 
 function this.findDoors()
-    mwse.log("Doors generation", tostring(os.time()))
+    log("Door list generation...", tostring(os.time()))
     this.doorsData = {All = {}, InToIn = {}, InToEx = {}, ExToIn = {}, ExToEx = {}}
 
     for _, cell in pairs(tes3.dataHandler.nonDynamicData.cells) do
@@ -52,7 +53,7 @@ function this.findDoors()
         end
     end
 
-    mwse.log("#doors InToIn = %i, InToEx = %i, ExToIn = %i, ExToEx = %i", #this.doorsData.InToIn, #this.doorsData.InToEx, #this.doorsData.ExToIn, #this.doorsData.ExToEx)
+    log("Door list: InToIn = %i, InToEx = %i, ExToIn = %i, ExToEx = %i", #this.doorsData.InToIn, #this.doorsData.InToEx, #this.doorsData.ExToIn, #this.doorsData.ExToEx)
 end
 
 

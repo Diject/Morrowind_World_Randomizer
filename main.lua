@@ -2,6 +2,7 @@ local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local randomizer = require("Morrowind World Randomizer.Randomizer")
 local gui = require("Morrowind World Randomizer.gui")
 local i18n = mwse.loadTranslations("Morrowind World Randomizer")
+local log = require("Morrowind World Randomizer.log")
 
 local cellLastRandomizeTime = {}
 
@@ -68,7 +69,6 @@ event.register(tes3.event.activate, function(e)
 end)
 
 event.register(tes3.event.cellActivated, function(e)
-    mwse.log("%s CellActivated=%s", tostring(os.time()), tostring(e.cell.editorName))
     if randomizer.config.getConfig().enabled then
 
         if cellLastRandomizeTime[e.cell.editorName] == nil or
@@ -83,14 +83,9 @@ event.register(tes3.event.cellActivated, function(e)
 
 end)
 
-event.register(tes3.event.cellDeactivated, function(e)
-    mwse.log("%s CellDeactivated=%s", tostring(os.time()), tostring(e.cell.editorName))
-end)
-
 event.register(tes3.event.load, function(e)
     cellLastRandomizeTime = {}
     randomizer.config.resetConfig()
-    mwse.log("%s Load", tostring(os.time()))
 end)
 
 event.register(tes3.event.loaded, function(e)
@@ -111,7 +106,6 @@ event.register(tes3.event.loaded, function(e)
         randomizeLoadedCells()
     end
 
-    mwse.log("%s Loaded", tostring(os.time()))
 end)
 
 local goldToAdd = 0

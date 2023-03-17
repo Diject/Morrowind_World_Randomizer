@@ -1,17 +1,6 @@
-local this = {}
+local log = require("Morrowind World Randomizer.log")
 
-local csIds = {
-    [tes3.objectType.alchemy] = "ALCH",
-    [tes3.objectType.apparatus] = "APPA",
-    [tes3.objectType.armor] = "ARMO",
-    [tes3.objectType.book] = "BOOK",
-    [tes3.objectType.clothing] = "CLOT",
-    [tes3.objectType.ingredient] = "INGR",
-    [tes3.objectType.lockpick] = "LOCK",
-    [tes3.objectType.probe] = "PROB",
-    [tes3.objectType.repairItem] = "REPA",
-    [tes3.objectType.weapon] = "WEAP",
-}
+local this = {}
 
 local forbiddenEffectsIds = { -- for abilities and diseases
     [14] = true,
@@ -80,7 +69,7 @@ function this.fillItems()
     items.data[tes3.objectType.repairItem] = {}
     items.data[tes3.objectType.weapon] = {}
 
-    mwse.log("Items gen tms = %s", tostring(os.time()))
+    log("Item list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and not object.deleted and (object.script == nil or scriptWhiteList[object.script.id]) then
             if items.data[object.objectType] ~= nil and object.name ~= nil and not forbiddenIds[object.id] and
@@ -137,11 +126,10 @@ function this.fillItems()
 
     for type, data in pairs(out.ItemGroups) do
         for subType, gr in pairs(data) do
-            mwse.log("%s %s %s", type, subType, gr.Count)
+            log("Item type %s, item subtype %s, count %s", type, subType, gr.Count)
         end
     end
 
-    mwse.log("tme = %s", tostring(os.time()))
     return out
 end
 
@@ -149,7 +137,7 @@ function this.fillCreatures()
     local creatures = {}
     local out = {Creatures = {}, CreatureGroups = {}}
 
-    mwse.log("Creatures gen tms = %s", tostring(os.time()))
+    log("Creature list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         local idLow = object.id:lower()
         if object ~= nil and object.objectType == tes3.objectType.creature and not object.deleted and not object.isEssential and
@@ -183,10 +171,9 @@ function this.fillCreatures()
     end
 
     for subType, data in pairs(out.CreatureGroups) do
-        mwse.log("%s %s %s", "CREA", subType, data.Count)
+        log("Creture type %s, count %s", subType, data.Count)
     end
 
-    mwse.log("tme = %s", tostring(os.time()))
     return out
 end
 
@@ -194,7 +181,7 @@ function this.fillHeadsHairs()
     local data = {}
     local out = {Parts = {}}
 
-    mwse.log("BodyParts gen tms = %s", tostring(os.time()))
+    log("Bodypart list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.bodyPart and not object.deleted and object.raceName and
                 object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and not forbiddenModels[(object.mesh or "err"):lower()] then
@@ -220,7 +207,7 @@ function this.fillHeadsHairs()
         end
     end
 
-    mwse.log("tme = %s", tostring(os.time()))
+    log("Bodypart list generation comleted.")
     return out
 end
 
@@ -228,7 +215,7 @@ function this.fillSpells()
     local spells = {}
     local out = {Spells = {}, SpellGroups = {}, TouchRange = {}}
 
-    mwse.log("Spells gen tms = %s", tostring(os.time()))
+    log("Spell list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.spells) do
         if object ~= nil and not object.deleted and object.effects then
             if spells[object.castType] == nil then spells[object.castType] = {} end
@@ -294,10 +281,9 @@ function this.fillSpells()
     end
 
     for subType, data in pairs(out.SpellGroups) do
-        mwse.log("%s %s %s", "SPEL", subType, data.Count)
+        log("Spell type %s, count %s", subType, data.Count)
     end
 
-    mwse.log("tme = %s", tostring(os.time()))
     return out
 end
 
@@ -305,7 +291,7 @@ function this.fillHerbs()
     local data = {}
     local out = {Herbs = {}, HerbsObjectList = {}}
 
-    mwse.log("Herbs gen tms = %s", tostring(os.time()))
+    log("Herb list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.container and (object.script == nil or scriptWhiteList[object.script.id]) and
                 not object.deleted and object.organic and object.respawns and object.capacity < 5 and
@@ -325,7 +311,7 @@ function this.fillHerbs()
     end
     out.HerbsListCount = pos
 
-    mwse.log("tme = %s", tostring(os.time()))
+    log("Herb list generation comleted.")
     return out
 end
 
@@ -337,7 +323,7 @@ local function isValidDestination(destination)
 end
 
 function this.findTravelDestinations()
-    mwse.log("Travel destinations gen tms = %s", tostring(os.time()))
+    log("Travel destinations list generation...")
     local out = {}
 
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
@@ -352,8 +338,7 @@ function this.findTravelDestinations()
         end
     end
 
-    mwse.log("Travel destinations = %i", #out)
-    mwse.log("tme = %s", tostring(os.time()))
+    log("Travel destinations Count = %i", #out)
     return out
 end
 

@@ -1,3 +1,4 @@
+local log = require("Morrowind World Randomizer.log")
 local dataSaver = include("Morrowind World Randomizer.dataSaver")
 local random = require("Morrowind World Randomizer.Random")
 
