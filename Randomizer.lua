@@ -335,10 +335,10 @@ function this.randomizeCell(cell)
     local newObjects = {}
     local config = this.config.data
 
-    local newTreeGroupId = math.random(1, treesData.GroupsCount)
+    local newTreeGroupId = math.random(1, #treesData.TreesGroups)
     -- if newTreeGroupId == 2 then newTreeGroupId = treesData.GroupsCount - 2 end
     -- if newTreeGroupId == 3 then newTreeGroupId = treesData.GroupsCount - 1 end
-    local newRockGroupId = math.random(1, rocksData.GroupsCount)
+    local newRockGroupId = math.random(1, #rocksData.RocksGroups)
     local newTreeGroup = treesData.TreesGroups[newTreeGroupId]
     local newRockGroup = rocksData.RocksGroups[newRockGroupId]
 
@@ -407,7 +407,7 @@ function this.randomizeCell(cell)
 
                 elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
                     if config.stones.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newRockGroup.Items[math.random(1, newRockGroup.Count)]
+                        local newId = newRockGroup.Items[math.random(1, #newRockGroup.Items)]
                         if newId then
                             local newAdvData = rocksData.RocksOffset[newId:lower()]
                             local newRockOffset
