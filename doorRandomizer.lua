@@ -165,6 +165,10 @@ local function replaceDoorDestinations(door1, door2)
             dataSaver.getObjectData(door1).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
             dataSaver.getObjectData(door2).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
 
+            log("Door destination %s (%s (%s, %s, %s)) %s (%s (%s, %s, %s))", tostring(door1), tostring(oldDoorCell),
+                tostring(oldDoorPos.x), tostring(oldDoorPos.y), tostring(oldDoorPos.z), tostring(door2),
+                tostring(newDoorCell), tostring(newDoorPos.x), tostring(newDoorPos.y), tostring(newDoorPos.z))
+
             tes3.setDestination{ reference = door1, position = newDoorPos, orientation = newDoorOrient, cell = newDoorCell }
             tes3.setDestination{ reference = door2, position = oldDoorPos, orientation = oldDoorOrient, cell = oldDoorCell }
         end

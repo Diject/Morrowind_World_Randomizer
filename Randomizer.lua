@@ -206,6 +206,7 @@ local function randomizeSoulgemItemData(itemData)
             local creaGroup = creaturesData.CreatureGroups[soulCrea.SubType]
             local newCreaId = creaGroup.Items[random.GetRandom(soulCrea.Position, creaGroup.Count,
                 config.soul.region.min, config.soul.region.max)]
+            log("Soul %s to %s", tostring(itemData.soul), tostring(newCreaId))
             itemData.soul = tes3.getObject(newCreaId)
         end
     end
@@ -246,11 +247,10 @@ function this.getNewRandomItemId(oldItemId, min, max)
     local newId
     local itemAdvData = itemsData.Items[oldItemId]
     if itemAdvData ~= nil then
-
         local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
         newId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count,
             min or this.config.data.containers.items.region.min, max or this.config.data.containers.items.region.max)]
-
+        log("Item id selected %s to %s", tostring(oldItemId), tostring(newId))
     end
     return newId
 end
@@ -262,12 +262,14 @@ function this.getRandomCreatureId(oldCreatureId)
         local newCreaGroup = creaturesData.CreatureGroups[creature.SubType]
         local newCreaId = newCreaGroup.Items[random.GetRandom(creature.Position, newCreaGroup.Count,
             this.config.data.creatures.region.min, this.config.data.creatures.region.max)]
+        log("Creature id selected %s to %s", tostring(oldCreatureId), tostring(newCreaId))
         return newCreaId
     end
     return nil
 end
 
 function this.randomizeContainerItems(reference, regionMin, regionMax)
+    log("Container randomization %s", tostring(reference))
     local config = this.config.data
     local newItems = {}
     local oldItems = {}
@@ -286,6 +288,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             elseif stack.object.isGold and config.gold.randomize then
 
                 local newCount = math.floor(math.max(count * (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+                log("Gold count %s to %s", tostring(stack.count), tostring(newCount))
                 stack.count = newCount
 
             elseif stack.object.isSoulGem and config.soulGems.soul.randomize then
@@ -298,10 +301,12 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
 
     for i, item in pairs(oldItems) do
         tes3.removeItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
+        log("Item %s removed", tostring(item.id))
     end
 
     for i, item in pairs(newItems) do
         tes3.addItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
+        log("Item %s added", tostring(item.id))
     end
     reference:updateEquipment()
 end
@@ -313,17 +318,20 @@ function this.createObject(object)
         if reference ~= nil then
             dataSaver.getObjectData(reference).isCreated = true
             this.StopRandomizationTemp(reference)
+            log("New object %s", tostring(reference))
             if object.itemData ~= nil then
                 if object.itemData.owner ~= nil or object.itemData.requirement ~= nil then
                     tes3.setOwner({ reference = reference, owner = object.itemData.owner, requiredRank = object.itemData.requirement })
                 end
                 reference.itemData.count = object.itemData.count
+                log("New object count %s", tostring(reference.itemData.count))
             end
         end
     end
 end
 
 function this.randomizeCell(cell)
+    log("Cell randomization %s", tostring(cell.editorName))
     local newObjects = {}
     local config = this.config.data
 
@@ -519,10 +527,9 @@ function this.randomizeCell(cell)
 
             elseif not object.isDead and object.baseObject.objectType == tes3.objectType.creature and object.leveledBaseReference ~= true then
 
-                -- local actorId = objectId:sub(1, -9)
                 local actorId = object.baseObject.id:lower()
                 local creature = creaturesData.Creatures[actorId]
-                if creature ~= nil then
+                if creature ~= nil and object.mobile ~= nil then
                     object.mobile:kill()
                     object:disable()
                     local newCreaGroup = creaturesData.CreatureGroups[creature.SubType]
@@ -640,6 +647,7 @@ function this.randomizeMobileActor(mobile)
         local normalized = attribute.normalized
         local newVal = useRangeVal and random.GetRandom(base, limit, region.min, region.max) or
             math.floor(math.min(base * (region.min + math.random() * (region.max - region.min)), limit))
+        log("%s to %s", tostring(attribute.base), tostring(newVal))
         attribute.base = newVal
         attribute.current = newVal * normalized
     end
@@ -647,6 +655,7 @@ function this.randomizeMobileActor(mobile)
 
     if mobile.actorType == tes3.actorType.npc then
         if configTable.attributes.randomize then
+            log("Attributes %s", tostring(mobile.object))
             for i, attributeVal in ipairs(mobile.attributes) do
                 setNew(attributeVal, configTable.attributes.region, configTable.attributes.limit)
             end
@@ -654,16 +663,20 @@ function this.randomizeMobileActor(mobile)
     end
     if configTable.skills.randomize then
         if mobile.actorType == tes3.actorType.npc then
+            log("Combat skills %s", tostring(mobile.object))
             for _, skillId in pairs(combatSkillIds) do
                 setNew(mobile.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
             end
+            log("Magic skills %s", tostring(mobile.object))
             for _, skillId in pairs(magicSkillIds) do
                 setNew(mobile.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
             end
+            log("Stealth skills %s", tostring(mobile.object))
             for _, skillId in pairs(stealthSkillIds) do
                 setNew(mobile.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
             end
         elseif mobile.actorType == tes3.actorType.creature then
+            log("Skills %s", tostring(mobile.object))
             setNew(mobile.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
             setNew(mobile.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
             setNew(mobile.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
@@ -671,16 +684,20 @@ function this.randomizeMobileActor(mobile)
     end
 
     if configTable.health.randomize then
+        log("Health %s", tostring(mobile.object))
         setNew(mobile.health, configTable.health.region)
     end
     if configTable.fatigue.randomize then
+        log("Fatigue skills %s", tostring(mobile.object))
         setNew(mobile.fatigue, configTable.fatigue.region)
     end
     if configTable.magicka.randomize then
+        log("Magicka skills %s", tostring(mobile.object))
         setNew(mobile.magicka, configTable.magicka.region)
     end
 
     for label, data in pairs(configTable.ai) do
+        log("AI %s %s", tostring(mobile.object), tostring(label))
         mobile[label] = random.GetRandom(mobile[label], 100, data.region.min, data.region.max)
     end
 
@@ -710,7 +727,7 @@ function this.randomizeMobileActor(mobile)
             if posEffects[param] == nil then
                 posEffectsAddCount = posEffectsAddCount - 1
             end
-
+            log("Positive effect %s %s %s", tostring(mobile.object), tostring(param), tostring(val))
             posEffects[param] = val
         end
         posRepeat = posRepeat - 1
@@ -738,7 +755,7 @@ function this.randomizeMobileActor(mobile)
             if negEffects[param] == nil then
                 negEffectsAddCount = negEffectsAddCount - 1
             end
-
+            log("Negative effect %s %s %s", tostring(mobile.object), tostring(param), tostring(val))
             negEffects[param] = val
         end
         negRepeat = negRepeat - 1
@@ -809,10 +826,12 @@ function this.randomizeActorBaseObject(object, actorType)
     end
 
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
+        log("Attack bonus %s", tostring(object))
         for i, val in ipairs(object.attacks) do
             local min = val.min * math.random () * (configTable.attack.region.min + (configTable.attack.region.max - configTable.attack.region.min))
             local max = val.max * math.random () * (configTable.attack.region.min + (configTable.attack.region.max - configTable.attack.region.min))
             if min > max then max = min end
+            log("min %s to %s max %s to %s", tostring(val.min), tostring(min), tostring(val.max), tostring(max))
             val.min = min
             val.max = max
         end
@@ -860,6 +879,9 @@ function this.randomizeActorBaseObject(object, actorType)
                     destination.marker.position = tes3vector3.new(newDest.marker.position.x, newDest.marker.position.y, newDest.marker.position.z)
                     destination.marker.orientation = tes3vector3.new(newDest.marker.orientation.x, newDest.marker.orientation.y, newDest.marker.orientation.z)
                 end
+
+                log("Travel destination %s %s %s (%s, %s, %s)", tostring(object), tostring(pos), tostring(destination.cell),
+                    tostring(destination.marker.position.x), tostring(destination.marker.position.y), tostring(destination.marker.position.z))
             end
         end
     end
@@ -937,12 +959,15 @@ function this.randomizeActorBaseObject(object, actorType)
     end
 
     for spell, _ in pairs(newSpells) do
-            spellList:add(spell)
+        log("New spell %s %s", tostring(object), tostring(spell))
+        spellList:add(spell)
     end
 
     if configData.barterGold.randomize and object.barterGold ~= nil then
-        object.barterGold = math.floor(object.barterGold * (configData.barterGold.region.min + math.random() *
+        local newVal = math.floor(object.barterGold * (configData.barterGold.region.min + math.random() *
             (configData.barterGold.region.max - configData.barterGold.region.min)))
+        log("Barter gold %s %s to %s", tostring(object), tostring(object.barterGold), tostring(newVal))
+        object.barterGold = newVal
     end
 end
 
@@ -967,8 +992,9 @@ function this.randomizeBody(mobile)
             end
 
             local hairList = headPartsData.Parts[newRace]["1"][tostring(genderId)]
-
-            mobile.object.baseObject.hair = tes3.getObject(hairList[math.random(1, #hairList)])
+            local hairId = hairList[math.random(1, #hairList)]
+            log("Hair %s %s to %s", tostring(mobile.object), tostring(mobile.object.baseObject.hair.id), tostring(hairId))
+            mobile.object.baseObject.hair = tes3.getObject(hairId)
         end
         if configData.NPCs.head.randomize and headPartsData.Parts[race] ~= nil then
             local newRace = race
@@ -982,8 +1008,9 @@ function this.randomizeBody(mobile)
             end
 
             local headList = headPartsData.Parts[newRace]["0"][tostring(genderId)]
-
-            mobile.object.baseObject.head = tes3.getObject(headList[math.random(1, #headList)])
+            local headId = headList[math.random(1, #headList)]
+            log("Hair %s %s to %s", tostring(mobile.object), tostring(mobile.object.baseObject.head.id), tostring(headId))
+            mobile.object.baseObject.head = tes3.getObject(headId)
         end
     end
 end
@@ -998,7 +1025,9 @@ function this.randomizeScale(reference)
 
     if configData ~= nil then
         if configData.scale.randomize then
-            reference.scale = reference.object.scale * (configData.scale.region.min + math.random() * (configData.scale.region.max - configData.scale.region.min))
+            local newVal = reference.object.scale * (configData.scale.region.min + math.random() * (configData.scale.region.max - configData.scale.region.min))
+            log("Scale %s %s to %s", tostring(reference), tostring(reference.scale), tostring(newVal))
+            reference.scale = newVal
         end
     end
 end
@@ -1047,6 +1076,7 @@ end
 function this.resetLockTrapToDefault(reference)
     local data = dataSaver.getObjectData(reference)
     if data and data.lockNode and getLockTrapCDTimestamp(data) < tes3.getSimulationTimestamp() then
+        log("LockTrap to default %s", tostring(reference))
         if data.lockNode.level ~= reference.lockNode.level then
             tes3.setLockLevel{ reference = reference, level = data.lockNode.level }
         end
@@ -1078,11 +1108,13 @@ function this.randomizeLockTrap(reference)
         if reference.lockNode ~= nil and configTable.lock.randomize and reference.lockNode.level > 0 then
             local newLevel = random.GetRandom(reference.lockNode.level, 100, configTable.lock.region.min, configTable.lock.region.max)
 
+            log("Lock level %s %s to %s", tostring(reference), tostring(reference.lockNode.level), tostring(newLevel))
             tes3.setLockLevel{ reference = reference, level = newLevel }
         end
         if (reference.lockNode == nil or reference.lockNode.level == 0) and configTable.lock.add.chance > math.random() then
             local newLevel = math.random(1, math.min(100, configTable.lock.add.levelMultiplier * tes3.player.object.level))
 
+            log("Lock level new %s %s", tostring(reference), tostring(newLevel))
             tes3.setLockLevel{ reference = reference, level = newLevel }
             reference.lockNode.locked = true
         end
@@ -1095,6 +1127,7 @@ function this.randomizeLockTrap(reference)
                     local newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
                     local newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
                     if newTrapSpell ~= nil then
+                        log("Trap %s %s to %s", tostring(reference), tostring(reference.lockNode.trap), tostring(newTrapSpell))
                         reference.lockNode.trap = newTrapSpell
                     end
                 end
@@ -1109,8 +1142,10 @@ function this.randomizeLockTrap(reference)
             end
             local newTrapSpellPos = math.random(1, math.floor(math.min(newGroup.Count,
                 newGroup.Count * configTable.trap.add.levelMultiplier * tes3.player.object.level * 0.01)))
-            local newSpell = tes3.getObject(newGroup.Items[newTrapSpellPos])
-            local trapped = tes3.setTrap({ reference = reference, spell = newSpell })
+            local spellId = newGroup.Items[newTrapSpellPos]
+            local newSpell = tes3.getObject(spellId)
+            log("Trap new %s %s", tostring(reference), tostring(spellId))
+            tes3.setTrap({ reference = reference, spell = newSpell })
         end
     end
 end
