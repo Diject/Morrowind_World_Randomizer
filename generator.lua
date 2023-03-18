@@ -23,6 +23,7 @@ local forbiddenIds = {
     ["bonebiter_bow_unique"] = true,
     ["heart_of_fire"] = true,
     ["T_WereboarRobe"] = true,
+    ["WerewolfRobe"] = true,
 
 
     ["vivec_god"] = true,
@@ -72,7 +73,7 @@ function this.fillItems()
     log("Item list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and not object.deleted and (object.script == nil or scriptWhiteList[object.script.id]) then
-            if items.data[object.objectType] ~= nil and object.name ~= nil and not forbiddenIds[object.id] and
+            if items.data[object.objectType] ~= nil and object.name ~= nil and object.name ~= "" and not forbiddenIds[object.id] and
                     object.name ~= "<Deprecated>" and (object.icon == nil or object.icon ~= "default icon.dds") and
                     object.weight > 0 and not forbiddenModels[(object.mesh or "err"):lower()] then
 
