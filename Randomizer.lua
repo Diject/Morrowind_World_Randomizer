@@ -356,11 +356,25 @@ function this.randomizeCell(cell)
         table.insert(herbsList, id)
     end
 
-    local doorPoss = {}
-    for door in cell:iterateReferences(tes3.objectType.door) do
-        if door ~= nil and door.disabled ~= true then
-            table.insert(doorPoss, door.position)
-            this.doors.resetDoorDestination(door)
+    local importantObjPositions = {}
+    if not cell.isInterior then
+        for i = cell.gridX - 1, cell.gridX + 1 do
+            for j = cell.gridY - 1, cell.gridY + 1 do
+                local objCell = tes3.getCell{ x = i, y = j}
+                if objCell then
+                    for obj in objCell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+                        if obj ~= nil and obj.disabled ~= true then
+                            table.insert(importantObjPositions, obj.position)
+                        end
+                    end
+                end
+            end
+        end
+    elseif cell.isOrBehavesAsExterior then
+        for obj in cell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+            if obj ~= nil and obj.disabled ~= true then
+                table.insert(importantObjPositions, obj.position)
+            end
         end
     end
 
@@ -377,7 +391,7 @@ function this.randomizeCell(cell)
             if objectData ~= nil and objectData.isCreated == true and not object.isDead then
                 object:delete()
 
-            elseif object.baseObject.objectType == tes3.objectType.static and object.cell.isOrBehavesAsExterior then
+            elseif object.baseObject.objectType == tes3.objectType.static and cell.isOrBehavesAsExterior then
 
                 local treeAdvData = treesData.TreesOffset[objectId]
                 local rockAdvData = rocksData.RocksOffset[objectId]
@@ -392,11 +406,19 @@ function this.randomizeCell(cell)
                             newOffset = newAdvData.Offset
                         end
 
-                        local posVector = getMinGroundPosInCircle(objectPos, 200, (newOffset - math.random(0, 100)) * objectScale)
-                        if posVector == nil then
-                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 100)) * objectScale)
+                        local scale = objectScale
+                        local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
+                        if distanceToObj < 300 then
+                            scale = math.min(scale, 0.25)
+                        elseif distanceToObj < 1000 then
+                            scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
                         end
-                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = objectScale, cell = cell})
+
+                        local posVector = getMinGroundPosInCircle(objectPos, 200, (newOffset - math.random(0, 100)) * scale)
+                        if posVector == nil then
+                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 100)) * scale)
+                        end
+                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
                         putOriginMark(object)
                         object:disable()
 
@@ -430,11 +452,11 @@ function this.randomizeCell(cell)
                                 scale = objectScale
                             end
 
-                            local distanceToDoor =  minDistanceBetweenVectors(objectPos, doorPoss)
-                            if distanceToDoor < 300 then
+                            local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
+                            if distanceToObj < 300 then
                                 scale = math.min(scale, 0.25)
-                            elseif distanceToDoor < 1000 then
-                                scale = math.min(scale, 0.25 + 0.75 * distanceToDoor / 1000)
+                            elseif distanceToObj < 1000 then
+                                scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
                             end
 
                             local offset = newRockOffset
@@ -466,7 +488,7 @@ function this.randomizeCell(cell)
 
                 local herbAdvData = herbsData.Herbs[objectId]
                 if herbAdvData ~= nil then
-                    if config.herbs.randomize and object.cell.isOrBehavesAsExterior and (this.isOrigin(object) or not object.disabled) then
+                    if config.herbs.randomize and cell.isOrBehavesAsExterior and (this.isOrigin(object) or not object.disabled) then
                         local newId = herbsList[math.random(1, #herbsList)]
                         local newHerbAdvData = herbsData.Herbs[newId]
                         if newHerbAdvData ~= nil then
@@ -544,6 +566,7 @@ function this.randomizeCell(cell)
 
             elseif object.baseObject.objectType == tes3.objectType.door then
 
+                this.doors.resetDoorDestination(object)
                 this.randomizeLockTrap(object)
 
             end
@@ -657,7 +680,8 @@ function this.randomizeMobileActor(mobile)
         if configTable.attributes.randomize then
             log("Attributes %s", tostring(mobile.object))
             for i, attributeVal in ipairs(mobile.attributes) do
-                setNew(attributeVal, configTable.attributes.region, configTable.attributes.limit)
+                local limit = math.max(attributeVal.base, configTable.attributes.limit)
+                setNew(attributeVal, configTable.attributes.region, limit)
             end
         end
     end
@@ -688,17 +712,18 @@ function this.randomizeMobileActor(mobile)
         setNew(mobile.health, configTable.health.region)
     end
     if configTable.fatigue.randomize then
-        log("Fatigue skills %s", tostring(mobile.object))
+        log("Fatigue %s", tostring(mobile.object))
         setNew(mobile.fatigue, configTable.fatigue.region)
     end
     if configTable.magicka.randomize then
-        log("Magicka skills %s", tostring(mobile.object))
+        log("Magicka %s", tostring(mobile.object))
         setNew(mobile.magicka, configTable.magicka.region)
     end
 
     for label, data in pairs(configTable.ai) do
-        log("AI %s %s", tostring(mobile.object), tostring(label))
-        mobile[label] = random.GetRandom(mobile[label], 100, data.region.min, data.region.max)
+        local newVal = random.GetRandom(mobile[label], 100, data.region.min, data.region.max)
+        log("AI %s %s %s to %s", tostring(mobile.object), tostring(label), tostring(mobile[label]), tostring(newVal))
+        mobile[label] = newVal
     end
 
     local posListCount = #positiveAttrs

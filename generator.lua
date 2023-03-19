@@ -28,6 +28,8 @@ local forbiddenIds = {
 
     ["vivec_god"] = true,
     ["wraith_sul_senipul"] = true,
+
+    ["ToddTest"] = true
 }
 
 local forbiddenModels = { -- lowercase
@@ -331,7 +333,7 @@ function this.findTravelDestinations()
         if object ~= nil and (object.objectType == tes3.objectType.npc or object.objectType == tes3.objectType.creature) and not object.deleted and
                 object.aiConfig and object.aiConfig.travelDestinations then
             for _, dest in pairs(object.aiConfig.travelDestinations) do
-                if isValidDestination(dest) then
+                if isValidDestination(dest) and not forbiddenIds[dest.cell.id] then
                     local newDest = {marker = {position = dest.marker.position, orientation = dest.marker.orientation}, cell = dest.cell}
                     table.insert(out, newDest)
                 end
