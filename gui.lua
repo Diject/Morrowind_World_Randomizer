@@ -181,6 +181,48 @@ function this.registerModConfig()
                 class = "Page",
                 components = {
                     {
+                        label = this.i18n("modConfig.label.logging"),
+                        class = "OnOffButton",
+                        restartRequired = true,
+                        variable = {
+                            class = "TableVariable",
+                            id = "logging",
+                            table = this.config.global,
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.cellRandomization"),
+                        components = {
+                            {
+                                class = "Slider",
+                                label = this.i18n("modConfig.label.cellRandomizationIntervalRealTime"),
+                                min = 0,
+                                max = 1800,
+                                step = 60,
+                                jump = 300,
+                                variable = {
+                                    class = "TableVariable",
+                                    id = "cellRandomizationCooldown",
+                                    table = this.config.global,
+                                },
+                            },
+                            {
+                                class = "Slider",
+                                label = this.i18n("modConfig.label.cellRandomizationIntervalGameTime"),
+                                min = 0,
+                                max = 336,
+                                step = 1,
+                                jump = 24,
+                                variable = {
+                                    class = "TableVariable",
+                                    id = "cellRandomizationCooldown_gametime",
+                                    table = this.config.global,
+                                },
+                            },
+                        },
+                    },
+                    {
                         class = "Category",
                         label = this.i18n("modConfig.label.pregeneratedDataTables"),
                         description = "",

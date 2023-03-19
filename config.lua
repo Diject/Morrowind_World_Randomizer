@@ -64,6 +64,7 @@ this.globalDefault = {
         usePregeneratedHerbData = false,
     },
     globalConfig = false,
+    logging = false,
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
 }

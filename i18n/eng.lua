@@ -171,4 +171,10 @@ return {
     ["modConfig.description.chanceToAddDisease"] = "Chance to add for each new disease.",
     ["modConfig.description.chanceToAddEffect"] = "Chance to add for each new effect.",
     ["modConfig.description.chanceToAddSpell"] = "Chance to add for each new spell.",
+
+    ["modConfig.label.logging"] = "Logging",
+
+    ["modConfig.label.cellRandomization"] = "Cell randomization",
+    ["modConfig.label.cellRandomizationIntervalRealTime"] = "Cell randomization interval. Real-time %%ss",
+    ["modConfig.label.cellRandomizationIntervalGameTime"] = "Cell randomization interval. Game-time %%sh",
 }
