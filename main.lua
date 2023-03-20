@@ -1,8 +1,8 @@
-local dataSaver = include("Morrowind World Randomizer.dataSaver")
-local randomizer = require("Morrowind World Randomizer.Randomizer")
-local gui = require("Morrowind World Randomizer.gui")
-local i18n = mwse.loadTranslations("Morrowind World Randomizer")
-local log = require("Morrowind World Randomizer.log")
+local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
+local randomizer = require("Morrowind_World_Randomizer.Randomizer")
+local gui = require("Morrowind_World_Randomizer.gui")
+local i18n = mwse.loadTranslations("Morrowind_World_Randomizer")
+local log = require("Morrowind_World_Randomizer.log")
 
 local cellLastRandomizeTime = {}
 

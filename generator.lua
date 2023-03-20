@@ -1,4 +1,4 @@
-local log = require("Morrowind World Randomizer.log")
+local log = require("Morrowind_World_Randomizer.log")
 
 local this = {}
 
