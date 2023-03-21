@@ -160,7 +160,7 @@ function this.fillCreatures()
     log("Creature list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         local idLow = object.id:lower()
-        if object ~= nil and object.objectType == tes3.objectType.creature and not object.deleted and not object.isEssential and object.health > 0 and
+        if object ~= nil and object.objectType == tes3.objectType.creature and not object.deleted and not object.isEssential and
                 (object.script == nil or scriptWhiteList[object.script.id] or string.find(object.script.id, "^disease[A-Z].+")) and
                 not string.find(idLow, "kwama queen_") and not string.find(idLow, ".+_summon") and
                 not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and object.health > 0 and
