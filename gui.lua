@@ -307,6 +307,7 @@ function this.registerModConfig()
                     {
                         label = this.i18n("modConfig.label.artifactsAsSeparate"),
                         class = "OnOffButton",
+                        inGameOnly = true,
                         variable = {
                             class = "TableVariable",
                             id = "randomizeArtifactsAsSeparateCategory",

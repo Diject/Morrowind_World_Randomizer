@@ -34,10 +34,10 @@ return {
     ["modConfig.label.pregeneratedSpells"] = "Use pregenerated spell data",
     ["modConfig.label.pregeneratedHerbs"] = "Use pregenerated herb data",
 
-    ["modConfig.label.randomizeItemInCont"] = "Randomize items in containers",
+    ["modConfig.label.randomizeItemInCont"] = "Randomize items in container inventories",
     ["modConfig.label.randomizeItemWithoutCont"] = "Randomize items without a container",
-    ["modConfig.label.randomizeNPCItems"] = "Randomize items in NPCs",
-    ["modConfig.label.randomizeCreatureItems"] = "Randomize items in creatures",
+    ["modConfig.label.randomizeNPCItems"] = "Randomize items in NPC inventories",
+    ["modConfig.label.randomizeCreatureItems"] = "Randomize items in creature inventories",
     ["modConfig.label.randomizeSoulsInGems"] = "Randomize souls in soulgems",
     ["modConfig.label.randomizeGold"] = "Randomize the amount of gold",
 
