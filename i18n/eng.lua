@@ -92,7 +92,7 @@ return {
 
     ["modConfig.label.randomizeHerbs"] = "Randomize herbs",
     ["modConfig.label.randomizeTrees"] = "Randomize trees",
-    ["modConfig.label.randomizeStones"] = "Randomize stones",
+    ["modConfig.label.randomizeStones"] = "Randomize rocks",
     ["modConfig.label.randomizeWeather"] = "Randomize weather",
 
     ["modConfig.label.mainPage"] = "Main",
@@ -124,7 +124,7 @@ return {
     ["modConfig.label.world"] = "World",
     ["modConfig.label.herbs"] = "Herbs",
     ["modConfig.label.trees"] = "Trees",
-    ["modConfig.label.stones"] = "Stones",
+    ["modConfig.label.stones"] = "Rocks",
     ["modConfig.label.weather"] = "Weather",
 
     ["modConfig.label.maxValueOfSkill"] = "The maximum value of a skill is %%s",
