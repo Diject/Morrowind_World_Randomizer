@@ -177,4 +177,6 @@ return {
     ["modConfig.label.cellRandomization"] = "Cell randomization",
     ["modConfig.label.cellRandomizationIntervalRealTime"] = "Cell randomization interval. Real-time %%ss",
     ["modConfig.label.cellRandomizationIntervalGameTime"] = "Cell randomization interval. Game-time %%sh",
+
+    ["modConfig.label.artifactsAsSeparate"] = "Randomize artifacts as a separate category",
 }

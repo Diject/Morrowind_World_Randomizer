@@ -305,6 +305,15 @@ function this.registerModConfig()
                 class = "FilterPage",
                 components = {
                     {
+                        label = this.i18n("modConfig.label.artifactsAsSeparate"),
+                        class = "OnOffButton",
+                        variable = {
+                            class = "TableVariable",
+                            id = "randomizeArtifactsAsSeparateCategory",
+                            table = this.config.data.other,
+                        },
+                    },
+                    {
                         class = "Category",
                         label = this.i18n("modConfig.label.randomizeItemInCont"),
                         description = "",

@@ -377,6 +377,7 @@ this.default = {
         randomize = true,
     },
     other = {
+        randomizeArtifactsAsSeparateCategory = true,
         disableMGEDistantLand = false,
         disableMGEDistantStatics = false,
     },
