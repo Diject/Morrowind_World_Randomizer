@@ -386,6 +386,8 @@ RocksData.RocksOffset = {
 	["terrain_rocks_gl_03"] = {Offset = 40},
 	["terrain_rocks_wg_01"] = {Offset = 100},
 	["terrain_rocks_wg_03"] = {Offset = 40},
+	["ex_t_menhir_01"] = {Offset = 100},
+	["ex_t_menhir_l_01"] = {Offset = -200},
 }
 
 RocksData.RocksGroups = {
@@ -412,6 +414,7 @@ RocksData.RocksGroups = {
 	{ Count = 2, Items = { "terrain_rocks_bm_01", "terrain_rocks_bm_02", },},
 	{ Count = 2, Items = { "terrain_rocks_gl_01", "terrain_rocks_gl_03", },},
 	{ Count = 2, Items = { "terrain_rocks_wg_01", "terrain_rocks_wg_03", },},
+	{ Count = 2, Items = { "ex_t_menhir_01", "ex_t_menhir_l_01", },},
 }
-RocksData.GroupsCount = 23
+RocksData.GroupsCount = 24
 return RocksData
