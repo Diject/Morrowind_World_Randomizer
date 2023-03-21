@@ -127,22 +127,25 @@ end
 
 local function getGroundZ(vector)
     local res = tes3.rayTest {
-        position = vector,
+        position = tes3vector3.new(vector.x, vector.y, vector.z + 2000),
         direction = tes3vector3.new(0, 0, -1),
         root = tes3.game.worldLandscapeRoot,
+        useBackTriangles = true,
         maxDistance = 6000
     }
     if res == nil then
         res = tes3.rayTest {
-            position = vector,
+            position = tes3vector3.new(vector.x, vector.y, vector.z - 2000),
             direction = tes3vector3.new(0, 0, 1),
             root = tes3.game.worldLandscapeRoot,
+            useBackTriangles = true,
             maxDistance = 6000
         }
     end
     if res ~= nil then
         return res.intersection.z
     end
+    log("Ray tracing error %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
     return nil
 end
 
