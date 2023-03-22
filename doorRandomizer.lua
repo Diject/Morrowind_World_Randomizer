@@ -58,6 +58,7 @@ end
 
 
 local function findingCells_asEx(cells, cell, depth)
+    depth = depth - 1
     if depth >= 0 then
         if cell.behavesAsExterior then
             cells[cell.id] = cell
@@ -68,10 +69,10 @@ local function findingCells_asEx(cells, cell, depth)
             end
         end
     end
-    depth = depth - 1
 end
 
 local function findingCells_Ex(cells, cell, depth)
+    depth = depth - 1
     if depth >= 0 and cell then
         if cell.isOrBehavesAsExterior then
             cells[cell.id] = cell
@@ -82,10 +83,10 @@ local function findingCells_Ex(cells, cell, depth)
             end
         end
     end
-    depth = depth - 1
 end
 
 local function findingCells_In(cells, cell, depth)
+    depth = depth - 1
     if depth >= 0 and cell then
         if not cell.isOrBehavesAsExterior then
             cells[cell.id] = cell
@@ -96,7 +97,6 @@ local function findingCells_In(cells, cell, depth)
             end
         end
     end
-    depth = depth - 1
 end
 
 local function saveDoorOrigDestination(reference)
