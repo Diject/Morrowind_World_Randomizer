@@ -90,10 +90,6 @@ function this.fillItems()
                 not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and (object.icon == nil or object.icon ~= "default icon.dds") and
                 object.weight > 0 and not forbiddenModels[(object.mesh or "err"):lower()] then
 
-            -- if object.script ~= nil and string.find(object.script.id, "^Museum.+")and object.id:find("_x$") then
-            --     items.artf[object.id:gsub("_x$", ""):lower()] = true
-            -- end
-
             if (object.script == nil or scriptWhiteList[object.script.id]) then
                 table.insert(items.data[object.objectType], object)
             end
