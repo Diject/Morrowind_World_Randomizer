@@ -881,9 +881,71 @@ end
 
 local actorObjectsInitialData = {}
 
+function this.saveAndRestoreBaseObjectInitialData(object)
+    if object then
+        if actorObjectsInitialData[object.id] == nil then actorObjectsInitialData[object.id] = {} end
+        local objectData = actorObjectsInitialData[object.id]
+        if objectData.actorData == nil then objectData.actorData = {} end
+
+        if objectData.actorData.spells == nil then
+            objectData.actorData.spells = {}
+            for i, spell in pairs(object.spells) do
+                table.insert(objectData.actorData.spells, spell.id)
+            end
+            objectData.actorData.barterGold = object.barterGold
+
+            if object.aiConfig.travelDestinations ~= nil then
+                objectData.actorData.travelDestinations = {}
+                for i, destination in pairs(object.aiConfig.travelDestinations) do
+                    objectData.actorData.travelDestinations[i] = {cell = destination.cell, marker = destination.marker}
+                end
+            end
+        else
+            for i, spell in pairs(object.spells) do
+                object.spells:remove(spell)
+            end
+            for i, spellId in ipairs(objectData.actorData.spells) do
+                object.spells:add(spellId)
+            end
+
+            object.barterGold = objectData.actorData.barterGold
+
+            if object.aiConfig.travelDestinations ~= nil and objectData.actorData.travelDestinations ~= nil then
+                for i, destination in pairs(object.aiConfig.travelDestinations) do
+                    destination.cell = objectData.actorData.travelDestinations[i].cell
+                    destination.marker = objectData.actorData.travelDestinations[i].marker
+                end
+            end
+        end
+
+        if object.hair then
+            if  objectData.actorData.hair == nil then
+                objectData.actorData.hair = object.hair.id
+            else
+                object.hair = tes3.getObject(objectData.actorData.hair)
+            end
+        end
+        if object.head then
+            if objectData.actorData.head == nil then
+                objectData.actorData.head = object.head.id
+            else
+                object.head = tes3.getObject(objectData.actorData.head)
+            end
+        end
+    end
+end
+
+function this.restoreAllBaseInitialData()
+    for id, data in pairs(actorObjectsInitialData) do
+        local object = tes3.getObject(id)
+        if object then
+            this.saveAndRestoreBaseObjectInitialData(object)
+        end
+        actorObjectsInitialData[id] = nil
+    end
+end
+
 function this.randomizeActorBaseObject(object, actorType)
-    if actorObjectsInitialData[object.id] == nil then actorObjectsInitialData[object.id] = {} end
-    local objectData = actorObjectsInitialData[object.id]
     local configData = this.config.data
     local configTable
     if object.actorType == tes3.actorType.npc or actorType == tes3.actorType.npc then
@@ -892,43 +954,12 @@ function this.randomizeActorBaseObject(object, actorType)
         configTable = configData.creatures
     end
 
-    if configTable == nil or objectData == nil then
+    if configTable == nil then
         return
     end
 
     -- Save or restore initial data
-    if objectData.actorData == nil then objectData.actorData = {} end
-
-    if objectData.actorData.spells == nil then
-        objectData.actorData.spells = {}
-        for i, spell in pairs(object.spells) do
-            table.insert(objectData.actorData.spells, spell.id)
-        end
-        objectData.actorData.barterGold = object.barterGold
-
-        if object.aiConfig.travelDestinations ~= nil then
-            objectData.actorData.travelDestinations = {}
-            for i, destination in pairs(object.aiConfig.travelDestinations) do
-                objectData.actorData.travelDestinations[i] = {cell = destination.cell, marker = destination.marker}
-            end
-        end
-    else
-        for i, spell in pairs(object.spells) do
-            object.spells:remove(spell)
-        end
-        for i, spellId in ipairs(objectData.actorData.spells) do
-            object.spells:add(spellId)
-        end
-
-        object.barterGold = objectData.actorData.barterGold
-
-        if object.aiConfig.travelDestinations ~= nil and objectData.actorData.travelDestinations ~= nil then
-            for i, destination in pairs(object.aiConfig.travelDestinations) do
-                destination.cell = objectData.actorData.travelDestinations[i].cell
-                destination.marker = objectData.actorData.travelDestinations[i].marker
-            end
-        end
-    end
+    this.saveAndRestoreBaseObjectInitialData(object)
 
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
@@ -1084,6 +1115,7 @@ end
 function this.randomizeBody(mobile)
     local configData = this.config.data
     if mobile.actorType == tes3.actorType.npc then
+        this.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject)
         local race = mobile.object.race.id:lower()
         if configData.NPCs.hair.randomize and headPartsData.Parts[race] ~= nil then
             local newRace = race
@@ -1180,7 +1212,7 @@ end
 
 function this.resetLockTrapToDefault(reference)
     local data = dataSaver.getObjectData(reference)
-    if data and data.lockNode and getLockTrapCDTimestamp(data) < tes3.getSimulationTimestamp() then
+    if data and data.lockNode and (getLockTrapCDTimestamp(data) < tes3.getSimulationTimestamp() or this.config.data.enabled == false) then
         log("LockTrap to default %s", tostring(reference))
         if data.lockNode.level ~= reference.lockNode.level then
             tes3.setLockLevel{ reference = reference, level = data.lockNode.level }
