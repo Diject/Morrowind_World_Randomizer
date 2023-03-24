@@ -933,8 +933,8 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
         for i, val in ipairs(object.attacks) do
-            local min = val.min * math.random () * (configTable.attack.region.min + (configTable.attack.region.max - configTable.attack.region.min))
-            local max = val.max * math.random () * (configTable.attack.region.min + (configTable.attack.region.max - configTable.attack.region.min))
+            local min = val.min * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
+            local max = val.max * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
             if min > max then max = min end
             log("min %s to %s max %s to %s", tostring(val.min), tostring(min), tostring(val.max), tostring(max))
             val.min = min
