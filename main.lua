@@ -81,11 +81,11 @@ event.register(tes3.event.cellActivated, function(e)
             timer.delayOneFrame(function() randomizer.randomizeCell(e.cell) end)
         end
     end
-
 end)
 
 event.register(tes3.event.load, function(e)
     cellLastRandomizeTime = {}
+    randomizer.restoreAllBaseInitialData()
     randomizer.config.resetConfig()
 end)
 
@@ -106,7 +106,6 @@ event.register(tes3.event.loaded, function(e)
         end
         randomizeLoadedCells()
     end
-
 end)
 
 local goldToAdd = 0
@@ -211,7 +210,9 @@ event.register(tes3.event.activate, function(e)
 end)
 
 event.register(tes3.event.calcRestInterrupt, function(e)
-    randomizeLoadedCells(e.hour)
+    if randomizer.config.getConfig().enabled then
+        randomizeLoadedCells(e.hour)
+    end
 end)
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end})
