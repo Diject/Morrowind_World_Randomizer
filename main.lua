@@ -27,8 +27,8 @@ local function forcedActorRandomization(reference)
         randomizer.randomizeMobileActor(mobile)
         randomizer.randomizeScale(reference)
         randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject)
-        randomizer.randomizeBody(reference)
         randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
+        randomizer.randomizeBody(reference)
         local configGroup
         if reference.object.objectType == tes3.objectType.npc then
             configGroup = randomizer.config.data.NPCs

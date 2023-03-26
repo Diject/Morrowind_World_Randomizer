@@ -1147,7 +1147,7 @@ end
 function this.randomizeBody(reference)
     local object = reference.object
     local configData = this.config.data
-    if object.actorType == tes3.actorType.npc then
+    if object.objectType == tes3.objectType.npc then
         local race = object.race.id:lower()
         if configData.NPCs.hair.randomize and headPartsData.Parts[race] ~= nil then
             local newRace = race
