@@ -1022,6 +1022,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.world"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce"),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.globalPage"),
