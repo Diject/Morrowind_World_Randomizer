@@ -83,17 +83,17 @@ local function forcedCellRandomization(cell, isForcedActorRandomization)
     end
 end
 
-local function randomizeLoadedCells(addedGameTime)
+local function randomizeLoadedCells(addedGameTime, forceCellRandomization, forceActorRandomization)
     if addedGameTime == nil then addedGameTime = 0 end
     local cells = tes3.getActiveCells()
     if cells ~= nil then
         for i, cell in pairs(cells) do
             local cellLastRandomizeTime = getCellLastRandomizeTime(cell.editorName)
-            if cellLastRandomizeTime == nil or not randomizer.config.getConfig().cells.randomizeOnlyOnce and
+            if forceCellRandomization or cellLastRandomizeTime == nil or not randomizer.config.getConfig().cells.randomizeOnlyOnce and
                     ((tes3.getSimulationTimestamp() - cellLastRandomizeTime.gameTime + addedGameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
                     (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown) then
 
-                forcedCellRandomization(cell)
+                forcedCellRandomization(cell, forceActorRandomization)
             end
         end
     end
@@ -267,5 +267,6 @@ event.register(tes3.event.calcRestInterrupt, function(e)
     end
 end)
 
-gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end})
+gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
+    randomizeLoadedCells = randomizeLoadedCells})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)

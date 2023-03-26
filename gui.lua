@@ -155,20 +155,33 @@ function this.registerModConfig()
                 class = "Page",
                 components = {
                     {
-                        class = "OnOffButton",
-                        label = this.i18n("modConfig.label.enableRandomizer"),
-                        inGameOnly = true,
-                        variable = {
-                            class = "Variable",
-                            get = function(self)
-                                return this.config.data.enabled
-                            end,
-                            set = function(self, val)
-                                this.config.data.enabled = val
-                                if val then
-                                    this.funcs.randomizeLoadedCellsFunc()
-                                end
-                            end,
+                        class = "SideBySideBlock",
+                        components = {
+                            {
+                                class = "OnOffButton",
+                                label = this.i18n("modConfig.label.enableRandomizer"),
+                                inGameOnly = true,
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self)
+                                        return this.config.data.enabled
+                                    end,
+                                    set = function(self, val)
+                                        this.config.data.enabled = val
+                                        if val then
+                                            this.funcs.randomizeLoadedCellsFunc()
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.randomizeLoadedCells"),
+                                inGameOnly = true,
+                                callback = function()
+                                    this.funcs.randomizeLoadedCells(0, true, true)
+                                end,
+                            },
                         },
                     },
                 },

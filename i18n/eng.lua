@@ -185,4 +185,6 @@ return {
     ["modConfig.label.randomizeCellOnlyOnce"] = "Randomize a cell only once",
     ["modConfig.label.randomizeNPCOnlyOnce"] = "Randomize an NPC only once",
     ["modConfig.label.randomizeCreatureOnlyOnce"] = "Randomize a creature only once",
+
+    ["modConfig.label.randomizeLoadedCells"] = "Randomize the current cell",
 }
