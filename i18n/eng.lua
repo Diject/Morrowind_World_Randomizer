@@ -179,4 +179,10 @@ return {
     ["modConfig.label.cellRandomizationIntervalGameTime"] = "Cell randomization interval. Game-time %%sh",
 
     ["modConfig.label.artifactsAsSeparate"] = "Randomize artifacts as a separate category",
+
+    ["modConfig.label.otherSettings"] = "Other",
+    ["modConfig.label.randomizeOnlyOnce"] = "Randomize only once",
+    ["modConfig.label.randomizeCellOnlyOnce"] = "Randomize a cell only once",
+    ["modConfig.label.randomizeNPCOnlyOnce"] = "Randomize an NPC only once",
+    ["modConfig.label.randomizeCreatureOnlyOnce"] = "Randomize a creature only once",
 }

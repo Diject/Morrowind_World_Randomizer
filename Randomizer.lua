@@ -358,7 +358,6 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             tes3.addItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
             log("Item %s added", tostring(item.id))
         end
-        reference:updateEquipment()
     end
 end
 
@@ -881,56 +880,92 @@ end
 
 local actorObjectsInitialData = {}
 
+function this.getBaseObjectData(object)
+    local data = {spells = {}}
+
+    for i, spell in pairs(object.spells) do
+        table.insert(data.spells, spell.id)
+    end
+    data.barterGold = object.barterGold
+
+    if object.aiConfig.travelDestinations ~= nil then
+        data.travelDestinations = {}
+        for i, destination in pairs(object.aiConfig.travelDestinations) do
+            data.travelDestinations[i] = {cell = {id = destination.cell.id, gridX = destination.cell.gridX, gridY = destination.cell.gridY},
+                marker = {x = destination.marker.position.x, y = destination.marker.position.y, z = destination.marker.position.z,
+                rotX = destination.marker.orientation.x, rotY = destination.marker.orientation.y, rotZ = destination.marker.orientation.z,}}
+        end
+    end
+
+    if object.attacks ~= nil then
+        data.attacks = {}
+        for i, val in ipairs(object.attacks) do
+            table.insert(data.attacks, {val.min, val.max})
+        end
+    end
+
+    if object.hair then
+        data.hair = object.hair.id
+    end
+    if object.head then
+        data.head = object.head.id
+    end
+
+    return data
+end
+
+function this.setBaseObjectData(object, data)
+    if data == nil or object == nil then return nil end
+
+    if data.spells then
+        for i, spell in pairs(object.spells) do
+            object.spells:remove(spell)
+        end
+        for i, spellId in ipairs(data.spells) do
+            object.spells:add(spellId)
+        end
+    end
+
+    object.barterGold = data.barterGold ~= nil and data.barterGold or object.barterGold
+
+    if object.aiConfig.travelDestinations ~= nil and data.travelDestinations ~= nil then
+        for i, destination in pairs(object.aiConfig.travelDestinations) do
+            if data.travelDestinations[i] ~= nil then
+                destination.cell = tes3.getCell(data.travelDestinations[i].cell)
+                destination.marker.position = tes3vector3.new(data.travelDestinations[i].marker.x, data.travelDestinations[i].marker.y,
+                    data.travelDestinations[i].marker.z)
+                destination.marker.orientation = tes3vector3.new(data.travelDestinations[i].marker.rotX, data.travelDestinations[i].marker.rotY,
+                    data.travelDestinations[i].marker.rotZ)
+            end
+        end
+    end
+
+    if object.attacks ~= nil and data.attacks ~= nil then
+        for i, val in ipairs(object.attacks) do
+            if data.attacks[i] ~= nil then
+                val.min = data.attacks[i][1]
+                val.max = data.attacks[i][2]
+            end
+        end
+    end
+
+    if object.hair and data.hair then
+        object.hair = tes3.getObject(data.hair)
+    end
+    if object.head and data.head then
+        object.head = tes3.getObject(data.head)
+    end
+end
+
 function this.saveAndRestoreBaseObjectInitialData(object)
     if object then
         if actorObjectsInitialData[object.id] == nil then actorObjectsInitialData[object.id] = {} end
         local objectData = actorObjectsInitialData[object.id]
-        if objectData.actorData == nil then objectData.actorData = {} end
 
-        if objectData.actorData.spells == nil then
-            objectData.actorData.spells = {}
-            for i, spell in pairs(object.spells) do
-                table.insert(objectData.actorData.spells, spell.id)
-            end
-            objectData.actorData.barterGold = object.barterGold
-
-            if object.aiConfig.travelDestinations ~= nil then
-                objectData.actorData.travelDestinations = {}
-                for i, destination in pairs(object.aiConfig.travelDestinations) do
-                    objectData.actorData.travelDestinations[i] = {cell = destination.cell, marker = destination.marker}
-                end
-            end
+        if objectData == nil then
+            actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
         else
-            for i, spell in pairs(object.spells) do
-                object.spells:remove(spell)
-            end
-            for i, spellId in ipairs(objectData.actorData.spells) do
-                object.spells:add(spellId)
-            end
-
-            object.barterGold = objectData.actorData.barterGold
-
-            if object.aiConfig.travelDestinations ~= nil and objectData.actorData.travelDestinations ~= nil then
-                for i, destination in pairs(object.aiConfig.travelDestinations) do
-                    destination.cell = objectData.actorData.travelDestinations[i].cell
-                    destination.marker = objectData.actorData.travelDestinations[i].marker
-                end
-            end
-        end
-
-        if object.hair then
-            if  objectData.actorData.hair == nil then
-                objectData.actorData.hair = object.hair.id
-            else
-                object.hair = tes3.getObject(objectData.actorData.hair)
-            end
-        end
-        if object.head then
-            if objectData.actorData.head == nil then
-                objectData.actorData.head = object.head.id
-            else
-                object.head = tes3.getObject(objectData.actorData.head)
-            end
+            this.setBaseObjectData(object, objectData)
         end
     end
 end
@@ -957,9 +992,6 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable == nil then
         return
     end
-
-    -- Save or restore initial data
-    this.saveAndRestoreBaseObjectInitialData(object)
 
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
@@ -1112,14 +1144,14 @@ for race, val in pairs(headPartsData.Parts) do
     table.insert(races, race)
 end
 
-function this.randomizeBody(mobile)
+function this.randomizeBody(reference)
+    local object = reference.object
     local configData = this.config.data
-    if mobile.actorType == tes3.actorType.npc then
-        this.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject)
-        local race = mobile.object.race.id:lower()
+    if object.actorType == tes3.actorType.npc then
+        local race = object.race.id:lower()
         if configData.NPCs.hair.randomize and headPartsData.Parts[race] ~= nil then
             local newRace = race
-            local genderId = mobile.object.female and 1 or 0
+            local genderId = object.female and 1 or 0
             if not configData.NPCs.hair.raceLimit then
                 local newRaceId = math.random(1, #races)
                 newRace = races[newRaceId]
@@ -1130,12 +1162,12 @@ function this.randomizeBody(mobile)
 
             local hairList = headPartsData.Parts[newRace]["1"][tostring(genderId)]
             local hairId = hairList[math.random(1, #hairList)]
-            log("Hair %s %s to %s", tostring(mobile.object), tostring(mobile.object.baseObject.hair.id), tostring(hairId))
-            mobile.object.baseObject.hair = tes3.getObject(hairId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.hair.id), tostring(hairId))
+            object.baseObject.hair = tes3.getObject(hairId)
         end
         if configData.NPCs.head.randomize and headPartsData.Parts[race] ~= nil then
             local newRace = race
-            local genderId = mobile.object.female and 1 or 0
+            local genderId = object.female and 1 or 0
             if not configData.NPCs.head.raceLimit then
                 local newRaceId = math.random(1, #races)
                 newRace = races[newRaceId]
@@ -1146,9 +1178,10 @@ function this.randomizeBody(mobile)
 
             local headList = headPartsData.Parts[newRace]["0"][tostring(genderId)]
             local headId = headList[math.random(1, #headList)]
-            log("Hair %s %s to %s", tostring(mobile.object), tostring(mobile.object.baseObject.head.id), tostring(headId))
-            mobile.object.baseObject.head = tes3.getObject(headId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.head.id), tostring(headId))
+            object.baseObject.head = tes3.getObject(headId)
         end
+        reference:updateEquipment()
     end
 end
 

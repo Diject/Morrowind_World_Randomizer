@@ -380,6 +380,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.creatures"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce"),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.creatures"),
@@ -622,6 +623,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.NPCs"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce"),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.items"),
@@ -1091,6 +1093,22 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeWeather"), this.config.data.weather, "randomize"),
+                        },
+                    },
+                },
+            },
+            {
+                label = this.i18n("modConfig.label.otherSettings"),
+                class = "FilterPage",
+                components = {
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.randomizeOnlyOnce"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce"),
                         },
                     },
                 },

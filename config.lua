@@ -129,6 +129,7 @@ this.default = {
         region = {min = 0.25, max = 1.75},
     },
     creatures = {
+        randomizeOnlyOnce = false,
         randomize = true,
         region = {min = 0.1, max = 0.1},
         items = {
@@ -229,6 +230,7 @@ this.default = {
         },
     },
     NPCs = {
+        randomizeOnlyOnce = false,
         items = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
@@ -375,6 +377,9 @@ this.default = {
     },
     weather = {
         randomize = true,
+    },
+    cells = {
+        randomizeOnlyOnce = false,
     },
     other = {
         randomizeArtifactsAsSeparateCategory = true,
