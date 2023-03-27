@@ -1149,7 +1149,7 @@ function this.randomizeBody(reference)
     local configData = this.config.data
     if object.objectType == tes3.objectType.npc then
         local race = object.race.id:lower()
-        if configData.NPCs.hair.randomize and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.hair.randomize and headPartsData.List["1"][object.baseObject.hair.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.hair.raceLimit then
@@ -1165,7 +1165,7 @@ function this.randomizeBody(reference)
             log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.hair.id), tostring(hairId))
             object.baseObject.hair = tes3.getObject(hairId)
         end
-        if configData.NPCs.head.randomize and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.head.randomize and headPartsData.List["0"][object.baseObject.head.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.head.raceLimit then
