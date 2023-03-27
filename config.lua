@@ -7,6 +7,7 @@ this.fullyLoaded = false;
 
 local globalConfigName = "MWWRandomizer_Global"
 local configName = "MWWRandomizer_Config"
+local profileFileName = "MWWRandomizer_Profiles"
 
 local function deepcopy(orig)
     local orig_type = type(orig)
@@ -391,6 +392,12 @@ this.default = {
 
 this.data = deepcopy(this.default)
 
+this.profiles = mwse.loadConfig(profileFileName)
+if this.profiles == nil then
+    mwse.saveConfig(profileFileName, {default = deepcopy(this.default)})
+    this.profiles = mwse.loadConfig(profileFileName)
+end
+
 function this.getValueByPath(path)
     local value = this.data
     if value ~= nil and #path > 0 then
@@ -487,6 +494,35 @@ function this.load()
         log("Main config:")
         logTable(this.data, "")
     end
+end
+
+function this.getProfile(profileName)
+    return this.profiles[profileName]
+end
+
+function this.saveProfiles()
+    mwse.saveConfig(profileFileName, this.profiles)
+end
+
+function this.saveCurrentProfile(profileName)
+    this.profiles[profileName] = this.data
+end
+
+function this.deleteProfile(profileName)
+    if this.profiles[profileName] then
+        this.profiles[profileName] = nil
+    end
+end
+
+function this.loadProfile(profileName)
+    local data = this.getProfile(profileName)
+    if data then
+        local enabled = this.data.enabled
+        applyChanges(this.data, data)
+        this.data.enabled = enabled
+        return true
+    end
+    return false
 end
 
 if this.global.globalConfig then

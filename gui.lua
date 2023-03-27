@@ -8,10 +8,19 @@ this.config = nil
 this.funcs = nil
 this.i18n = nil
 
+local profilesList = {}
+local currentConfig
+local updateProfileDropdown
+
 function this.init(config, i18n, functions)
     this.config = config
     this.i18n = i18n
     this.funcs = functions
+
+    for label, val in pairs(this.config.profiles) do
+        table.insert(profilesList, {label = label, value = label})
+    end
+    currentConfig = profilesList[1].value
 end
 
 local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
@@ -181,6 +190,111 @@ function this.registerModConfig()
                                 callback = function()
                                     this.funcs.randomizeLoadedCells(0, true, true)
                                 end,
+                            },
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.profiles"),
+                        components = {
+                            {
+                                label = this.i18n("modConfig.label.createNewProfile"),
+                                class = "TextField",
+                                sNewValue = "",
+                                inGameOnly = true,
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self)
+                                        return ""
+                                    end,
+                                    set = function(self, val)
+                                        local exists = false
+                                        for i, profileVal in pairs(profilesList) do
+                                            if profileVal.value == val then
+                                                exists = true
+                                                break
+                                            end
+                                        end
+                                        if not exists then
+                                            currentConfig = nil
+                                            table.insert(profilesList, {label = val, value = val})
+                                            if updateProfileDropdown then updateProfileDropdown() end
+                                            this.config.saveCurrentProfile(val)
+                                            tes3.messageBox(this.i18n("modConfig.label.profileAdded"))
+                                        else
+                                            tes3.messageBox(this.i18n("modConfig.label.profileNotAdded"))
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                class = "SideBySideBlock",
+                                components = {
+                                    {
+                                        label = this.i18n("modConfig.label.selectProfile"),
+                                        class = "Dropdown",
+                                        inGameOnly = true,
+                                        options = profilesList,
+                                        postCreate = function(self)
+                                            self:enable()
+                                            updateProfileDropdown = function()
+                                                self:enable()
+                                            end
+                                        end,
+                                        variable = {
+                                            class = "Variable",
+                                            get = function(self)
+                                                return ""
+                                            end,
+                                            set = function(self, val)
+                                                for i, profileVal in pairs(profilesList) do
+                                                    if profileVal.value == val then
+                                                        currentConfig = profileVal
+                                                        break
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                    },
+                                    {
+                                        class = "Category",
+                                        label = "",
+                                        components = {
+                                            {
+                                                class = "Button",
+                                                buttonText = this.i18n("modConfig.label.load"),
+                                                inGameOnly = true,
+                                                callback = function()
+                                                    if currentConfig then
+                                                        if this.config.loadProfile(currentConfig.value) then
+                                                            tes3.messageBox(this.i18n("modConfig.label.profileLoaded"))
+                                                        else
+                                                            tes3.messageBox(this.i18n("modConfig.label.profileNotLoaded"))
+                                                        end
+                                                    end
+                                                end,
+                                            },
+                                            {
+                                                class = "Button",
+                                                buttonText = this.i18n("modConfig.label.delete"),
+                                                inGameOnly = true,
+                                                callback = function()
+                                                    if currentConfig and currentConfig.value ~= "default" then
+                                                        for i, val in pairs(profilesList) do
+                                                            if val.value == currentConfig.value then
+                                                                this.config.deleteProfile(val.value)
+                                                                this.config.saveProfiles()
+                                                                table.remove(profilesList, i)
+                                                            end
+                                                        end
+                                                        if updateProfileDropdown then updateProfileDropdown() end
+                                                        currentConfig = nil
+                                                    end
+                                                end,
+                                            },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },

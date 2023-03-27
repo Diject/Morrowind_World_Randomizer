@@ -189,4 +189,14 @@ return {
     ["modConfig.label.randomizeLoadedCells"] = "Randomize the current cell",
 
     ["modConfig.label.doNotRandomizeInToIn"] = "Don't randomize interior to interior door destinations",
+
+    ["modConfig.label.profiles"] = "Profiles",
+    ["modConfig.label.createNewProfile"] = "Create a new profile",
+    ["modConfig.label.profileAdded"] = "The profile added",
+    ["modConfig.label.profileNotAdded"] = "The profile already exists",
+    ["modConfig.label.selectProfile"] = "Select the profile",
+    ["modConfig.label.load"] = "Load",
+    ["modConfig.label.delete"] = "Delete",
+    ["modConfig.label.profileLoaded"] = "The profile has been loaded",
+    ["modConfig.label.profileNotLoaded"] = "The profile was not loaded",
 }
