@@ -187,4 +187,6 @@ return {
     ["modConfig.label.randomizeCreatureOnlyOnce"] = "Randomize a creature only once",
 
     ["modConfig.label.randomizeLoadedCells"] = "Randomize the current cell",
+
+    ["modConfig.label.doNotRandomizeInToIn"] = "Don't randomize interior to interior door destinations",
 }

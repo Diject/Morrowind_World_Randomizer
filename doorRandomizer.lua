@@ -179,7 +179,8 @@ function this.randomizeDoor(reference)
     local data = dataSaver.getObjectData(reference)
     if not this.forbiddenDoorIds[reference.baseObject.id:lower()] and this.config.data.doors.randomize and this.config.data.doors.chance >= math.random() and
             data ~= nil and (data.doorCDTimestamp == nil or data.doorCDTimestamp < tes3.getSimulationTimestamp()) and
-            reference.object.objectType == tes3.objectType.door and reference.destination ~= nil then
+            reference.object.objectType == tes3.objectType.door and reference.destination ~= nil and
+            not (this.config.data.doors.doNotRandomizeInToIn and not reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior) then
 
         saveDoorOrigDestination(reference)
 
@@ -187,7 +188,7 @@ function this.randomizeDoor(reference)
 
         local doors = {}
         if this.config.data.doors.onlyNearest then
-            
+
             if reference.destination.cell.isOrBehavesAsExterior then
                 local cellsToCheck = {}
                 if reference.destination.cell.behavesAsExterior then

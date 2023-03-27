@@ -351,6 +351,7 @@ this.default = {
     },
     doors = {
         randomize = true,
+        doNotRandomizeInToIn = false,
         onlyNearest = true,
         nearestCellDepth = 2,
         chance = 0.2,
