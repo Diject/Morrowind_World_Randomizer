@@ -36,7 +36,7 @@ function this.findDoors()
 
     for _, cell in pairs(tes3.dataHandler.nonDynamicData.cells) do
         for door in cell:iterateReferences(tes3.objectType.door) do
-            if not door.deleted and not door.disabled and not door.script and not this.forbiddenDoorIds[door.id:lower()] and isValidDestination(door.destination) then
+            if not door.deleted and not door.disabled and not door.baseObject.script and not this.forbiddenDoorIds[door.id:lower()] and isValidDestination(door.destination) then
                 local destIsEx = door.destination.cell.isOrBehavesAsExterior
                 local isEx = door.cell.isOrBehavesAsExterior
                 if isEx and destIsEx then
@@ -56,6 +56,21 @@ function this.findDoors()
     log("Door list: InToIn = %i, InToEx = %i, ExToIn = %i, ExToEx = %i", #this.doorsData.InToIn, #this.doorsData.InToEx, #this.doorsData.ExToIn, #this.doorsData.ExToEx)
 end
 
+
+function this.isTimeExpiered(reference)
+    local data = dataSaver.getObjectData(reference)
+    if data ~= nil and (data.doorCDTimestamp == nil or data.doorCDTimestamp < tes3.getSimulationTimestamp()) then
+        return true
+    end
+    return false
+end
+
+function this.setCDTime(reference, addTime)
+    if reference then
+        local cd = addTime and addTime or this.config.data.doors.cooldown
+        dataSaver.getObjectData(reference).doorCDTimestamp = tes3.getSimulationTimestamp() + cd
+    end
+end
 
 local function findingCells_asEx(cells, cell, depth)
     depth = depth - 1
@@ -126,7 +141,119 @@ local function getDoorOriginalDestinationData(reference)
             position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
             orientation = tes3vector3.new(0, 0, marker.orientation.z)}}
     end
-    return nil
+end
+
+local function findDoorCellData_InToIn(cellData, cell, step)
+    step = step + 1
+    if not cell.isOrBehavesAsExterior then
+        cellData[cell.editorName] = {step = step, doors = {}, hasExit = false}
+        local data = cellData[cell.editorName]
+        for door in cell:iterateReferences(tes3.objectType.door) do
+            if not door.deleted and not door.disabled and not door.baseObject.script and
+                    isValidDestination(door.destination) and this.isTimeExpiered(door) then
+                local destination = getDoorOriginalDestinationData(door)
+                if destination.cell.isOrBehavesAsExterior then
+                    data.hasExit = true
+                else
+                    local marker = destination.marker
+                    table.insert(data.doors, {door = door, cell = destination.cell, marker = {
+                        position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
+                        orientation = tes3vector3.new(marker.orientation.x, marker.orientation.y, marker.orientation.z)}})
+                end
+                if not cellData[destination.cell.editorName] then
+                    findDoorCellData_InToIn(cellData, destination.cell, step)
+                end
+            end
+        end
+        if #data.doors == 0 then
+            cellData[cell.editorName] = nil
+        end
+    end
+end
+
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+local function isCanFindExit(cellData, cellEditorName, iteraction, pathTable)
+    if iteraction > 0 and cellData[cellEditorName] then
+        if cellData[cellEditorName].hasExit then
+            return true
+        else
+            pathTable[cellEditorName] = true
+            if #cellData[cellEditorName].doors > 0 then
+                for i, data in pairs(cellData[cellEditorName].doors) do
+                    if not pathTable[data.cell.editorName] and isCanFindExit(cellData, data.cell.editorName, iteraction - 1, pathTable) then
+                        return true
+                    end
+                end
+                return false
+            else
+                return false
+            end
+        end
+    end
+    return false
+end
+
+local function randomizeSmart_InToIn(cellData)
+    local newData = deepcopy(cellData)
+    local newFullData = {}
+    local cellNames = {}
+    for cellName, cdata in pairs(cellData) do
+        table.insert(cellNames, cellName)
+    end
+
+    for cellName, cdata in pairs(cellData) do
+        for i, doorData in pairs(cdata.doors) do
+            if this.config.data.doors.chance >= math.random() then
+                for j = 1, 20 do
+                    local randCellId = math.random(1, #cellNames)
+                    local rndCellName = cellNames[randCellId]
+                    if not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
+                        local rndDoorData = newData[rndCellName].doors[math.random(1, #newData[rndCellName].doors)]
+                        if newFullData[rndCellName] == nil then newFullData[rndCellName] = {step = cdata.step, doors = {}, hasExit = cdata.hasExit} end
+                        table.insert(newFullData[rndCellName].doors, {door = doorData.door, cell = rndDoorData.cell, marker = {
+                            position = rndDoorData.marker.position, orientation = rndDoorData.marker.orientation}})
+
+                        if #newData[rndCellName].doors > 1 then
+                            table.remove(newData[rndCellName].doors, i)
+                        else
+                            table.remove(cellNames, randCellId)
+                        end
+                        break
+                    end
+                end
+            end
+        end
+    end
+    for cellName, cdata in pairs(newData) do
+        if newFullData[cellName] == nil then newFullData[cellName] = {step = cdata.step, doors = {}, hasExit = cdata.hasExit} end
+        for i, doorData in pairs(cdata.doors) do
+            table.insert(newFullData[cellName].doors, doorData)
+        end
+    end
+    local canFindExit = true
+    for cellName, cdata in pairs(newFullData) do
+        if not isCanFindExit(newFullData, cellName, this.config.data.doors.smartInToInRandomization_cellDepth, {}) then
+            canFindExit = false
+        end
+    end
+    if not canFindExit then
+        return nil
+    end
+    return newFullData
 end
 
 local function getBackDoorFromReference(reference)
@@ -162,10 +289,10 @@ local function replaceDoorDestinations(door1, door2)
             local newDoorOrient = door2OrigDestData.marker.orientation
             local newDoorPos = door2OrigDestData.marker.position
 
-            dataSaver.getObjectData(door1).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
-            dataSaver.getObjectData(door2).doorCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.cooldown
+            this.setCDTime(door1)
+            this.setCDTime(door2)
 
-            log("Door destination %s (%s (%s, %s, %s)) %s (%s (%s, %s, %s))", tostring(door1), tostring(oldDoorCell),
+            log("Door destination swap %s (%s (%s, %s, %s)) %s (%s (%s, %s, %s))", tostring(door1), tostring(oldDoorCell),
                 tostring(oldDoorPos.x), tostring(oldDoorPos.y), tostring(oldDoorPos.z), tostring(door2),
                 tostring(newDoorCell), tostring(newDoorPos.x), tostring(newDoorPos.y), tostring(newDoorPos.z))
 
@@ -175,104 +302,129 @@ local function replaceDoorDestinations(door1, door2)
     end
 end
 
+local function setDoorDestination(door, newCell, newMark)
+    if door and newCell and newMark then
+        saveDoorOrigDestination(door)
+        local doorDest = door.destination
+
+        log("Door destination %s (%s (%s, %s, %s)) to (%s (%s, %s, %s))", tostring(door), tostring(doorDest.cell),
+            tostring(doorDest.marker.position.x), tostring(doorDest.marker.position.y), tostring(doorDest.marker.position.z),
+            tostring(newCell), tostring(newMark.position.x), tostring(newMark.position.y), tostring(newMark.position.z))
+
+        this.setCDTime(door)
+        tes3.setDestination{ reference = door, position = newMark.position, orientation = newMark.orientation, cell = newCell }
+    end
+end
+
 function this.randomizeDoor(reference)
-    local data = dataSaver.getObjectData(reference)
-    if not this.forbiddenDoorIds[reference.baseObject.id:lower()] and this.config.data.doors.randomize and this.config.data.doors.chance >= math.random() and
-            data ~= nil and (data.doorCDTimestamp == nil or data.doorCDTimestamp < tes3.getSimulationTimestamp()) and
-            reference.object.objectType == tes3.objectType.door and reference.destination ~= nil and
-            not (this.config.data.doors.doNotRandomizeInToIn and not reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior) then
-
-        saveDoorOrigDestination(reference)
-
-        local shouldChangeReverseDoor = (reference.cell.isOrBehavesAsExterior == reference.destination.cell.isOrBehavesAsExterior) and false or true
+    if not this.forbiddenDoorIds[reference.baseObject.id:lower()] and this.config.data.doors.randomize and
+            this.isTimeExpiered(reference) and reference.object.objectType == tes3.objectType.door and reference.destination ~= nil and
+            not (this.config.data.doors.doNotRandomizeInToIn and not reference.cell.isOrBehavesAsExterior and
+            not reference.destination.cell.isOrBehavesAsExterior) then
 
         local doors = {}
-        if this.config.data.doors.onlyNearest then
 
-            if reference.destination.cell.isOrBehavesAsExterior then
-                local cellsToCheck = {}
-                if reference.destination.cell.behavesAsExterior then
-                    findingCells_asEx(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
-                else
-                    findingCells_Ex(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
-                end
+        if this.config.data.doors.chance >= math.random() then
 
-                for cellId, cell in pairs(cellsToCheck) do
-                    for door in cell:iterateReferences(tes3.objectType.door) do
-                        if door.destination then
-                            for ndoor in door.destination.cell:iterateReferences(tes3.objectType.door) do
-                                if isValidDestination(ndoor.destination) and ndoor.destination.cell.editorName == cell.editorName then
-                                    local newDoorData = dataSaver.getObjectData(ndoor)
-                                    if (newDoorData and not this.forbiddenDoorIds[ndoor.baseObject.id:lower()] and
-                                            (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
-                                        table.insert(doors, ndoor)
+            saveDoorOrigDestination(reference)
+
+            if this.config.data.doors.onlyNearest then
+
+                if reference.destination.cell.isOrBehavesAsExterior then
+                    local cellsToCheck = {}
+                    if reference.destination.cell.behavesAsExterior then
+                        findingCells_asEx(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
+                    else
+                        findingCells_Ex(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
+                    end
+
+                    for cellId, cell in pairs(cellsToCheck) do
+                        for door in cell:iterateReferences(tes3.objectType.door) do
+                            if door.destination and not door.deleted and not door.disabled and not door.baseObject.script then
+                                for ndoor in door.destination.cell:iterateReferences(tes3.objectType.door) do
+                                    if isValidDestination(ndoor.destination) and ndoor.destination.cell.editorName == cell.editorName and
+                                            not ndoor.deleted and not ndoor.disabled and not ndoor.baseObject.script then
+                                        local newDoorData = dataSaver.getObjectData(ndoor)
+                                        if (newDoorData and not this.forbiddenDoorIds[ndoor.baseObject.id:lower()] and
+                                                (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                                            table.insert(doors, ndoor)
+                                        end
                                     end
                                 end
                             end
                         end
                     end
-                end
-            elseif reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior then
-                local cellsToCheck = {}
-                if reference.cell.behavesAsExterior then
-                    findingCells_asEx(cellsToCheck, reference.cell, this.config.data.doors.nearestCellDepth)
-                else
-                    findingCells_Ex(cellsToCheck, reference.cell, this.config.data.doors.nearestCellDepth)
-                end
+                elseif reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior then
 
-                for cellId, cell in pairs(cellsToCheck) do
-                    for door in cell:iterateReferences(tes3.objectType.door) do
-                        if isValidDestination(door.destination) then
-                            local newDoorData = dataSaver.getObjectData(door)
-                            if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
-                                    (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
-                                table.insert(doors, door)
+                    local cellsToCheck = {}
+                    if reference.cell.behavesAsExterior then
+                        findingCells_asEx(cellsToCheck, reference.cell, this.config.data.doors.nearestCellDepth)
+                    else
+                        findingCells_Ex(cellsToCheck, reference.cell, this.config.data.doors.nearestCellDepth)
+                    end
+
+                    for cellId, cell in pairs(cellsToCheck) do
+                        for door in cell:iterateReferences(tes3.objectType.door) do
+                            if isValidDestination(door.destination) and not door.disabled and not door.destination.cell.isOrBehavesAsExterior and
+                                    not door.deleted and not door.disabled and not door.baseObject.script then
+                                local newDoorData = dataSaver.getObjectData(door)
+                                if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
+                                        (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                                    table.insert(doors, door)
+                                end
+                            end
+                        end
+                    end
+
+                elseif not reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior and
+                        not this.config.data.doors.smartInToInRandomization and not this.config.data.doors.doNotRandomizeInToIn then
+                    local cellsToCheck = {}
+
+                    findingCells_In(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
+
+                    for cellId, cell in pairs(cellsToCheck) do
+                        for door in cell:iterateReferences(tes3.objectType.door) do
+                            if door.destination and not door.deleted and not door.disabled and not door.baseObject.script then
+                                local newDoorData = dataSaver.getObjectData(door)
+                                if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
+                                        (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
+                                    table.insert(doors, door)
+                                end
                             end
                         end
                     end
                 end
+            else
+                local newDoor
+                if reference.destination.cell.isOrBehavesAsExterior and reference.cell.isOrBehavesAsExterior then
+                    if #this.doorsData.ExToEx > 0 then newDoor = this.doorsData.ExToEx[math.random(1, #this.doorsData.ExToEx)] end
+                elseif reference.destination.cell.isOrBehavesAsExterior and not reference.cell.isOrBehavesAsExterior then
+                    if #this.doorsData.InToEx > 0 then newDoor = this.doorsData.InToEx[math.random(1, #this.doorsData.InToEx)] end
+                elseif not reference.destination.cell.isOrBehavesAsExterior and reference.cell.isOrBehavesAsExterior then
+                    if #this.doorsData.ExToIn > 0 then newDoor = this.doorsData.ExToIn[math.random(1, #this.doorsData.ExToIn)] end
+                elseif not reference.destination.cell.isOrBehavesAsExterior and not reference.cell.isOrBehavesAsExterior then
+                    if #this.doorsData.InToIn > 0 then newDoor = this.doorsData.InToIn[math.random(1, #this.doorsData.InToIn)] end
+                end
 
-            elseif not reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior then
-                local cellsToCheck = {}
-
-                findingCells_In(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
-
-                for cellId, cell in pairs(cellsToCheck) do
-                    for door in cell:iterateReferences(tes3.objectType.door) do
-                        if door.destination then
-                            local newDoorData = dataSaver.getObjectData(door)
-                            if (newDoorData and not this.forbiddenDoorIds[door.baseObject.id:lower()] and
-                                    (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
-                                table.insert(doors, door)
-                            end
-                        end
-                    end
+                if newDoor then
+                    table.insert(doors, newDoor)
                 end
             end
         else
-            local newDoor
-            if reference.destination.cell.isOrBehavesAsExterior and reference.cell.isOrBehavesAsExterior then
-                if #this.doorsData.ExToEx > 0 then newDoor = this.doorsData.ExToEx[math.random(1, #this.doorsData.ExToEx)] end
-            elseif reference.destination.cell.isOrBehavesAsExterior and not reference.cell.isOrBehavesAsExterior then
-                if #this.doorsData.InToEx > 0 then newDoor = this.doorsData.InToEx[math.random(1, #this.doorsData.InToEx)] end
-            elseif not reference.destination.cell.isOrBehavesAsExterior and reference.cell.isOrBehavesAsExterior then
-                if #this.doorsData.ExToIn > 0 then newDoor = this.doorsData.ExToIn[math.random(1, #this.doorsData.ExToIn)] end
-            elseif not reference.destination.cell.isOrBehavesAsExterior and not reference.cell.isOrBehavesAsExterior then
-                if #this.doorsData.InToIn > 0 then newDoor = this.doorsData.InToIn[math.random(1, #this.doorsData.InToIn)] end
-            end
-
-            if newDoor then
-                table.insert(doors, newDoor)
-            end
+            this.setCDTime(reference)
         end
 
+        local newDoor
+        local backDoor
+        local newBackDoor
         if #doors > 0 then
-            local newDoor = doors[math.random(1, #doors)]
+            newDoor = doors[math.random(1, #doors)]
 
+            local shouldChangeReverseDoor = (reference.cell.isOrBehavesAsExterior == reference.destination.cell.isOrBehavesAsExterior) and false or true
             if newDoor ~= reference then
                 if shouldChangeReverseDoor then
-                    local backDoor = getBackDoorFromReference(reference)
-                    local newBackDoor = getBackDoorFromReference(newDoor)
+                    backDoor = getBackDoorFromReference(reference)
+                    newBackDoor = getBackDoorFromReference(newDoor)
 
                     if backDoor and newBackDoor then
                         replaceDoorDestinations(backDoor, newBackDoor)
@@ -280,6 +432,56 @@ function this.randomizeDoor(reference)
                 end
 
                 replaceDoorDestinations(reference, newDoor)
+            end
+        end
+
+        --smart door randomizing
+        if this.config.data.doors.onlyNearest and this.config.data.doors.smartInToInRandomization and not this.config.data.doors.doNotRandomizeInToIn and
+                reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior then
+
+            local initialCell = reference.cell
+            if newBackDoor then
+                initialCell = newBackDoor.destination.cell
+            end
+            local cellsToCheck = {}
+            if initialCell.behavesAsExterior then
+                findingCells_asEx(cellsToCheck, initialCell, this.config.data.doors.nearestCellDepth)
+            else
+                findingCells_Ex(cellsToCheck, initialCell, this.config.data.doors.nearestCellDepth)
+            end
+
+            local intrCells = {}
+            for cellId, cell in pairs(cellsToCheck) do
+                for door in cell:iterateReferences(tes3.objectType.door) do
+                    if not door.deleted and not door.disabled and not door.baseObject.script and isValidDestination(door.destination) and
+                            not door.destination.cell.isOrBehavesAsExterior then
+                        intrCells[door.destination.cell.editorName] = door.destination.cell
+                    end
+                end
+            end
+
+            local cellData = {}
+            for name, cell in pairs(intrCells) do
+                findDoorCellData_InToIn(cellData, cell, 0)
+            end
+
+            for i = 1, this.config.data.doors.smartInToInRandomization_iterations do
+                log("Searching for a doors pattern "..tostring(i))
+                local randData = randomizeSmart_InToIn(cellData)
+                if randData then
+                    for cellEditorName, cellDoorData in pairs(randData) do
+                        for _, doorData in pairs(cellDoorData.doors) do
+                            this.setCDTime(doorData.door)
+                        end
+                    end
+                    log("The doors pattern found "..tostring(i))
+                    for cellEditorName, cellDoorData in pairs(randData) do
+                        for _, doorData in pairs(cellDoorData.doors) do
+                            setDoorDestination(doorData.door, doorData.cell, doorData.marker)
+                        end
+                    end
+                    break
+                end
             end
         end
     end

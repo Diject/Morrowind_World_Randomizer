@@ -188,7 +188,9 @@ return {
 
     ["modConfig.label.randomizeLoadedCells"] = "Randomize the current cell",
 
-    ["modConfig.label.doNotRandomizeInToIn"] = "Don't randomize interior to interior door destinations",
+    ["modConfig.label.doNotRandomizeInToIn"] = "Don't randomize interior to interior doors",
+    ["modConfig.label.smartDoorRandomizer"] = "Use a smart randomization algorithm for interior to interior doors",
+    ["modConfig.description.smartDoorRandomizer"] = "Use a smart randomization algorithm that won't let you get stuck in dead-end cells. All doors from interior cells will be randomized when you enter to the first interior cell from the exterior cell.",
 
     ["modConfig.label.profiles"] = "Profiles",
     ["modConfig.label.createNewProfile"] = "Create a new profile",
@@ -199,4 +201,7 @@ return {
     ["modConfig.label.delete"] = "Delete",
     ["modConfig.label.profileLoaded"] = "The profile has been loaded",
     ["modConfig.label.profileNotLoaded"] = "The profile was not loaded",
+
+    ["modConfig.description.willBeAppliedAfterNext"] = "Will be applied after the next randomization.",
+    ["modConfig.description.randomizeCellOnlyOnce"] = "Attention, objects affected by this option can never be randomized again. Even if the option is disabled.",
 }

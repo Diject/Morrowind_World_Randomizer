@@ -138,10 +138,11 @@ local function createSettingsBlock_offset(varTable, labels)
     return slider
 end
 
-local function createOnOffIngameButton(label, varTable, varId)
+local function createOnOffIngameButton(label, varTable, varId, description)
     local data = {
         class = "OnOffButton",
         label = label,
+        description = description,
         inGameOnly = true,
         variable = {
             id = varId,
@@ -508,7 +509,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.creatures"),
                 class = "FilterPage",
                 components = {
-                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce"),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.creatures"),
@@ -751,7 +752,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.NPCs"),
                 class = "FilterPage",
                 components = {
-                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce"),
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.items"),
@@ -1100,8 +1101,16 @@ function this.registerModConfig()
                             createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
                             createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
                             createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInToIn"), this.config.data.doors, "doNotRandomizeInToIn"),
-                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                            createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors, "smartInToInRandomization", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                    createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                                },
+                            },
                         },
                     },
 
@@ -1236,9 +1245,9 @@ function this.registerModConfig()
                         label = this.i18n("modConfig.label.randomizeOnlyOnce"),
                         description = "",
                         components = {
-                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce"),
-                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce"),
-                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                         },
                     },
                 },
