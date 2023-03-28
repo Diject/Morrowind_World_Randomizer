@@ -220,6 +220,7 @@ function this.registerModConfig()
                                             table.insert(profilesList, {label = val, value = val})
                                             if updateProfileDropdown then updateProfileDropdown() end
                                             this.config.saveCurrentProfile(val)
+                                            this.config.saveProfiles()
                                             tes3.messageBox(this.i18n("modConfig.label.profileAdded"))
                                         else
                                             tes3.messageBox(this.i18n("modConfig.label.profileNotAdded"))
