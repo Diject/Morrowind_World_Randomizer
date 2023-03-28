@@ -61,9 +61,9 @@ local function findingCells_asEx(cells, cell, depth)
     depth = depth - 1
     if depth >= 0 then
         if cell.behavesAsExterior then
-            cells[cell.id] = cell
+            cells[cell.editorName] = cell
             for door in cell:iterateReferences(tes3.objectType.door) do
-                if door.destination and not cells[door.destination.cell.id] then
+                if door.destination and not cells[door.destination.cell.editorName] then
                     findingCells_asEx(cells, door.destination.cell, depth)
                 end
             end
@@ -75,7 +75,7 @@ local function findingCells_Ex(cells, cell, depth)
     depth = depth - 1
     if depth >= 0 and cell then
         if cell.isOrBehavesAsExterior then
-            cells[cell.id] = cell
+            cells[cell.editorName] = cell
             for i = cell.gridX - 1, cell.gridX + 1 do
                 for j = cell.gridY - 1, cell.gridY + 1 do
                     findingCells_asEx(cells, tes3.getCell{x = i, y = j}, depth)
@@ -89,9 +89,9 @@ local function findingCells_In(cells, cell, depth)
     depth = depth - 1
     if depth >= 0 and cell then
         if not cell.isOrBehavesAsExterior then
-            cells[cell.id] = cell
+            cells[cell.editorName] = cell
             for door in cell:iterateReferences(tes3.objectType.door) do
-                if door.destination and not cells[door.destination.cell.id] then
+                if door.destination and not cells[door.destination.cell.editorName] then
                     findingCells_In(cells, door.destination.cell, depth)
                 end
             end
@@ -102,7 +102,7 @@ end
 local function saveDoorOrigDestination(reference)
     local data = dataSaver.getObjectData(reference)
     if data.origDestination == nil then
-        local cellData = {id = reference.destination.cell.isInterior and reference.destination.cell.id or nil,
+        local cellData = {id = reference.destination.cell.isInterior and reference.destination.cell.editorName or nil,
             x = reference.destination.cell.gridX, y = reference.destination.cell.gridY}
         data.origDestination = {x = reference.destination.marker.position.x, y = reference.destination.marker.position.y,
             z = reference.destination.marker.position.z, rotZ = reference.destination.marker.orientation.z, cell = cellData}
@@ -201,7 +201,7 @@ function this.randomizeDoor(reference)
                     for door in cell:iterateReferences(tes3.objectType.door) do
                         if door.destination then
                             for ndoor in door.destination.cell:iterateReferences(tes3.objectType.door) do
-                                if isValidDestination(ndoor.destination) and ndoor.destination.cell.id == cell.id then
+                                if isValidDestination(ndoor.destination) and ndoor.destination.cell.editorName == cell.editorName then
                                     local newDoorData = dataSaver.getObjectData(ndoor)
                                     if (newDoorData and not this.forbiddenDoorIds[ndoor.baseObject.id:lower()] and
                                             (newDoorData.doorCDTimestamp == nil or newDoorData.doorCDTimestamp < tes3.getSimulationTimestamp())) then
