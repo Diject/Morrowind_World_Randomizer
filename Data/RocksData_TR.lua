@@ -495,10 +495,6 @@ RocksData.RocksOffset = {
 	["t_mw_terrrockrm_rock_02"] = {Offset = 0},
 	["t_mw_terrrockrm_rock_04"] = {Offset = 0},
 	["t_mw_terrrockrm_rock_05"] = {Offset = 0},
-	["t_mw_terrrockrm_rockgrp_01"] = {Offset = 0},
-	["t_mw_terrrockrm_rockgrp_02"] = {Offset = 0},
-	["t_mw_terrrockrm_rockgrp_03"] = {Offset = 0},
-	["t_mw_terrrockrm_rockgrp_04"] = {Offset = 0},
 	["t_mw_terrrockrr_rock_01"] = {Offset = 0},
 	["t_mw_terrrockrr_rock_02"] = {Offset = 0},
 	["t_mw_terrrockrr_rock_03"] = {Offset = 0},
@@ -914,10 +910,6 @@ RocksData.RocksOffset = {
 	["t_sky_terrrockre_rockflt_16"] = {Offset = 0},
 	["t_sky_terrrockre_rockflt_17"] = {Offset = 0},
 	["t_sky_terrrockre_rockflt_18"] = {Offset = 0},
-	["t_sky_terrrockre_rockgrp_01"] = {Offset = 0},
-	["t_sky_terrrockre_rockgrp_02"] = {Offset = 0},
-	["t_sky_terrrockre_rockgrp_03"] = {Offset = 0},
-	["t_sky_terrrockre_rockgrp_04"] = {Offset = 0},
 	["t_sky_terrrockre_rockgrshf_01"] = {Offset = 0},
 	["t_sky_terrrockre_rockgrshf_02"] = {Offset = 0},
 	["t_sky_terrrockre_rockgrshf_03"] = {Offset = 0},
@@ -1538,7 +1530,6 @@ RocksData.RocksGroups = {
 	{ Count = 30, Items = { "t_mw_terrrockow_rock1_01", "t_mw_terrrockow_rock1_02", "t_mw_terrrockow_rock1_03", "t_mw_terrrockow_rock1_04", "t_mw_terrrockow_rock1_05", "t_mw_terrrockow_rock1_06", "t_mw_terrrockow_rock1_07", "t_mw_terrrockow_rock1_08", "t_mw_terrrockow_rock1_09", "t_mw_terrrockow_rock1_10", "t_mw_terrrockow_rock1_11", "t_mw_terrrockow_rock1_12", "t_mw_terrrockow_rock1_13", "t_mw_terrrockow_rock1_14", "t_mw_terrrockow_rock1_15", "t_mw_terrrockow_rock2_01", "t_mw_terrrockow_rock2_02", "t_mw_terrrockow_rock2_03", "t_mw_terrrockow_rock2_04", "t_mw_terrrockow_rock2_05", "t_mw_terrrockow_rock2_06", "t_mw_terrrockow_rock2_07", "t_mw_terrrockow_rock2_08", "t_mw_terrrockow_rock2_09", "t_mw_terrrockow_rock2_10", "t_mw_terrrockow_rock2_11", "t_mw_terrrockow_rock2_12", "t_mw_terrrockow_rock2_13", "t_mw_terrrockow_rock2_14", "t_mw_terrrockow_rock2_15", },},
 	{ Count = 14, Items = { "t_mw_terrrockow_rockgrp1_01", "t_mw_terrrockow_rockgrp1_02", "t_mw_terrrockow_rockgrp1_03", "t_mw_terrrockow_rockgrp1_04", "t_mw_terrrockow_rockgrp1_05", "t_mw_terrrockow_rockgrp1_06", "t_mw_terrrockow_rockgrp1_07", "t_mw_terrrockow_rockgrp2_01", "t_mw_terrrockow_rockgrp2_02", "t_mw_terrrockow_rockgrp2_03", "t_mw_terrrockow_rockgrp2_04", "t_mw_terrrockow_rockgrp2_05", "t_mw_terrrockow_rockgrp2_06", "t_mw_terrrockow_rockgrp2_07", },},
 	{ Count = 3, Items = { "t_mw_terrrockrm_rock_02", "t_mw_terrrockrm_rock_04", "t_mw_terrrockrm_rock_05", },},
-	{ Count = 4, Items = { "t_mw_terrrockrm_rockgrp_01", "t_mw_terrrockrm_rockgrp_02", "t_mw_terrrockrm_rockgrp_03", "t_mw_terrrockrm_rockgrp_04", },},
 	{ Count = 26, Items = { "t_mw_terrrockrr_rock_01", "t_mw_terrrockrr_rock_02", "t_mw_terrrockrr_rock_03", "t_mw_terrrockrr_rock_04", "t_mw_terrrockrr_rock_05", "t_mw_terrrockrr_rock_06", "t_mw_terrrockrr_rock_07", "t_mw_terrrockrr_rock_08", "t_mw_terrrockrr_rock_09", "t_mw_terrrockrr_rock_10", "t_mw_terrrockrr_rock_11", "t_mw_terrrockrr_rock_12", "t_mw_terrrockrr_rock_13", "t_mw_terrrockrr_rock_14", "t_mw_terrrockrr_rock_15", "t_mw_terrrockrr_rock_16", "t_mw_terrrockrr_rock_18", "t_mw_terrrockrr_rock_20", "t_mw_terrrockrr_rock_21", "t_mw_terrrockrr_rock_22", "t_mw_terrrockrr_rock_24", "t_mw_terrrockrr_rock_26", "t_mw_terrrockrr_rock_27", "t_mw_terrrockrr_rock_28", "t_mw_terrrockrr_rock_29", "t_mw_terrrockrr_rock_30", },},
 	{ Count = 2, Items = { "t_mw_terrrockrr_rockquarry_01", "t_mw_terrrockrr_rockquarry_02", },},
 	{ Count = 40, Items = { "t_mw_terrrocksh_rock1_01", "t_mw_terrrocksh_rock1_02", "t_mw_terrrocksh_rock1_03", "t_mw_terrrocksh_rock1_04", "t_mw_terrrocksh_rock1_05", "t_mw_terrrocksh_rock1_06", "t_mw_terrrocksh_rock1_07", "t_mw_terrrocksh_rock1_08", "t_mw_terrrocksh_rock1_09", "t_mw_terrrocksh_rock1_10", "t_mw_terrrocksh_rock1_11", "t_mw_terrrocksh_rock1_12", "t_mw_terrrocksh_rock1_13", "t_mw_terrrocksh_rock1_14", "t_mw_terrrocksh_rock1_15", "t_mw_terrrocksh_rock2_01", "t_mw_terrrocksh_rock2_02", "t_mw_terrrocksh_rock2_03", "t_mw_terrrocksh_rock2_04", "t_mw_terrrocksh_rock2_05", "t_mw_terrrocksh_rock2_06", "t_mw_terrrocksh_rock2_07", "t_mw_terrrocksh_rock2_08", "t_mw_terrrocksh_rock2_09", "t_mw_terrrocksh_rock2_10", "t_mw_terrrocksh_rock2_11", "t_mw_terrrocksh_rock2_12", "t_mw_terrrocksh_rock2_13", "t_mw_terrrocksh_rock2_14", "t_mw_terrrocksh_rock2_15", "t_mw_terrrocksh_rock3_01", "t_mw_terrrocksh_rock3_02", "t_mw_terrrocksh_rock3_03", "t_mw_terrrocksh_rock3_04", "t_mw_terrrocksh_rock3_05", "t_mw_terrrocksh_rock3_06", "t_mw_terrrocksh_rock3_07", "t_mw_terrrocksh_rock3_08", "t_mw_terrrocksh_rock3_09", "t_mw_terrrocksh_rock3_10", },},
@@ -1565,7 +1556,6 @@ RocksData.RocksGroups = {
 	{ Count = 36, Items = { "t_sky_terrrockre_rock_01", "t_sky_terrrockre_rock_02", "t_sky_terrrockre_rock_03", "t_sky_terrrockre_rock_04", "t_sky_terrrockre_rock_05", "t_sky_terrrockre_rock_06", "t_sky_terrrockre_rock_07", "t_sky_terrrockre_rock_08", "t_sky_terrrockre_rock_09", "t_sky_terrrockre_rock_10", "t_sky_terrrockre_rock_11", "t_sky_terrrockre_rock_12", "t_sky_terrrockre_rock_13", "t_sky_terrrockre_rock_14", "t_sky_terrrockre_rock_15", "t_sky_terrrockre_rock_16", "t_sky_terrrockre_rock_17", "t_sky_terrrockre_rock_18", "t_sky_terrrockre_rock_19", "t_sky_terrrockre_rock_20", "t_sky_terrrockre_rock_21", "t_sky_terrrockre_rock_22", "t_sky_terrrockre_rock_23", "t_sky_terrrockre_rock_24", "t_sky_terrrockre_rock_25", "t_sky_terrrockre_rock_26", "t_sky_terrrockre_rock_27", "t_sky_terrrockre_rock_28", "t_sky_terrrockre_rock_29", "t_sky_terrrockre_rock_30", "t_sky_terrrockre_rock_31", "t_sky_terrrockre_rock_32", "t_sky_terrrockre_rock_33", "t_sky_terrrockre_rock_34", "t_sky_terrrockre_rock_35", "t_sky_terrrockre_rock_36", },},
 	{ Count = 14, Items = { "t_sky_terrrockre_rockdrt_01", "t_sky_terrrockre_rockdrt_02", "t_sky_terrrockre_rockdrt_03", "t_sky_terrrockre_rockdrt_04", "t_sky_terrrockre_rockdrt_05", "t_sky_terrrockre_rockdrt_06", "t_sky_terrrockre_rockdrt_07", "t_sky_terrrockre_rockdrt_08", "t_sky_terrrockre_rockdrt_09", "t_sky_terrrockre_rockdrt_10", "t_sky_terrrockre_rockdrt_11", "t_sky_terrrockre_rockdrt_12", "t_sky_terrrockre_rockdrt_13", "t_sky_terrrockre_rockdrt_14", },},
 	{ Count = 18, Items = { "t_sky_terrrockre_rockflt_01", "t_sky_terrrockre_rockflt_02", "t_sky_terrrockre_rockflt_03", "t_sky_terrrockre_rockflt_04", "t_sky_terrrockre_rockflt_05", "t_sky_terrrockre_rockflt_06", "t_sky_terrrockre_rockflt_07", "t_sky_terrrockre_rockflt_08", "t_sky_terrrockre_rockflt_09", "t_sky_terrrockre_rockflt_10", "t_sky_terrrockre_rockflt_11", "t_sky_terrrockre_rockflt_12", "t_sky_terrrockre_rockflt_13", "t_sky_terrrockre_rockflt_14", "t_sky_terrrockre_rockflt_15", "t_sky_terrrockre_rockflt_16", "t_sky_terrrockre_rockflt_17", "t_sky_terrrockre_rockflt_18", },},
-	{ Count = 4, Items = { "t_sky_terrrockre_rockgrp_01", "t_sky_terrrockre_rockgrp_02", "t_sky_terrrockre_rockgrp_03", "t_sky_terrrockre_rockgrp_04", },},
 	{ Count = 14, Items = { "t_sky_terrrockre_rockgrshf_01", "t_sky_terrrockre_rockgrshf_02", "t_sky_terrrockre_rockgrshf_03", "t_sky_terrrockre_rockgrshf_04", "t_sky_terrrockre_rockgrshf_05", "t_sky_terrrockre_rockgrshf_06", "t_sky_terrrockre_rockgrshf_07", "t_sky_terrrockre_rockgrshf_08", "t_sky_terrrockre_rockgrshf_09", "t_sky_terrrockre_rockgrshf_10", "t_sky_terrrockre_rockgrshf_11", "t_sky_terrrockre_rockgrshf_12", "t_sky_terrrockre_rockgrshf_13", "t_sky_terrrockre_rockgrshf_14", },},
 	{ Count = 22, Items = { "t_sky_terrrockre_rocklvs_01", "t_sky_terrrockre_rocklvs_02", "t_sky_terrrockre_rocklvs_03", "t_sky_terrrockre_rocklvs_04", "t_sky_terrrockre_rocklvs_05", "t_sky_terrrockre_rocklvs_06", "t_sky_terrrockre_rocklvs_07", "t_sky_terrrockre_rocklvs_08", "t_sky_terrrockre_rocklvs_09", "t_sky_terrrockre_rocklvs_10", "t_sky_terrrockre_rocklvs_11", "t_sky_terrrockre_rocklvs_12", "t_sky_terrrockre_rocklvs_13", "t_sky_terrrockre_rocklvs_14", "t_sky_terrrockre_rocklvs_15", "t_sky_terrrockre_rocklvs_16", "t_sky_terrrockre_rocklvs_17", "t_sky_terrrockre_rocklvs_18", "t_sky_terrrockre_rocklvs_19", "t_sky_terrrockre_rocklvs_20", "t_sky_terrrockre_rocklvs_21", "t_sky_terrrockre_rocklvs_22", },},
 	{ Count = 14, Items = { "t_sky_terrrockre_rockpin_01", "t_sky_terrrockre_rockpin_02", "t_sky_terrrockre_rockpin_03", "t_sky_terrrockre_rockpin_04", "t_sky_terrrockre_rockpin_05", "t_sky_terrrockre_rockpin_06", "t_sky_terrrockre_rockpin_07", "t_sky_terrrockre_rockpin_08", "t_sky_terrrockre_rockpin_09", "t_sky_terrrockre_rockpin_10", "t_sky_terrrockre_rockpin_11", "t_sky_terrrockre_rockpin_12", "t_sky_terrrockre_rockpin_13", "t_sky_terrrockre_rockpin_14", },},
@@ -1606,5 +1596,5 @@ RocksData.RocksGroups = {
 	{ Count = 2, Items = { "terrain_rocks_gl_01", "terrain_rocks_gl_03", },},
 	{ Count = 2, Items = { "terrain_rocks_wg_01", "terrain_rocks_wg_03", },},
 }
-RocksData.GroupsCount = 106
+RocksData.GroupsCount = 104
 return RocksData
