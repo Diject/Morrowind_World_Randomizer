@@ -767,19 +767,6 @@ RocksData.RocksOffset = {
 	["t_sky_terrrockjm_boulder_09"] = {Offset = 0},
 	["t_sky_terrrockjm_boulder_10"] = {Offset = 0},
 	["t_sky_terrrockjm_boulder_11"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_01"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_02"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_03"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_04"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_05"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_06"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_07"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_08"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_09"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_10"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_11"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_12"] = {Offset = 0},
-	["t_sky_terrrockjm_rockgrp_13"] = {Offset = 0},
 	["t_sky_terrrockjm_rocksml_01"] = {Offset = 0},
 	["t_sky_terrrockjm_rocksml_02"] = {Offset = 0},
 	["t_sky_terrrockjm_rocksml_03"] = {Offset = 0},
@@ -1570,7 +1557,6 @@ RocksData.RocksGroups = {
 	{ Count = 11, Items = { "t_sky_terrrockem_rocksml_01", "t_sky_terrrockem_rocksml_02", "t_sky_terrrockem_rocksml_03", "t_sky_terrrockem_rocksml_04", "t_sky_terrrockem_rocksml_05", "t_sky_terrrockem_rocksml_06", "t_sky_terrrockem_rocksml_07", "t_sky_terrrockem_rocksml_08", "t_sky_terrrockem_rocksml_09", "t_sky_terrrockem_rocksml_10", "t_sky_terrrockem_rocksml_11", },},
 	{ Count = 19, Items = { "t_sky_terrrockem_rocksnw_01", "t_sky_terrrockem_rocksnw_02", "t_sky_terrrockem_rocksnw_03", "t_sky_terrrockem_rocksnw_04", "t_sky_terrrockem_rocksnw_05", "t_sky_terrrockem_rocksnw_06", "t_sky_terrrockem_rocksnw_07", "t_sky_terrrockem_rocksnw_08", "t_sky_terrrockem_rocksnw_09", "t_sky_terrrockem_rocksnw_10", "t_sky_terrrockem_rocksnw_12", "t_sky_terrrockem_rocksnw_13", "t_sky_terrrockem_rocksnw_14", "t_sky_terrrockem_rocksnw_15", "t_sky_terrrockem_rocksnw_16", "t_sky_terrrockem_rocksnw_17", "t_sky_terrrockem_rocksnw_18", "t_sky_terrrockem_rocksnw_19", "t_sky_terrrockem_rocksnw_20", },},
 	{ Count = 11, Items = { "t_sky_terrrockjm_boulder_01", "t_sky_terrrockjm_boulder_02", "t_sky_terrrockjm_boulder_03", "t_sky_terrrockjm_boulder_04", "t_sky_terrrockjm_boulder_05", "t_sky_terrrockjm_boulder_06", "t_sky_terrrockjm_boulder_07", "t_sky_terrrockjm_boulder_08", "t_sky_terrrockjm_boulder_09", "t_sky_terrrockjm_boulder_10", "t_sky_terrrockjm_boulder_11", },},
-	{ Count = 13, Items = { "t_sky_terrrockjm_rockgrp_01", "t_sky_terrrockjm_rockgrp_02", "t_sky_terrrockjm_rockgrp_03", "t_sky_terrrockjm_rockgrp_04", "t_sky_terrrockjm_rockgrp_05", "t_sky_terrrockjm_rockgrp_06", "t_sky_terrrockjm_rockgrp_07", "t_sky_terrrockjm_rockgrp_08", "t_sky_terrrockjm_rockgrp_09", "t_sky_terrrockjm_rockgrp_10", "t_sky_terrrockjm_rockgrp_11", "t_sky_terrrockjm_rockgrp_12", "t_sky_terrrockjm_rockgrp_13", },},
 	{ Count = 12, Items = { "t_sky_terrrockjm_rocksml_01", "t_sky_terrrockjm_rocksml_02", "t_sky_terrrockjm_rocksml_03", "t_sky_terrrockjm_rocksml_04", "t_sky_terrrockjm_rocksml_05", "t_sky_terrrockjm_rocksml_06", "t_sky_terrrockjm_rocksml_07", "t_sky_terrrockjm_rocksml_08", "t_sky_terrrockjm_rocksml_09", "t_sky_terrrockjm_rocksml_10", "t_sky_terrrockjm_rocksml_11", "t_sky_terrrockjm_rocksml_12", },},
 	{ Count = 20, Items = { "t_sky_terrrockjm_rocksnw_01", "t_sky_terrrockjm_rocksnw_02", "t_sky_terrrockjm_rocksnw_03", "t_sky_terrrockjm_rocksnw_04", "t_sky_terrrockjm_rocksnw_05", "t_sky_terrrockjm_rocksnw_06", "t_sky_terrrockjm_rocksnw_07", "t_sky_terrrockjm_rocksnw_08", "t_sky_terrrockjm_rocksnw_09", "t_sky_terrrockjm_rocksnw_10", "t_sky_terrrockjm_rocksnw_11", "t_sky_terrrockjm_rocksnw_12", "t_sky_terrrockjm_rocksnw_13", "t_sky_terrrockjm_rocksnw_14", "t_sky_terrrockjm_rocksnw_15", "t_sky_terrrockjm_rocksnw_16", "t_sky_terrrockjm_rocksnw_17", "t_sky_terrrockjm_rocksnw_18", "t_sky_terrrockjm_rocksnw_19", "t_sky_terrrockjm_rocksnw_20", },},
 	{ Count = 20, Items = { "t_sky_terrrockjms_rocksnw_01", "t_sky_terrrockjms_rocksnw_02", "t_sky_terrrockjms_rocksnw_03", "t_sky_terrrockjms_rocksnw_04", "t_sky_terrrockjms_rocksnw_05", "t_sky_terrrockjms_rocksnw_06", "t_sky_terrrockjms_rocksnw_07", "t_sky_terrrockjms_rocksnw_08", "t_sky_terrrockjms_rocksnw_09", "t_sky_terrrockjms_rocksnw_10", "t_sky_terrrockjms_rocksnw_11", "t_sky_terrrockjms_rocksnw_12", "t_sky_terrrockjms_rocksnw_13", "t_sky_terrrockjms_rocksnw_14", "t_sky_terrrockjms_rocksnw_15", "t_sky_terrrockjms_rocksnw_16", "t_sky_terrrockjms_rocksnw_17", "t_sky_terrrockjms_rocksnw_18", "t_sky_terrrockjms_rocksnw_19", "t_sky_terrrockjms_rocksnw_20", },},
@@ -1620,5 +1606,5 @@ RocksData.RocksGroups = {
 	{ Count = 2, Items = { "terrain_rocks_gl_01", "terrain_rocks_gl_03", },},
 	{ Count = 2, Items = { "terrain_rocks_wg_01", "terrain_rocks_wg_03", },},
 }
-RocksData.GroupsCount = 107
+RocksData.GroupsCount = 106
 return RocksData
