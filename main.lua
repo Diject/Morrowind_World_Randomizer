@@ -144,6 +144,7 @@ event.register(tes3.event.load, function(e)
 end)
 
 event.register(tes3.event.loaded, function(e)
+    randomizer.config.getConfig()
     randomizer.genNonStaticData()
 
     if randomizer.config.getConfig().enabled then
