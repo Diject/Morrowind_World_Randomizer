@@ -8,10 +8,19 @@ this.config = nil
 this.funcs = nil
 this.i18n = nil
 
+local profilesList = {}
+local currentConfig
+local updateProfileDropdown
+
 function this.init(config, i18n, functions)
     this.config = config
     this.i18n = i18n
     this.funcs = functions
+
+    for label, val in pairs(this.config.profiles) do
+        table.insert(profilesList, {label = label, value = label})
+    end
+    currentConfig = profilesList[1].value
 end
 
 local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
@@ -129,10 +138,11 @@ local function createSettingsBlock_offset(varTable, labels)
     return slider
 end
 
-local function createOnOffIngameButton(label, varTable, varId)
+local function createOnOffIngameButton(label, varTable, varId, description)
     local data = {
         class = "OnOffButton",
         label = label,
+        description = description,
         inGameOnly = true,
         variable = {
             id = varId,
@@ -155,20 +165,139 @@ function this.registerModConfig()
                 class = "Page",
                 components = {
                     {
-                        class = "OnOffButton",
-                        label = this.i18n("modConfig.label.enableRandomizer"),
-                        inGameOnly = true,
-                        variable = {
-                            class = "Variable",
-                            get = function(self)
-                                return this.config.data.enabled
-                            end,
-                            set = function(self, val)
-                                this.config.data.enabled = val
-                                if val then
-                                    this.funcs.randomizeLoadedCellsFunc()
-                                end
-                            end,
+                        class = "SideBySideBlock",
+                        components = {
+                            {
+                                class = "OnOffButton",
+                                label = this.i18n("modConfig.label.enableRandomizer"),
+                                inGameOnly = true,
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self)
+                                        return this.config.data.enabled
+                                    end,
+                                    set = function(self, val)
+                                        this.config.data.enabled = val
+                                        if val then
+                                            this.funcs.randomizeLoadedCellsFunc()
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.randomizeLoadedCells"),
+                                inGameOnly = true,
+                                callback = function()
+                                    this.funcs.randomizeLoadedCells(0, true, true)
+                                end,
+                            },
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.profiles"),
+                        components = {
+                            {
+                                label = this.i18n("modConfig.label.createNewProfile"),
+                                class = "TextField",
+                                sNewValue = "",
+                                inGameOnly = true,
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self)
+                                        return ""
+                                    end,
+                                    set = function(self, val)
+                                        local exists = false
+                                        for i, profileVal in pairs(profilesList) do
+                                            if profileVal.value == val then
+                                                exists = true
+                                                break
+                                            end
+                                        end
+                                        if not exists then
+                                            currentConfig = nil
+                                            table.insert(profilesList, {label = val, value = val})
+                                            if updateProfileDropdown then updateProfileDropdown() end
+                                            this.config.saveCurrentProfile(val)
+                                            this.config.saveProfiles()
+                                            tes3.messageBox(this.i18n("modConfig.label.profileAdded"))
+                                        else
+                                            tes3.messageBox(this.i18n("modConfig.label.profileNotAdded"))
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                class = "SideBySideBlock",
+                                components = {
+                                    {
+                                        label = this.i18n("modConfig.label.selectProfile"),
+                                        class = "Dropdown",
+                                        inGameOnly = true,
+                                        options = profilesList,
+                                        postCreate = function(self)
+                                            self:enable()
+                                            updateProfileDropdown = function()
+                                                self:enable()
+                                            end
+                                        end,
+                                        variable = {
+                                            class = "Variable",
+                                            get = function(self)
+                                                return ""
+                                            end,
+                                            set = function(self, val)
+                                                for i, profileVal in pairs(profilesList) do
+                                                    if profileVal.value == val then
+                                                        currentConfig = profileVal
+                                                        break
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                    },
+                                    {
+                                        class = "Category",
+                                        label = "",
+                                        components = {
+                                            {
+                                                class = "Button",
+                                                buttonText = this.i18n("modConfig.label.load"),
+                                                inGameOnly = true,
+                                                callback = function()
+                                                    if currentConfig then
+                                                        if this.config.loadProfile(currentConfig.value) then
+                                                            tes3.messageBox(this.i18n("modConfig.label.profileLoaded"))
+                                                        else
+                                                            tes3.messageBox(this.i18n("modConfig.label.profileNotLoaded"))
+                                                        end
+                                                    end
+                                                end,
+                                            },
+                                            {
+                                                class = "Button",
+                                                buttonText = this.i18n("modConfig.label.delete"),
+                                                inGameOnly = true,
+                                                callback = function()
+                                                    if currentConfig and currentConfig.value ~= "default" then
+                                                        for i, val in pairs(profilesList) do
+                                                            if val.value == currentConfig.value then
+                                                                this.config.deleteProfile(val.value)
+                                                                this.config.saveProfiles()
+                                                                table.remove(profilesList, i)
+                                                            end
+                                                        end
+                                                        if updateProfileDropdown then updateProfileDropdown() end
+                                                        currentConfig = nil
+                                                    end
+                                                end,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
@@ -380,6 +509,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.creatures"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.creatures"),
@@ -622,6 +752,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.NPCs"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.items"),
@@ -969,8 +1100,26 @@ function this.registerModConfig()
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoors"), this.config.data.doors, "randomize"),
                             createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
                             createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
-                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                            createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInToIn"), this.config.data.doors, "doNotRandomizeInToIn"),
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
+                                    createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.smartAlgorithm"),
+                                        description = "",
+                                        components = {
+                                            createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors.smartInToInRandomization, "enabled", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                            createOnOffIngameButton(this.i18n("modConfig.label.tryToRandBothDoors"), this.config.data.doors.smartInToInRandomization, "backDoorMode", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
 
@@ -1020,6 +1169,7 @@ function this.registerModConfig()
                 label = this.i18n("modConfig.label.world"),
                 class = "FilterPage",
                 components = {
+                    createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce"),
                     {
                         class = "Category",
                         label = this.i18n("modConfig.label.globalPage"),
@@ -1091,6 +1241,23 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeWeather"), this.config.data.weather, "randomize"),
+                        },
+                    },
+                },
+            },
+            {
+                label = this.i18n("modConfig.label.otherSettings"),
+                class = "FilterPage",
+                components = {
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.randomizeOnlyOnce"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                         },
                     },
                 },

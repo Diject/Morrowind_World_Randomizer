@@ -7,6 +7,7 @@ this.fullyLoaded = false;
 
 local globalConfigName = "MWWRandomizer_Global"
 local configName = "MWWRandomizer_Config"
+local profileFileName = "MWWRandomizer_Profiles"
 
 local function deepcopy(orig)
     local orig_type = type(orig)
@@ -29,6 +30,7 @@ local function addMissing(toTable, fromTable)
             if toTable[label] == nil then
                 toTable[label] = deepcopy(val)
             else
+                if type(toTable[label]) ~= "table" then toTable[label] = {} end
                 addMissing(toTable[label], val)
             end
         elseif toTable[label] == nil then
@@ -43,6 +45,7 @@ local function applyChanges(toTable, fromTable)
             if toTable[label] == nil then
                 toTable[label] = deepcopy(val)
             else
+                if type(toTable[label]) ~= "table" then toTable[label] = {} end
                 applyChanges(toTable[label], val)
             end
         else
@@ -129,6 +132,7 @@ this.default = {
         region = {min = 0.25, max = 1.75},
     },
     creatures = {
+        randomizeOnlyOnce = false,
         randomize = true,
         region = {min = 0.1, max = 0.1},
         items = {
@@ -229,6 +233,7 @@ this.default = {
         },
     },
     NPCs = {
+        randomizeOnlyOnce = false,
         items = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
@@ -349,6 +354,14 @@ this.default = {
     },
     doors = {
         randomize = true,
+        onlyOnCellRandomization = false,
+        doNotRandomizeInToIn = false,
+        smartInToInRandomization = {
+            enabled = true,
+            backDoorMode = true,
+            iterations = 1000,
+            cellDepth = 50,
+        },
         onlyNearest = true,
         nearestCellDepth = 2,
         chance = 0.2,
@@ -376,6 +389,9 @@ this.default = {
     weather = {
         randomize = true,
     },
+    cells = {
+        randomizeOnlyOnce = false,
+    },
     other = {
         randomizeArtifactsAsSeparateCategory = true,
         disableMGEDistantLand = false,
@@ -384,6 +400,12 @@ this.default = {
 }
 
 this.data = deepcopy(this.default)
+
+this.profiles = mwse.loadConfig(profileFileName)
+if this.profiles == nil then
+    mwse.saveConfig(profileFileName, {default = deepcopy(this.default)})
+    this.profiles = mwse.loadConfig(profileFileName)
+end
 
 function this.getValueByPath(path)
     local value = this.data
@@ -481,6 +503,36 @@ function this.load()
         log("Main config:")
         logTable(this.data, "")
     end
+end
+
+function this.getProfile(profileName)
+    return this.profiles[profileName]
+end
+
+function this.saveProfiles()
+    mwse.saveConfig(profileFileName, this.profiles)
+end
+
+function this.saveCurrentProfile(profileName)
+    this.profiles[profileName] = this.data
+end
+
+function this.deleteProfile(profileName)
+    if this.profiles[profileName] then
+        this.profiles[profileName] = nil
+    end
+end
+
+function this.loadProfile(profileName)
+    local data = this.getProfile(profileName)
+    if data then
+        local enabled = this.data.enabled
+        addMissing(data, this.default)
+        applyChanges(this.data, data)
+        this.data.enabled = enabled
+        return true
+    end
+    return false
 end
 
 if this.global.globalConfig then

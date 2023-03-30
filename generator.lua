@@ -29,7 +29,9 @@ local forbiddenIds = {
     ["vivec_god"] = true,
     ["wraith_sul_senipul"] = true,
 
-    ["ToddTest"] = true
+    ["ToddTest"] = true,
+
+    ["WerewolfHead"] = true,
 }
 
 local forbiddenModels = { -- lowercase
@@ -89,10 +91,6 @@ function this.fillItems()
         if object ~= nil and not object.deleted and items.data[object.objectType] ~= nil and object.name ~= nil and object.name ~= "" and
                 not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and (object.icon == nil or object.icon ~= "default icon.dds") and
                 object.weight > 0 and not forbiddenModels[(object.mesh or "err"):lower()] then
-
-            -- if object.script ~= nil and string.find(object.script.id, "^Museum.+")and object.id:find("_x$") then
-            --     items.artf[object.id:gsub("_x$", ""):lower()] = true
-            -- end
 
             if (object.script == nil or scriptWhiteList[object.script.id]) then
                 table.insert(items.data[object.objectType], object)
@@ -199,12 +197,13 @@ end
 
 function this.fillHeadsHairs()
     local data = {}
-    local out = {Parts = {}}
+    local out = {Parts = {}, List = {}}
 
     log("Bodypart list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.bodyPart and not object.deleted and object.raceName and
-                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and not forbiddenModels[(object.mesh or "err"):lower()] then
+                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and not forbiddenModels[(object.mesh or "err"):lower()] and
+                not forbiddenIds[object.id] then
 
             local raceLow = object.raceName:lower()
             if data[raceLow] == nil then data[raceLow] = {} end
@@ -215,14 +214,18 @@ function this.fillHeadsHairs()
 
     for raceName, dt in pairs(data) do
         for partId, objectArr in pairs(dt) do
+            local partIdStr = tostring(partId)
+            if out.List[partIdStr] == nil then out.List[partIdStr] = {} end
             if not out.Parts[raceName] then out.Parts[raceName] = {} end
-            if not out.Parts[raceName][tostring(partId)] then out.Parts[raceName][tostring(partId)] = {} end
+            if not out.Parts[raceName][partIdStr] then out.Parts[raceName][partIdStr] = {} end
             for _, object in pairs(objectArr) do
                 local femaleId = 0
                 if object.female then femaleId = 1 end
-                if not out.Parts[raceName][tostring(partId)][tostring(femaleId)] then out.Parts[raceName][tostring(partId)][tostring(femaleId)] = {} end
+                local femaleIdStr = tostring(femaleId)
+                if not out.Parts[raceName][partIdStr][femaleIdStr] then out.Parts[raceName][partIdStr][femaleIdStr] = {} end
 
-                table.insert(out.Parts[raceName][tostring(partId)][tostring(femaleId)], object.id)
+                table.insert(out.Parts[raceName][partIdStr][femaleIdStr], object.id)
+                out.List[partIdStr][object.id:lower()] = true
             end
         end
     end
