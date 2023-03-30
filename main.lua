@@ -115,7 +115,8 @@ event.register(tes3.event.activate, function(e)
 
             randomizer.StopRandomization(e.target)
 
-        elseif e.target  ~= nil and e.target.baseObject.objectType == tes3.objectType.door then
+        elseif e.target  ~= nil and e.target.baseObject.objectType == tes3.objectType.door and
+                not randomizer.config.data.doors.onlyOnCellRandomization then
 
             randomizer.doors.resetDoorDestination(e.target)
             randomizer.doors.randomizeDoor(e.target)

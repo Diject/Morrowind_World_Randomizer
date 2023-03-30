@@ -352,10 +352,14 @@ this.default = {
     },
     doors = {
         randomize = true,
+        onlyOnCellRandomization = false,
         doNotRandomizeInToIn = false,
-        smartInToInRandomization = true,
-        smartInToInRandomization_iterations = 1000,
-        smartInToInRandomization_cellDepth = 50,
+        smartInToInRandomization = {
+            enabled = true,
+            backDoorMode = true,
+            iterations = 1000,
+            cellDepth = 50,
+        },
         onlyNearest = true,
         nearestCellDepth = 2,
         chance = 0.2,

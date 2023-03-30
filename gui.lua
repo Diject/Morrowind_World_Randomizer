@@ -1107,7 +1107,7 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                                    createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors, "smartInToInRandomization", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors.smartInToInRandomization, "enabled", this.i18n("modConfig.description.smartDoorRandomizer")),
                                     createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
                                 },
                             },

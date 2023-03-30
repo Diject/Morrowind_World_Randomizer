@@ -143,6 +143,25 @@ local function getDoorOriginalDestinationData(reference)
     end
 end
 
+local function getBackDoorFromReference(reference)
+    if reference and reference.destination then
+        local origDestinationData = getDoorOriginalDestinationData(reference)
+        if origDestinationData ~= nil then
+            local nearestDoor
+            local minDistance = math.huge
+            for door in origDestinationData.cell:iterateReferences(tes3.objectType.door) do
+                local distance = door.position:distance(origDestinationData.marker.position)
+                if minDistance > distance then
+                    nearestDoor = door
+                    minDistance = distance
+                end
+            end
+            return nearestDoor
+        end
+    end
+    return nil
+end
+
 local function findDoorCellData_InToIn(cellData, cell, step)
     step = step + 1
     if not cell.isOrBehavesAsExterior then
@@ -156,8 +175,8 @@ local function findDoorCellData_InToIn(cellData, cell, step)
                     data.hasExit = true
                 else
                     local marker = destination.marker
-                    table.insert(data.doors, {door = door, cell = destination.cell, marker = {
-                        position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
+                    table.insert(data.doors, {door = door, backDoor = getBackDoorFromReference(door), cell = destination.cell,
+                        marker = {position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
                         orientation = tes3vector3.new(marker.orientation.x, marker.orientation.y, marker.orientation.z)}})
                 end
                 if not cellData[destination.cell.editorName] then
@@ -207,6 +226,33 @@ local function isCanFindExit(cellData, cellEditorName, iteraction, pathTable)
     return false
 end
 
+local function findBackDoorData(cellData)
+    for cellName, cdata in pairs(cellData) do
+        for _, doorData in pairs(cdata.doors) do
+            if doorData.backDoor then
+                local destCellData = cellData[doorData.backDoor.cell.editorName]
+                if destCellData then
+                    for _, fDoorData in pairs(destCellData.doors) do
+                        if fDoorData.door == doorData.backDoor then
+                            doorData.backDoorData = deepcopy(fDoorData)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function removeFromTable(fromTable, varName, valToRemove, once)
+    for pos, name in pairs(fromTable) do
+        if (varName ~= nil and name[varName] == valToRemove) or
+                name == valToRemove then
+            table.remove(fromTable, pos)
+            if once then break end
+        end
+    end
+end
+
 local function randomizeSmart_InToIn(cellData)
     local newData = deepcopy(cellData)
     local newFullData = {}
@@ -215,7 +261,7 @@ local function randomizeSmart_InToIn(cellData)
         table.insert(cellNames, cellName)
     end
 
-    for cellName, cdata in pairs(cellData) do
+    for cellName, cdata in pairs(newData) do
         for i, doorData in pairs(cdata.doors) do
             if this.config.data.doors.chance >= math.random() then
                 for j = 1, 20 do
@@ -223,14 +269,67 @@ local function randomizeSmart_InToIn(cellData)
                     local rndCellName = cellNames[randCellId]
                     if not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
                         local rndDoorData = newData[rndCellName].doors[math.random(1, #newData[rndCellName].doors)]
-                        if newFullData[rndCellName] == nil then newFullData[rndCellName] = {step = cdata.step, doors = {}, hasExit = cdata.hasExit} end
-                        table.insert(newFullData[rndCellName].doors, {door = doorData.door, cell = rndDoorData.cell, marker = {
-                            position = rndDoorData.marker.position, orientation = rndDoorData.marker.orientation}})
 
-                        if #newData[rndCellName].doors > 1 then
-                            table.remove(newData[rndCellName].doors, i)
+                        if this.config.data.doors.smartInToInRandomization.backDoorMode then
+                            local backDoorData1 = doorData.backDoorData
+                            local backDoorData2 = rndDoorData.backDoorData
+
+                            if backDoorData1 and backDoorData2 then
+                                local bDoorCellName1 = backDoorData1.door.cell.editorName
+                                local bDoorCellName2 = backDoorData2.door.cell.editorName
+                                --create all necessary tables
+                                if newFullData[cellName] == nil then newFullData[cellName] = {step = cdata.step, doors = {}, hasExit = cdata.hasExit} end
+                                if newFullData[rndCellName] == nil then newFullData[rndCellName] = {step = newData[rndCellName].step, doors = {},
+                                    hasExit = newData[rndCellName].hasExit} end
+                                if newFullData[bDoorCellName1] == nil then newFullData[bDoorCellName1] =
+                                    {step = newData[bDoorCellName1].step, doors = {}, hasExit = newData[bDoorCellName1].hasExit} end
+                                if newFullData[bDoorCellName2] == nil then newFullData[bDoorCellName2] =
+                                    {step = newData[bDoorCellName2].step, doors = {}, hasExit = newData[bDoorCellName2].hasExit} end
+
+                                --add new door destinations
+                                table.insert(newFullData[cellName].doors, {door = doorData.door, cell = rndDoorData.cell, marker = {
+                                    position = rndDoorData.marker.position, orientation = rndDoorData.marker.orientation}})
+                                table.insert(newFullData[rndCellName].doors, {door = rndDoorData.door, cell = doorData.cell, marker = {
+                                    position = doorData.marker.position, orientation = doorData.marker.orientation}})
+
+                                table.insert(newFullData[bDoorCellName1].doors, {door = backDoorData1.door, cell = backDoorData2.cell, marker = {
+                                    position = backDoorData2.marker.position, orientation = backDoorData2.marker.orientation}})
+                                table.insert(newFullData[bDoorCellName2].doors, {door = backDoorData2.door, cell = backDoorData1.cell, marker = {
+                                    position = backDoorData1.marker.position, orientation = backDoorData1.marker.orientation}})
+
+                                --delete to prevent re-randomization
+                                if #newData[rndCellName].doors > 1 then
+                                    removeFromTable(newData[rndCellName].doors, "door", rndDoorData.door)
+                                else
+                                    table.remove(cellNames, randCellId)
+                                end
+                                if #newData[cellName].doors > 1 then
+                                    table.remove(newData[cellName].doors, i)
+                                else
+                                    removeFromTable(cellNames, nil, cellName)
+                                end
+                                if #newData[bDoorCellName1].doors > 1 then
+                                    removeFromTable(newData[bDoorCellName1].doors, "door", backDoorData1.door)
+                                else
+                                    removeFromTable(cellNames, nil, bDoorCellName1)
+                                end
+                                if #newData[bDoorCellName2].doors > 1 then
+                                    removeFromTable(newData[bDoorCellName2].doors, "door", backDoorData2.door)
+                                else
+                                    removeFromTable(cellNames, nil, bDoorCellName2)
+                                end
+
+                            end
                         else
-                            table.remove(cellNames, randCellId)
+                            if newFullData[cellName] == nil then newFullData[cellName] = {step = cdata.step, doors = {}, hasExit = cdata.hasExit} end
+                            table.insert(newFullData[cellName].doors, {door = doorData.door, cell = rndDoorData.cell, marker = {
+                                position = rndDoorData.marker.position, orientation = rndDoorData.marker.orientation}})
+
+                            if #newData[rndCellName].doors > 1 then
+                                removeFromTable(newData[rndCellName].doors, "door", rndDoorData.door)
+                            else
+                                table.remove(cellNames, randCellId)
+                            end
                         end
                         break
                     end
@@ -246,7 +345,7 @@ local function randomizeSmart_InToIn(cellData)
     end
     local canFindExit = true
     for cellName, cdata in pairs(newFullData) do
-        if not isCanFindExit(newFullData, cellName, this.config.data.doors.smartInToInRandomization_cellDepth, {}) then
+        if not isCanFindExit(newFullData, cellName, this.config.data.doors.smartInToInRandomization.cellDepth, {}) then
             canFindExit = false
         end
     end
@@ -254,25 +353,6 @@ local function randomizeSmart_InToIn(cellData)
         return nil
     end
     return newFullData
-end
-
-local function getBackDoorFromReference(reference)
-    if reference and reference.destination then
-        local origDestinationData = getDoorOriginalDestinationData(reference)
-        if origDestinationData ~= nil then
-            local nearestDoor
-            local minDistance = math.huge
-            for door in origDestinationData.cell:iterateReferences(tes3.objectType.door) do
-                local distance = door.position:distance(origDestinationData.marker.position)
-                if minDistance > distance then
-                    nearestDoor = door
-                    minDistance = distance
-                end
-            end
-            return nearestDoor
-        end
-    end
-    return nil
 end
 
 local function replaceDoorDestinations(door1, door2)
@@ -377,7 +457,7 @@ function this.randomizeDoor(reference)
                     end
 
                 elseif not reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior and
-                        not this.config.data.doors.smartInToInRandomization and not this.config.data.doors.doNotRandomizeInToIn then
+                        not this.config.data.doors.smartInToInRandomization.enabled and not this.config.data.doors.doNotRandomizeInToIn then
                     local cellsToCheck = {}
 
                     findingCells_In(cellsToCheck, reference.destination.cell, this.config.data.doors.nearestCellDepth)
@@ -436,7 +516,7 @@ function this.randomizeDoor(reference)
         end
 
         --smart door randomizing
-        if this.config.data.doors.onlyNearest and this.config.data.doors.smartInToInRandomization and not this.config.data.doors.doNotRandomizeInToIn and
+        if this.config.data.doors.onlyNearest and this.config.data.doors.smartInToInRandomization.enabled and not this.config.data.doors.doNotRandomizeInToIn and
                 reference.cell.isOrBehavesAsExterior and not reference.destination.cell.isOrBehavesAsExterior then
 
             local initialCell = reference.cell
@@ -464,8 +544,9 @@ function this.randomizeDoor(reference)
             for name, cell in pairs(intrCells) do
                 findDoorCellData_InToIn(cellData, cell, 0)
             end
+            findBackDoorData(cellData)
 
-            for i = 1, this.config.data.doors.smartInToInRandomization_iterations do
+            for i = 1, this.config.data.doors.smartInToInRandomization.iterations do
                 log("Searching for a doors pattern "..tostring(i))
                 local randData = randomizeSmart_InToIn(cellData)
                 if randData then

@@ -643,6 +643,9 @@ function this.randomizeCell(cell)
             elseif object.baseObject.objectType == tes3.objectType.door then
 
                 this.doors.resetDoorDestination(object)
+                if this.config.data.doors.onlyOnCellRandomization then
+                    this.doors.randomizeDoor(object)
+                end
                 this.randomizeLockTrap(object)
 
             end
