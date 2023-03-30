@@ -30,6 +30,7 @@ local function addMissing(toTable, fromTable)
             if toTable[label] == nil then
                 toTable[label] = deepcopy(val)
             else
+                if type(toTable[label]) ~= "table" then toTable[label] = {} end
                 addMissing(toTable[label], val)
             end
         elseif toTable[label] == nil then
@@ -44,6 +45,7 @@ local function applyChanges(toTable, fromTable)
             if toTable[label] == nil then
                 toTable[label] = deepcopy(val)
             else
+                if type(toTable[label]) ~= "table" then toTable[label] = {} end
                 applyChanges(toTable[label], val)
             end
         else
@@ -525,6 +527,7 @@ function this.loadProfile(profileName)
     local data = this.getProfile(profileName)
     if data then
         local enabled = this.data.enabled
+        addMissing(data, this.default)
         applyChanges(this.data, data)
         this.data.enabled = enabled
         return true
