@@ -111,12 +111,6 @@ TreesData.TreesOffset = {
 	["t_cyr_florach_treeshrub_04"] = {Offset = 0},
 	["t_cyr_florach_treestump_01"] = {Offset = 0},
 	["t_cyr_florach_treestump_02"] = {Offset = 0},
-	["t_cyr_floragc_tree_01"] = {Offset = 0},
-	["t_cyr_floragc_tree_02"] = {Offset = 0},
-	["t_cyr_floragc_tree_03"] = {Offset = 0},
-	["t_cyr_floragc_tree_04"] = {Offset = 0},
-	["t_cyr_floragc_tree_05"] = {Offset = 0},
-	["t_cyr_floragc_tree_06"] = {Offset = 0},
 	["t_cyr_floragc_treedead_01"] = {Offset = 0},
 	["t_cyr_floragc_treedead_02"] = {Offset = 0},
 	["t_cyr_floragc_treedead_03"] = {Offset = 0},
@@ -729,7 +723,6 @@ TreesData.TreesGroups = {
 	{ Count = 2, Items = { "t_cyr_florach_treelog_01", "t_cyr_florach_treelog_02", },},
 	{ Count = 4, Items = { "t_cyr_florach_treeshrub_01", "t_cyr_florach_treeshrub_02", "t_cyr_florach_treeshrub_03", "t_cyr_florach_treeshrub_04", },},
 	{ Count = 2, Items = { "t_cyr_florach_treestump_01", "t_cyr_florach_treestump_02", },},
-	{ Count = 6, Items = { "t_cyr_floragc_tree_01", "t_cyr_floragc_tree_02", "t_cyr_floragc_tree_03", "t_cyr_floragc_tree_04", "t_cyr_floragc_tree_05", "t_cyr_floragc_tree_06", },},
 	{ Count = 3, Items = { "t_cyr_floragc_treedead_01", "t_cyr_floragc_treedead_02", "t_cyr_floragc_treedead_03", },},
 	{ Count = 4, Items = { "t_cyr_floragc_treelog_01", "t_cyr_floragc_treelog_02", "t_cyr_floragc_treelog_03", "t_cyr_floragc_treelog_04", },},
 	{ Count = 3, Items = { "t_cyr_floragc_treeoak_01", "t_cyr_floragc_treeoak_02", "t_cyr_floragc_treeoak_03", },},
@@ -806,5 +799,5 @@ TreesData.TreesGroups = {
 	{ Count = 3, Items = { "t_sky_flora_treepine7branch_01", "t_sky_flora_treepine7branch_02", "t_sky_flora_treepine7branch_03", },},
 	{ Count = 3, Items = { "t_sky_flora_treepine7snowbrn_01", "t_sky_flora_treepine7snowbrn_02", "t_sky_flora_treepine7snowbrn_03", },},
 }
-TreesData.GroupsCount = 97
+TreesData.GroupsCount = 96
 return TreesData
