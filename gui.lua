@@ -1100,6 +1100,7 @@ function this.registerModConfig()
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoors"), this.config.data.doors, "randomize"),
                             createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
                             createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
                             createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInToIn"), this.config.data.doors, "doNotRandomizeInToIn"),
                             {
                                 class = "Category",
@@ -1107,8 +1108,16 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                                    createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors.smartInToInRandomization, "enabled", this.i18n("modConfig.description.smartDoorRandomizer")),
                                     createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.smartAlgorithm"),
+                                        description = "",
+                                        components = {
+                                            createOnOffIngameButton(this.i18n("modConfig.label.smartDoorRandomizer"), this.config.data.doors.smartInToInRandomization, "enabled", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                            createOnOffIngameButton(this.i18n("modConfig.label.tryToRandBothDoors"), this.config.data.doors.smartInToInRandomization, "backDoorMode", this.i18n("modConfig.description.smartDoorRandomizer")),
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -1246,6 +1255,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                         },
