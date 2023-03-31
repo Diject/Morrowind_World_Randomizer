@@ -103,9 +103,7 @@ local function iterItems(inventory)
             ---@cast stack tes3itemStack
             local item = stack.object
 
-            -- Account for restocking items,
-            -- since their count is negative
-            local count = math.abs(stack.count)
+            local count = stack.count
 
             -- first yield stacks with custom data
             if stack.variables then
