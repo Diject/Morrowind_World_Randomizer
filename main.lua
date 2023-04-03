@@ -1,3 +1,5 @@
+local esp_name = "Morrowind World Randomizer.ESP"
+
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local randomizer = require("Morrowind_World_Randomizer.Randomizer")
 local gui = require("Morrowind_World_Randomizer.gui")
@@ -99,33 +101,15 @@ local function randomizeLoadedCells(addedGameTime, forceCellRandomization, force
     end
 end
 
-event.register(tes3.event.itemDropped, function(e)
+local function itemDropped(e)
     if randomizer.config.getConfig().enabled then
         if e.reference ~= nil and e.reference.data ~= nil then
             randomizer.StopRandomization(e.reference)
         end
     end
-end)
+end
 
-event.register(tes3.event.activate, function(e)
-    if randomizer.config.getConfig().enabled then
-        if e.target  ~= nil and e.target.data ~= nil and (e.target.baseObject.objectType == tes3.objectType.container or
-                (e.target.isDead == true and (e.target.baseObject.objectType == tes3.objectType.creature or
-                e.target.baseObject.objectType == tes3.objectType.npc))) then
-
-            randomizer.StopRandomization(e.target)
-
-        elseif e.target  ~= nil and e.target.baseObject.objectType == tes3.objectType.door and
-                not randomizer.config.data.doors.onlyOnCellRandomization then
-
-            randomizer.doors.resetDoorDestination(e.target)
-            randomizer.doors.randomizeDoor(e.target)
-
-        end
-    end
-end)
-
-event.register(tes3.event.cellActivated, function(e)
+local function cellActivated(e)
     if randomizer.config.getConfig().enabled then
 
         local cellLastRandomizeTime = getCellLastRandomizeTime(e.cell.editorName)
@@ -139,14 +123,14 @@ event.register(tes3.event.cellActivated, function(e)
             randomizer.restoreCellLight(e.cell)
         end
     end
-end)
+end
 
-event.register(tes3.event.load, function(e)
+local function load(e)
     randomizer.restoreAllBaseInitialData()
     randomizer.config.resetConfig()
-end)
+end
 
-event.register(tes3.event.loaded, function(e)
+local function loaded(e)
     randomizer.config.getConfig()
     randomizer.genNonStaticData()
 
@@ -166,10 +150,10 @@ event.register(tes3.event.loaded, function(e)
         randomizeLoadedCells()
 
     end
-end)
+end
 
 local goldToAdd = 0
-event.register(tes3.event.leveledItemPicked, function(e)
+local function leveledItemPicked(e)
     if randomizer.config.getConfig().enabled then
         if randomizer.config.data.containers.items.randomize and e.pick ~= nil and e.pick.id ~= nil and
                 not randomizer.isRandomizationStoppedTemp(e.spawner) then
@@ -198,9 +182,9 @@ event.register(tes3.event.leveledItemPicked, function(e)
             end
         end
     end
-end)
+end
 
-event.register(tes3.event.leveledCreaturePicked, function(e)
+local function leveledCreaturePicked(e)
     if randomizer.config.getConfig().enabled then
         if e.pick ~= nil and randomizer.config.data.creatures.randomize then
             local newId = randomizer.getRandomCreatureId(e.pick.id)
@@ -209,20 +193,15 @@ event.register(tes3.event.leveledCreaturePicked, function(e)
             end
         end
     end
-end)
+end
 
-event.register(tes3.event.initialized, function(e)
-    math.randomseed(os.time())
-    randomizer.genStaticData()
-end)
-
-event.register(tes3.event.mobileActivated, function(e)
+local function mobileActivated(e)
     if randomizer.config.getConfig().enabled then
         if (e.reference.object.objectType == tes3.objectType.npc or e.reference.object.objectType == tes3.objectType.creature) then
             randomizeActor(e.reference)
         end
     end
-end)
+end
 
 local function distantLandOptionsCallback(e)
     if e.button == 0 then
@@ -254,7 +233,22 @@ local function enableRandomizerCallback(e)
     end
 end
 
-event.register(tes3.event.activate, function(e)
+local function activate(e)
+    if randomizer.config.getConfig().enabled then
+        if e.target  ~= nil and e.target.data ~= nil and (e.target.baseObject.objectType == tes3.objectType.container or
+                (e.target.isDead == true and (e.target.baseObject.objectType == tes3.objectType.creature or
+                e.target.baseObject.objectType == tes3.objectType.npc))) then
+
+            randomizer.StopRandomization(e.target)
+
+        elseif e.target  ~= nil and e.target.baseObject.objectType == tes3.objectType.door and
+                not randomizer.config.data.doors.onlyOnCellRandomization then
+
+            randomizer.doors.resetDoorDestination(e.target)
+            randomizer.doors.randomizeDoor(e.target)
+
+        end
+    end
     if e.target.baseObject.id == "chargen_shipdoor" and not randomizer.config.global.globalConfig and
             dataSaver.getObjectData(tes3.player) and not dataSaver.getObjectData(tes3.player).messageShown and
             not randomizer.config.getConfig().enabled then
@@ -264,12 +258,30 @@ event.register(tes3.event.activate, function(e)
         tes3.messageBox({ message = i18n("messageBox.enableRandomizer.message"), buttons = {i18n("messageBox.enableRandomizer.button.yes"),
             i18n("messageBox.enableRandomizer.button.no")}, callback = enableRandomizerCallback, showInDialog = false})
     end
-end)
+end
 
-event.register(tes3.event.calcRestInterrupt, function(e)
+local function calcRestInterrupt(e)
     if randomizer.config.getConfig().enabled then
         randomizeLoadedCells(e.hour)
     end
+end
+
+event.register(tes3.event.initialized, function(e)
+    if not tes3.isModActive(esp_name) then
+        return
+    end
+    math.randomseed(os.time())
+    randomizer.genStaticData()
+    event.register(tes3.event.itemDropped, itemDropped)
+    event.register(tes3.event.cellActivated, cellActivated)
+    event.register(tes3.event.load, load)
+    event.register(tes3.event.loaded, loaded)
+    event.register(tes3.event.leveledItemPicked, leveledItemPicked)
+    event.register(tes3.event.leveledCreaturePicked, leveledCreaturePicked)
+    event.register(tes3.event.mobileActivated, mobileActivated)
+    event.register(tes3.event.activate, activate)
+    event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
+    log("Morrowind World Randomizer is ready")
 end)
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
