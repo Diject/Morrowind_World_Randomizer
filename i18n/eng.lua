@@ -209,4 +209,7 @@ return {
 
     ["modConfig.label.smartAlgorithm"] = "A smart algorithm",
     ["modConfig.label.tryToRandBothDoors"] = "Try to randomize both in and out doors",
+
+    ["modConfig.label.randomizeLight"] = "Randomize light objects",
+    ["modConfig.label.light"] = "Light objects",
 }

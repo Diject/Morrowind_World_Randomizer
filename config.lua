@@ -392,6 +392,9 @@ this.default = {
     cells = {
         randomizeOnlyOnce = false,
     },
+    light = {
+        randomize = true,
+    },
     other = {
         randomizeArtifactsAsSeparateCategory = true,
         disableMGEDistantLand = false,

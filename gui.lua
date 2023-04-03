@@ -1212,6 +1212,14 @@ function this.registerModConfig()
                     },
                     {
                         class = "Category",
+                        label = this.i18n("modConfig.label.light"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeLight"), this.config.data.light, "randomize"),
+                        },
+                    },
+                    {
+                        class = "Category",
                         label = this.i18n("modConfig.label.herbs"),
                         description = "",
                         components = {

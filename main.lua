@@ -134,6 +134,9 @@ event.register(tes3.event.cellActivated, function(e)
                 (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown) then
 
             randomizeCellOnly(e.cell)
+
+        elseif randomizer.config.getConfig().light.randomize then
+            randomizer.restoreCellLight(e.cell)
         end
     end
 end)

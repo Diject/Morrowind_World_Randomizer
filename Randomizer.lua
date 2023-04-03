@@ -1,6 +1,7 @@
 local log = require("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local random = require("Morrowind_World_Randomizer.Random")
+local light = require("Morrowind_World_Randomizer.light")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
@@ -20,6 +21,10 @@ local this = {}
 this.config = require("Morrowind_World_Randomizer.config")
 this.doors = require("Morrowind_World_Randomizer.doorRandomizer")
 this.doors.initConfig(this.config)
+
+this.randomizeCellLight = light.randomizeCellLight
+this.restoreLightData = light.restoreLightData
+this.restoreCellLight = light.restoreCellLight
 
 function this.genStaticData()
     local TRDataVersion = 0
@@ -425,6 +430,10 @@ function this.randomizeCell(cell)
                 table.insert(importantObjPositions, obj.position)
             end
         end
+    end
+
+    if this.config.data.light.randomize then
+        this.randomizeCellLight(cell)
     end
 
     for object in cell:iterateReferences() do
