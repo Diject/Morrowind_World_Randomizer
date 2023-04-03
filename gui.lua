@@ -427,6 +427,46 @@ function this.registerModConfig()
                             },
                         },
                     },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.landTextures"),
+                        description = "",
+                        components = {
+                            {
+                                label = this.i18n("modConfig.label.randomizationOfLandTextures"),
+                                class = "OnOffButton",
+                                description = this.i18n("modConfig.description.randomizationOfLandTextures"),
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.landscape.randomize end,
+                                    set = function(self, val)
+                                        this.config.global.landscape.randomize = val
+                                        if val then
+                                            this.funcs.genRandLandTextureInd()
+                                            this.funcs.loadRandLandTextures()
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                label = this.i18n("modConfig.label.randomizeLandTextureOnlyOnce"),
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    id = "randomizeOnlyOnce",
+                                    table = this.config.global.landscape,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.rerandomizeLandTextures"),
+                                callback = function()
+                                    this.funcs.genRandLandTextureInd()
+                                    this.funcs.loadRandLandTextures()
+                                end,
+                            },
+                        },
+                    },
                 },
             },
             {
@@ -1172,6 +1212,46 @@ function this.registerModConfig()
                     createOnOffIngameButton(this.i18n("modConfig.label.randomizeCellOnlyOnce"), this.config.data.cells, "randomizeOnlyOnce"),
                     {
                         class = "Category",
+                        label = this.i18n("modConfig.label.landTextures"),
+                        description = "",
+                        components = {
+                            {
+                                label = this.i18n("modConfig.label.randomizationOfLandTextures"),
+                                class = "OnOffButton",
+                                description = this.i18n("modConfig.description.randomizationOfLandTextures"),
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.landscape.randomize end,
+                                    set = function(self, val)
+                                        this.config.global.landscape.randomize = val
+                                        if val then
+                                            this.funcs.genRandLandTextureInd()
+                                            this.funcs.loadRandLandTextures()
+                                        end
+                                    end,
+                                },
+                            },
+                            {
+                                label = this.i18n("modConfig.label.randomizeLandTextureOnlyOnce"),
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    id = "randomizeOnlyOnce",
+                                    table = this.config.global.landscape,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.rerandomizeLandTextures"),
+                                callback = function()
+                                    this.funcs.genRandLandTextureInd()
+                                    this.funcs.loadRandLandTextures()
+                                end,
+                            },
+                        },
+                    },
+                    {
+                        class = "Category",
                         label = this.i18n("modConfig.label.globalPage"),
                         description = "",
                         components = {
@@ -1266,6 +1346,23 @@ function this.registerModConfig()
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCOnlyOnce"), this.config.data.NPCs, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureOnlyOnce"), this.config.data.creatures, "randomizeOnlyOnce", this.i18n("modConfig.description.willBeAppliedAfterNext").."\n\n"..this.i18n("modConfig.description.randomizeCellOnlyOnce")),
+                            {
+                                label = this.i18n("modConfig.label.randomizeLandTextureOnlyOnce"),
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "TableVariable",
+                                    id = "randomizeOnlyOnce",
+                                    table = this.config.global.landscape,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.rerandomizeLandTextures"),
+                                callback = function()
+                                    this.funcs.genRandLandTextureInd()
+                                    this.funcs.loadRandLandTextures()
+                                end,
+                            },
                         },
                     },
                 },

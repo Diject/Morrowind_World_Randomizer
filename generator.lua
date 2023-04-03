@@ -1,4 +1,4 @@
-local log = require("Morrowind_World_Randomizer.log")
+local log = include("Morrowind_World_Randomizer.log")
 
 local this = {}
 
@@ -363,6 +363,46 @@ function this.findTravelDestinations()
 
     log("Travel destinations Count = %i", #out)
     return out
+end
+
+function this.fingLandTextures()
+    log("Land testures list generation...")
+    local out = {Textures = {}, Groups = {}}
+    local count = 0
+    for _, texture in pairs(tes3.dataHandler.nonDynamicData.landTextures) do
+        local textureType = 0
+        if (texture.id:find("road") or texture.id:find("ash_04") or texture.id:find("mudflats_01") or
+                texture.id:find("ma_crackedearth")) then
+            textureType = 9
+        elseif (texture.id:find("ice")) then textureType = 10
+        elseif (texture.id:find("grass") or texture.id:find("clover") or texture.id:find("scrub")) then textureType = 1
+        elseif (texture.id:find("sand")) then textureType = 2
+        elseif (texture.id:find("rock") or texture.id:find("stone")) then textureType = 6
+        elseif (texture.id:find("dirt") or texture.id:find("mud") or texture.id:find("muck")) then textureType = 3
+        -- elseif (texture.id:find("snow")) then textureType = 4
+        elseif (texture.id:find("ash")) then textureType = 5
+        elseif (texture.id:find("gravel")) then textureType = 7
+        elseif (texture.id:find("lava")) then textureType = 8
+        end
+
+        out.Textures[texture.index] = {Type = textureType}
+        if out.Groups[textureType] == nil then out.Groups[textureType] = {} end
+        table.insert(out.Groups[textureType], texture.index)
+        count = count + 1
+    end
+    log("Land testures list generation Count = %i", count)
+    return out
+end
+
+function this.generateRandomizedLandscapeTextureIndices()
+    local textures = {}
+    local textures1 = this.fingLandTextures()
+    for i, val in pairs(textures1.Textures) do
+        local id = math.random(1, #textures1.Groups[val.Type])
+        textures[tostring(i)] = textures1.Groups[val.Type][id]
+        table.remove(textures1.Groups[val.Type], id)
+    end
+    return textures
 end
 
 return this

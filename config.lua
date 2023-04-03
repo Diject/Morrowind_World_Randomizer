@@ -70,6 +70,11 @@ this.globalDefault = {
     logging = false,
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
+    landscape = {
+        randomize = false,
+        randomizeOnlyOnce = false,
+        textureIndices = false
+    }
 }
 
 if this.global == nil then

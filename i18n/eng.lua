@@ -12,6 +12,7 @@ return {
     ["messageBox.selectDistantLandOption.button.disableRandomization"] = "Disable randomization of statics",
     ["messageBox.selectDistantLandOption.button.doNothing"] = "Do nothing",
 
+    ["messageBox.enableLandscapeRand.message"] = "Do you want to enable randomisation of landscape textures? This option will affect all game sessions until it is disabled.",
 
     ["modConfig.description.region"] = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, "..
         "then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
@@ -212,4 +213,10 @@ return {
 
     ["modConfig.label.randomizeLight"] = "Randomize light objects",
     ["modConfig.label.light"] = "Light objects",
+
+    ["modConfig.label.landTextures"] = "Land textures",
+    ["modConfig.label.rerandomizeLandTextures"] = "Re-randomize land textures",
+    ["modConfig.label.randomizationOfLandTextures"] = "Randomization of land textures",
+    ["modConfig.label.randomizeLandTextureOnlyOnce"] = "Randomize land textures only once",
+    ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
 }

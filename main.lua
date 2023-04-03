@@ -1,10 +1,11 @@
 local esp_name = "Morrowind World Randomizer.ESP"
 
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
-local randomizer = require("Morrowind_World_Randomizer.Randomizer")
-local gui = require("Morrowind_World_Randomizer.gui")
+local randomizer = include("Morrowind_World_Randomizer.Randomizer")
+local gui = include("Morrowind_World_Randomizer.gui")
 local i18n = mwse.loadTranslations("Morrowind_World_Randomizer")
-local log = require("Morrowind_World_Randomizer.log")
+local log = include("Morrowind_World_Randomizer.log")
+local generator = include("Morrowind_World_Randomizer.generator")
 
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
@@ -99,6 +100,46 @@ local function randomizeLoadedCells(addedGameTime, forceCellRandomization, force
             end
         end
     end
+end
+
+local function generateRandomizedLandscapeTextureIndices()
+    randomizer.config.global.landscape.textureIndices = generator.generateRandomizedLandscapeTextureIndices()
+    randomizer.config.save()
+end
+
+local function loadRandomizedLandscapeTextures()
+    if not randomizer.config.global.landscape.textureIndices then return end
+
+    local textures = randomizer.config.global.landscape.textureIndices
+    for _, cell in pairs(tes3.dataHandler.nonDynamicData.cells) do
+        if cell.landscape then
+            for i, val in pairs(cell.landscape.textureIndices) do
+                local valStr = tostring(val)
+                if textures[valStr] then
+                    cell.landscape.textureIndices[i] = textures[valStr]
+                end
+            end
+        end
+    end
+end
+
+local function isLandscapeTexturesValid()
+    if not randomizer.config.global.landscape.textureIndices then return false end
+
+    local textures = randomizer.config.global.landscape.textureIndices
+    for _, texture in pairs(tes3.dataHandler.nonDynamicData.landTextures) do
+        if not textures[tostring(texture.id)] then
+            return false
+        end
+    end
+    local count = 0
+    for _, _ in pairs(randomizer.config.global.landscape.textureIndices) do
+        count = count + 1
+    end
+    if count ~= #tes3.dataHandler.nonDynamicData.landTextures then
+        return false
+    end
+    return true
 end
 
 local function itemDropped(e)
@@ -203,6 +244,23 @@ local function mobileActivated(e)
     end
 end
 
+local function landscapeRandOptionCallback(e)
+    if e.button == 0 then
+        randomizer.config.global.landscape.randomize = true
+        randomizer.config.save()
+        generateRandomizedLandscapeTextureIndices()
+        loadRandomizedLandscapeTextures()
+    end
+end
+
+local function showLandscapeRandOptionMessage()
+    if not randomizer.config.global.landscape.randomize then
+        tes3.messageBox({ message = i18n("messageBox.enableLandscapeRand.message"),
+            buttons = {i18n("messageBox.enableRandomizer.button.yes"), i18n("messageBox.enableRandomizer.button.no")},
+            callback = landscapeRandOptionCallback, showInDialog = false})
+    end
+end
+
 local function distantLandOptionsCallback(e)
     if e.button == 0 then
         randomizer.config.getConfig().other.disableMGEDistantLand = true
@@ -217,6 +275,7 @@ local function distantLandOptionsCallback(e)
         randomizer.config.getConfig().stones.randomize = false
     end
     randomizeLoadedCells()
+    showLandscapeRandOptionMessage()
 end
 
 local function enableRandomizerCallback(e)
@@ -229,6 +288,7 @@ local function enableRandomizerCallback(e)
                 callback = distantLandOptionsCallback, showInDialog = false})
         else
             randomizeLoadedCells()
+            showLandscapeRandOptionMessage()
         end
     end
 end
@@ -270,8 +330,18 @@ event.register(tes3.event.initialized, function(e)
     if not tes3.isModActive(esp_name) then
         return
     end
+
+    randomizer.config.load()
     math.randomseed(os.time())
     randomizer.genStaticData()
+
+    if randomizer.config.global.landscape.randomize then
+        if not isLandscapeTexturesValid() and not randomizer.config.global.landscape.randomizeOnlyOnce then
+            generateRandomizedLandscapeTextureIndices()
+        end
+        loadRandomizedLandscapeTextures()
+    end
+
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
     event.register(tes3.event.load, load)
@@ -285,5 +355,5 @@ event.register(tes3.event.initialized, function(e)
 end)
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
-    randomizeLoadedCells = randomizeLoadedCells})
+    randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)
