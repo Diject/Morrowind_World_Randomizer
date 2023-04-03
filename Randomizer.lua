@@ -1,12 +1,12 @@
-local log = require("Morrowind_World_Randomizer.log")
+local log = include("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
-local random = require("Morrowind_World_Randomizer.Random")
-local light = require("Morrowind_World_Randomizer.light")
+local random = include("Morrowind_World_Randomizer.Random")
+local light = include("Morrowind_World_Randomizer.light")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
 
-local generator = require("Morrowind_World_Randomizer.generator")
+local generator = include("Morrowind_World_Randomizer.generator")
 
 local itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items")
 local creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures")
@@ -18,8 +18,8 @@ local spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells
 
 local this = {}
 
-this.config = require("Morrowind_World_Randomizer.config")
-this.doors = require("Morrowind_World_Randomizer.doorRandomizer")
+this.config = include("Morrowind_World_Randomizer.config")
+this.doors = include("Morrowind_World_Randomizer.doorRandomizer")
 this.doors.initConfig(this.config)
 
 this.randomizeCellLight = light.randomizeCellLight
