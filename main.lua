@@ -328,6 +328,7 @@ end
 
 event.register(tes3.event.initialized, function(e)
     if not tes3.isModActive(esp_name) then
+        gui.hide()
         return
     end
 

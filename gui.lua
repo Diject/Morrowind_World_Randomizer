@@ -8,6 +8,8 @@ this.config = nil
 this.funcs = nil
 this.i18n = nil
 
+this.data = nil
+
 local profilesList = {}
 local currentConfig
 local updateProfileDropdown
@@ -21,6 +23,14 @@ function this.init(config, i18n, functions)
         table.insert(profilesList, {label = label, value = label})
     end
     currentConfig = profilesList[1].value
+end
+
+function this.hide()
+    this.data.hidden = true
+end
+
+function this.show()
+    this.data.hidden = false
 end
 
 local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
@@ -1370,7 +1380,8 @@ function this.registerModConfig()
         },
     }
 
-    mwse.registerModConfig(this.name, EasyMCM.registerModData(data))
+    this.data = EasyMCM.registerModData(data)
+    mwse.registerModConfig(this.name, this.data)
 end
 
 return this
