@@ -1,5 +1,5 @@
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
-local log = require("Morrowind_World_Randomizer.log")
+local log = include("Morrowind_World_Randomizer.log")
 
 local this = {}
 
