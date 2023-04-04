@@ -1,11 +1,12 @@
-local log = require("Morrowind_World_Randomizer.log")
+local log = include("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
-local random = require("Morrowind_World_Randomizer.Random")
+local random = include("Morrowind_World_Randomizer.Random")
+local light = include("Morrowind_World_Randomizer.light")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
 
-local generator = require("Morrowind_World_Randomizer.generator")
+local generator = include("Morrowind_World_Randomizer.generator")
 
 local itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items")
 local creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures")
@@ -17,9 +18,13 @@ local spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells
 
 local this = {}
 
-this.config = require("Morrowind_World_Randomizer.config")
-this.doors = require("Morrowind_World_Randomizer.doorRandomizer")
+this.config = include("Morrowind_World_Randomizer.config")
+this.doors = include("Morrowind_World_Randomizer.doorRandomizer")
 this.doors.initConfig(this.config)
+
+this.randomizeCellLight = light.randomizeCellLight
+this.restoreLightData = light.restoreLightData
+this.restoreCellLight = light.restoreCellLight
 
 function this.genStaticData()
     local TRDataVersion = 0
@@ -103,9 +108,7 @@ local function iterItems(inventory)
             ---@cast stack tes3itemStack
             local item = stack.object
 
-            -- Account for restocking items,
-            -- since their count is negative
-            local count = math.abs(stack.count)
+            local count = stack.count
 
             -- first yield stacks with custom data
             if stack.variables then
@@ -427,6 +430,10 @@ function this.randomizeCell(cell)
                 table.insert(importantObjPositions, obj.position)
             end
         end
+    end
+
+    if this.config.data.light.randomize then
+        this.randomizeCellLight(cell)
     end
 
     for object in cell:iterateReferences() do
