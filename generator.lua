@@ -1,4 +1,5 @@
 local log = include("Morrowind_World_Randomizer.log")
+local magicEffectLib = include("Morrowind_World_Randomizer.magicEffect")
 
 local this = {}
 
@@ -32,6 +33,106 @@ local forbiddenIds = {
     ["ToddTest"] = true,
 
     ["WerewolfHead"] = true,
+    --morrowind quest items
+    ["lugrub's axe"] = true,
+    ["dwarven war axe_redas"] = true,
+    ["ebony staff caper"] = true,
+    ["Rusty_Dagger_UNIQUE"] = true,
+    ["devil_tanto_tgamg"] = true,
+    ["daedric wakizashi_hhst"] = true,
+    ["glass_dagger_enamor"] = true,
+    ["fork_horripilation_unique"] = true,
+    ["dart_uniq_judgement"] = true,
+    ["bonemold_gah-julan_hhda"] = true,
+    ["bonemold_founders_helm"] = true,
+    ["bonemold_tshield_hrlb"] = true,
+    ["amulet of ashamanu (unique)"] = true,
+    ["amuletfleshmadewhole_uniq"] = true,
+    ["amulet_Agustas_unique"] = true,
+    ["expensive_amulet_delyna"] = true,
+    ["expensive_amulet_aeta"] = true,
+    ["sarandas_amulet"] = true,
+    ["exquisite_amulet_hlervu1"] = true,
+    ["Julielle_Aumines_Amulet"] = true,
+    ["Linus_Iulus_Maran Amulet"] = true,
+    ["amulet_skink_unique"] = true,
+    ["Linus_Iulus_Stendarran_Belt"] = true,
+    ["sarandas_belt"] = true,
+    ["common_glove_l_balmolagmer"] = true,
+    ["common_glove_r_balmolagmer"] = true,
+    ["extravagant_rt_art_wild"] = true,
+    ["expensive_glove_left_ilmeni"] = true,
+    ["extravagant_glove_left_maur"] = true,
+    ["extravagant_glove_right_maur"] = true,
+    ["common_pants_02_hentus"] = true,
+    ["sarandas_pants_2"] = true,
+    ["Adusamsi's_Ring"] = true,
+    ["extravagant_ring_aund_uni"] = true,
+    ["ring_blackjinx_uniq"] = true,
+    ["exquisite_ring_brallion"] = true,
+    ["common_ring_danar"] = true,
+    ["sarandas_ring_2"] = true,
+    ["ring_keley"] = true,
+    ["expensive_ring_01_BILL"] = true,
+    ["expensive_ring_aeta"] = true,
+    ["sarandas_ring_1"] = true,
+    ["Expensive_Ring_01_HRDT"] = true,
+    ["exquisite_ring_processus"] = true,
+    ["ring_dahrkmezalf_uniq"] = true,
+    ["Extravagant_Robe_01_Red"] = true,
+    ["robe of st roris"] = true,
+    ["exquisite_robe_drake's pride"] = true,
+    ["sarandas_shirt_2"] = true,
+    ["exquisite_shirt_01_rasha"] = true,
+    ["sarandas_shoes_2"] = true,
+    ["therana's skirt"] = true,
+    ["sanguineamuletenterprise"] = true,
+    ["sanguineamuletglibspeech"] = true,
+    ["sanguineamuletnimblearmor"] = true,
+    ["sanguinebeltbalancedarmor"] = true,
+    ["sanguinebeltdeepbiting"] = true,
+    ["sanguinebeltdenial"] = true,
+    ["sanguinebeltfleetness"] = true,
+    ["sanguinebelthewing"] = true,
+    ["sanguinebeltimpaling"] = true,
+    ["sanguinebeltmartialcraft"] = true,
+    ["sanguinebeltsmiting"] = true,
+    ["sanguinebeltstolidarmor"] = true,
+    ["sanguinebeltsureflight"] = true,
+    ["sanguinerglovehornyfist"] = true,
+    ["sanguinelglovesafekeeping"] = true,
+    ["sanguinergloveswiftblade"] = true,
+    ["sanguineringfluidevasion"] = true,
+    ["sanguineringgoldenw"] = true,
+    ["sanguineringgreenw"] = true,
+    ["sanguineringredw"] = true,
+    ["sanguineringsilverw"] = true,
+    ["sanguineringsublimew"] = true,
+    ["sanguineringtranscendw"] = true,
+    ["sanguineringtransfigurw"] = true,
+    ["sanguineringunseenw"] = true,
+    ["sanguineshoesleaping"] = true,
+    ["sanguineshoesstalking"] = true,
+    --tribunal quest items
+    ["ebony war axe_elanande"] = true,
+    ["dwarven mace_salandas"] = true,
+    ["silver dagger_droth_unique_a"] = true,
+    ["silver dagger_droth_unique"] = true,
+    ["ebony shortsword_soscean"] = true,
+    ["silver spear_uvenim"] = true,
+    ["ebony_cuirass_soscean"] = true,
+    ["silver_helm_uvenim"] = true,
+    ["amulet_salandas"] = true,
+    ["extravagant_robe_02_elanande"] = true,
+    --bloodmoon
+    ["bm nordic pick"] = true,
+    ["steel arrow_Carnius"] = true,
+    ["steel longbow_carnius"] = true,
+    ["steel saber_elberoth"] = true,
+    ["BM_dagger_wolfgiver"] = true,
+    ["fur_colovian_helm_white"] = true,
+    ["amulet of infectious charm"] = true,
+    ["expensive_ring_erna"] = true,
 }
 
 local forbiddenModels = { -- lowercase
@@ -246,8 +347,8 @@ function this.fillSpells()
             local baseCost = 0
             local effectCount = 0
             for _, effect in pairs(object.effects) do
-                if effect.id > 0 then
-                    baseCost = baseCost + effect.cost
+                if effect.id >= 0 then
+                    baseCost = baseCost + magicEffectLib.calculateEffectCost(effect)
                     effectCount = effectCount + 1
                 end
             end
