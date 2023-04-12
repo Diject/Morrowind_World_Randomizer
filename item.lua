@@ -75,6 +75,8 @@ function this.randomizeEnchantment(enchantment, enchType, power, effectCount, co
     --clear old data
     for i = 1, 8 do
         newEnch.effects[i].id = -1
+        newEnch.effects[i].skill = nil
+        newEnch.effects[i].attribute = nil
     end
 
     --add a new effect with a minimum value until it reaches the threshold
@@ -101,13 +103,18 @@ function this.randomizeEnchantment(enchantment, enchType, power, effectCount, co
 
             local magicEffect = effectLib.effectsData.effect[effectId]
             newEnch.effects[i].id = effectId
-            newEnch.effects[i].min = 1
-            newEnch.effects[i].max = 1
+            newEnch.effects[i].min = 0
+            newEnch.effects[i].max = 0
             newEnch.effects[i].duration = ((not magicEffect.isHarmful or magicEffect.appliesOnce) and not magicEffect.hasNoDuration) and 1 or 0
             newEnch.effects[i].radius = 0
             newEnch.effects[i].rangeType = rangeType
-            newEnch.effects[i].skill = math.random(0, 26)
-            newEnch.effects[i].attribute = math.random(0, 7)
+            if magicEffect.targetsSkills then
+                newEnch.effects[i].skill = math.random(0, 26)
+            end
+            if magicEffect.targetsAttributes then
+                newEnch.effects[i].attribute = math.random(0, 7)
+            end
+            log("range %s skill %s attribute %s", tostring(rangeType), tostring(newEnch.effects[i].skill), tostring(newEnch.effects[i].attribute))
             if (rangeType == tes3.effectRange.self and magicEffect.isHarmful) or
                     (rangeType ~= tes3.effectRange.self and not magicEffect.isHarmful) then
                 enchVal = enchVal - (isConstant and effectLib.calculateEffectCostForConstant(newEnch.effects[i]) or
