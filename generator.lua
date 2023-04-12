@@ -1,5 +1,6 @@
 local log = include("Morrowind_World_Randomizer.log")
 local magicEffectLib = include("Morrowind_World_Randomizer.magicEffect")
+local itemLib = include("Morrowind_World_Randomizer.item")
 
 local this = {}
 
@@ -153,22 +154,30 @@ local herbsOffsets = {["flora_bittergreen_07"]=70,["flora_bittergreen_06"]=40,["
 local function addItemTable(out, objectTypeStr, objectSubTypeStr)
     if not out.ItemGroups[objectTypeStr] then out.ItemGroups[objectTypeStr] = {} end
     if not out.ItemGroups[objectTypeStr][objectSubTypeStr] then
-        out.ItemGroups[objectTypeStr][objectSubTypeStr] = {Count = 0, Items = {}}
+        out.ItemGroups[objectTypeStr][objectSubTypeStr] = {Count = 0, MaxCost = 0, MaxEnchCost = 0, Items = {}}
     end
 end
 
-local function addItemToTable(out, objectId, objectTypeId, objectSubTypeId, isArtifact)
+local function addItemToTable(out, object, objectTypeId, objectSubTypeId, isArtifact)
+    local objectId = object.id
     local objectTypeStr = mwse.longToString(objectTypeId)
     local objectSubTypeStr = tostring(objectSubTypeId)
     addItemTable(out, objectTypeStr, objectSubTypeStr)
     local gr = out.ItemGroups[objectTypeStr][objectSubTypeStr]
     gr.Count = gr.Count + 1
-    out.Items[objectId:lower()] = {Type = objectTypeStr, SubType = objectSubTypeStr, Position = gr.Count, IsArtifact = isArtifact}
+    local enchCost = itemLib.getEnchantPower(object.enchantment)
+    gr.MaxEnchCost = math.max(gr.MaxEnchCost, enchCost)
+    local cost = object.value or 0
+    gr.MaxCost = math.max(gr.MaxCost, cost)
+    out.Items[objectId:lower()] = {EnchCost = enchCost, Cost = cost, Type = objectTypeStr, SubType = objectSubTypeStr,
+        Position = gr.Count, IsArtifact = isArtifact}
     table.insert(gr.Items, objectId)
     if isArtifact == true then
         addItemTable(out, "ARTF", "0")
         local agr = out.ItemGroups["ARTF"]["0"]
         agr.Count = agr.Count + 1
+        agr.MaxEnchCost = math.max(gr.MaxEnchCost, enchCost)
+        agr.MaxCost = math.max(gr.MaxCost, object.value or 0)
         table.insert(agr.Items, objectId)
     end
 end
@@ -213,7 +222,7 @@ function this.fillItems()
         end
 
         if object.enchantment ~= nil or object.skill ~= -1 then
-            addItemToTable(out, object.id, tes3.objectType.book, objSubType)
+            addItemToTable(out, object, tes3.objectType.book, objSubType)
         end
     end
     for typeId, data in pairs(items.data) do
@@ -234,10 +243,10 @@ function this.fillItems()
                         end
                     end
                     if not forbidden then
-                        addItemToTable(out, object.id, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
+                        addItemToTable(out, object, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
                     end
                 else
-                    addItemToTable(out, object.id, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
+                    addItemToTable(out, object, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
                 end
             end
         end

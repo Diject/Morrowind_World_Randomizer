@@ -1,8 +1,11 @@
 local this = {}
 
 this.effectsData = {
-    forEnchant = {positive = {canSelf = {}, canTarget = {}, canTouch = {},}, negative = {canSelf = {}, canTarget = {}, canTouch = {},}},
-    forSpell = {positive = {canSelf = {}, canTarget = {}, canTouch = {},}, negative = {canSelf = {}, canTarget = {}, canTouch = {},}},
+    effect = {},
+    forEnchant = {positive = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}},
+        negative = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}}},
+    forSpell = {positive = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}},
+        negative = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}}},
     cost = {},
     skill = {},
     forbiddenForConstantType = {
@@ -23,11 +26,17 @@ this.effectsData = {
 
 function this.init()
     local fillEffGroup = function(effect, group)
-        if effect.canCastSelf then table.insert(group.canSelf, effect.id) end
-        if effect.canCastTarget then table.insert(group.canTarget, effect.id) end
-        if effect.canCastTouch then table.insert(group.canTouch, effect.id) end
+        if effect.canCastSelf then
+            table.insert(group[tes3.effectRange.self], effect.id)
+            if not effect.hasNoMagnitude then table.insert(group.selfMagnitude, effect.id) end
+        end
+        if effect.canCastTarget then table.insert(group[tes3.effectRange.target], effect.id) end
+        if effect.canCastTouch then table.insert(group[tes3.effectRange.touch], effect.id) end
+        if not effect.hasNoDuration then table.insert(group.hasDuration, effect.id) end
+        if not effect.hasNoMagnitude then table.insert(group.hasMagnitude, effect.id) end
     end
     for id, effect in pairs(tes3.dataHandler.nonDynamicData.magicEffects) do
+        this.effectsData.effect[effect.id] = effect
         this.effectsData.skill[effect.id] = effect.skill
         this.effectsData.cost[effect.id] = effect.baseMagickaCost
         if effect.isHarmful then
@@ -53,7 +62,12 @@ function this.init()
 end
 
 function this.calculateEffectCost(effect)
-    return ((effect.min + effect.max) * (effect.duration + 1) + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
+    local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
+    return mul * ((effect.min + effect.max) * (effect.duration + 1) + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
+end
+
+function this.calculateEffectCostForConstant(effect)
+    return ((effect.min + effect.max) * 100 + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
 end
 
 return this

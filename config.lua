@@ -282,7 +282,7 @@ this.default = {
         },
         attributes = {
             randomize = true,
-            limit = 100,
+            limit = 255,
             region = {min = 0.5, max = 1.5},
         },
         skills = {
@@ -404,6 +404,43 @@ this.default = {
         randomizeArtifactsAsSeparateCategory = true,
         disableMGEDistantLand = false,
         disableMGEDistantStatics = false,
+    },
+    item = {
+        stats = {
+            randomize = true,
+            region = {min = 0, max = 2},
+        },
+        enchanting = {
+            randomize = true,
+            region = {min = 0.5, max = 1.5},
+            powMul = 0.65,
+            maxNumberOfCasts = 10,
+            minCost = 5,
+            maxCost = 800,
+            thresholdCost = 1,
+            effects = {
+                tuneStepsCount = 30,
+                safeMode = true,
+                oneTypeChance = 0.75,
+                maxCount = 6,
+                countPowMul = 2,
+                threshold = 0.2,
+                chanceToNegative = 0.2,
+                chanceToNegativeForTarget = 0.8,
+                maxDuration = 60,
+                maxRadius = 30,
+                maxMagnitude = 100,
+            },
+            add = {
+                chance = 1,
+                region = {min = 0.5, max = 2},
+            },
+            remove = {
+                chance = 0,
+            },
+        },
+        unique = false,
+        changeParts = true,
     },
 }
 

@@ -6,6 +6,7 @@ local gui = include("Morrowind_World_Randomizer.gui")
 local i18n = mwse.loadTranslations("Morrowind_World_Randomizer")
 local log = include("Morrowind_World_Randomizer.log")
 local generator = include("Morrowind_World_Randomizer.generator")
+local itemLib = include("Morrowind_World_Randomizer.item")
 
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
@@ -163,6 +164,8 @@ local function cellActivated(e)
         elseif randomizer.config.getConfig().light.randomize then
             randomizer.restoreCellLight(e.cell)
         end
+
+        itemLib.fixCell(e.cell)
     end
 end
 
@@ -331,7 +334,7 @@ event.register(tes3.event.initialized, function(e)
         gui.hide()
         return
     end
-
+    include("Morrowind_World_Randomizer.magicEffect").init()
     randomizer.config.load()
     math.randomseed(os.time())
     randomizer.genStaticData()

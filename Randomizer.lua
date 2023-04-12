@@ -2,6 +2,7 @@ local log = include("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local random = include("Morrowind_World_Randomizer.Random")
 local light = include("Morrowind_World_Randomizer.light")
+local itemLib = include("Morrowind_World_Randomizer.item")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
@@ -99,33 +100,8 @@ function this.genStaticData()
 end
 
 function this.genNonStaticData()
+    itemLib.randomizeItems(itemLib.generateData())
     this.doors.findDoors()
-end
-
-local function iterItems(inventory)
-    local function iterator()
-        for _, stack in pairs(inventory) do
-            ---@cast stack tes3itemStack
-            local item = stack.object
-
-            local count = stack.count
-
-            -- first yield stacks with custom data
-            if stack.variables then
-                for _, data in pairs(stack.variables) do
-                    if data then
-                        coroutine.yield(stack, item, data.count, data)
-                        count = count - data.count
-                    end
-                end
-            end
-            -- then yield all the remaining copies
-            if count > 0 then
-                coroutine.yield(stack, item, count)
-            end
-        end
-    end
-    return coroutine.wrap(iterator)
 end
 
 local function getGroundZ(vector)
@@ -284,7 +260,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
         local oldItems = {}
         local itemCountByType = {}
 
-        for stack, item, count, itemData in iterItems(reference.baseObject.inventory) do
+        for stack, item, count, itemData in itemLib.iterItems(reference.baseObject.inventory) do
 
             if item.id ~= nil then
                 local itemId = item.id:lower()
@@ -320,7 +296,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             end
         end
 
-        for stack, item, count, itemData in iterItems(reference.object.inventory) do
+        for stack, item, count, itemData in itemLib.iterItems(reference.object.inventory) do
 
             if item.id ~= nil then
                 local itemId = item.id:lower()
@@ -367,10 +343,10 @@ end
 function this.createObject(object)
     local newObject = tes3.getObject(object.id)
     if newObject ~= nil then
+        log("New object %s", tostring(newObject))
         local reference = tes3.createReference{ object = newObject, position = object.pos, orientation = object.rot, cell = object.cell, scale = object.scale or 1 }
         if reference ~= nil then
             dataSaver.getObjectData(reference).isCreated = true
-            log("New object %s", tostring(reference))
             if object.itemData ~= nil then
                 if object.itemData.owner ~= nil or object.itemData.requirement ~= nil then
                     tes3.setOwner({ reference = reference, owner = object.itemData.owner, requiredRank = object.itemData.requirement })
