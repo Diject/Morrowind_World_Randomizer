@@ -28,9 +28,13 @@ end
 local function forcedActorRandomization(reference)
     local mobile = reference.mobile
     if mobile then
+        local playerData = dataSaver.getObjectData(tes3.player)
         randomizer.randomizeMobileActor(mobile)
         randomizer.randomizeScale(reference)
-        randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject)
+        if playerData then
+            if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+            randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject, playerData.randomizedBaseObjects)
+        end
         randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
         randomizer.randomizeBody(reference)
         local configGroup
@@ -52,20 +56,21 @@ end
 
 local function randomizeActor(reference)
     local playerData = dataSaver.getObjectData(tes3.player)
-    if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
-        randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
-        reference:updateEquipment()
+
+    if playerData then
+        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+        playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
     end
+
+    -- if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
+    --     randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
+    --     reference:updateEquipment()
+    -- end
 
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
 
         forcedActorRandomization(reference)
 
-    end
-
-    if playerData then
-        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-        playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
     end
 end
 
@@ -170,7 +175,7 @@ local function cellActivated(e)
 end
 
 local function load(e)
-    randomizer.restoreAllBaseInitialData()
+    -- randomizer.restoreAllBaseInitialData()
     randomizer.config.resetConfig()
 end
 

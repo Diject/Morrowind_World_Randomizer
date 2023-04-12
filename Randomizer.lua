@@ -98,9 +98,9 @@ function this.genStaticData()
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Spells", spellsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Herbs", herbsData)
 end
-
+local once = true
 function this.genNonStaticData()
-    itemLib.randomizeItems(itemLib.generateData())
+    if once then itemLib.randomizeItems(itemLib.generateData()) once = false end
     this.doors.findDoors()
 end
 
@@ -864,8 +864,6 @@ function this.randomizeMobileActor(mobile)
     mobile:updateOpacity()
 end
 
-local actorObjectsInitialData = {}
-
 function this.getBaseObjectData(object)
     local data = {spells = {}}
 
@@ -943,26 +941,26 @@ function this.setBaseObjectData(object, data)
     end
 end
 
-function this.saveAndRestoreBaseObjectInitialData(object)
+function this.saveAndRestoreBaseObjectInitialData(object, data)
     if object then
-        if actorObjectsInitialData[object.id] == nil then actorObjectsInitialData[object.id] = {} end
-        local objectData = actorObjectsInitialData[object.id]
+        if data[object.id] == nil then data[object.id] = {} end
+        local objectData = data[object.id]
 
         if objectData == nil then
-            actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
+            data[object.id] = this.getBaseObjectData(object)
         else
             this.setBaseObjectData(object, objectData)
         end
     end
 end
 
-function this.restoreAllBaseInitialData()
-    for id, data in pairs(actorObjectsInitialData) do
+function this.restoreAllBaseInitialData(data)
+    for id, _ in pairs(data) do
         local object = tes3.getObject(id)
         if object then
-            this.saveAndRestoreBaseObjectInitialData(object)
+            this.saveAndRestoreBaseObjectInitialData(object, data)
         end
-        actorObjectsInitialData[id] = nil
+        data[id] = nil
     end
 end
 
@@ -978,6 +976,8 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable == nil then
         return
     end
+
+    object.modified = true
 
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
