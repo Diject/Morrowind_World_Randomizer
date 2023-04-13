@@ -267,7 +267,8 @@ local function randomizeSmart_InToIn(cellData)
                 for j = 1, 20 do
                     local randCellId = math.random(1, #cellNames)
                     local rndCellName = cellNames[randCellId]
-                    if not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
+                    if not rndCellName then table.remove(cellNames, randCellId) end --fast bug fix
+                    if rndCellName and not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
                         local rndDoorData = newData[rndCellName].doors[math.random(1, #newData[rndCellName].doors)]
 
                         if this.config.data.doors.smartInToInRandomization.backDoorMode then
