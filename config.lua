@@ -417,7 +417,6 @@ this.default = {
             maxNumberOfCasts = 10,
             minCost = 5,
             maxCost = 800,
-            thresholdCost = 1,
             effects = {
                 tuneStepsCount = 30,
                 safeMode = true,
@@ -441,6 +440,7 @@ this.default = {
         },
         unique = false,
         changeParts = true,
+        changeMesh = true,
     },
 }
 
