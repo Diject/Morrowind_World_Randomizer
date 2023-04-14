@@ -444,12 +444,16 @@ function this.generateData()
                 end
             end
             if item.mesh then
-                table.insert(meshes, item.mesh)
+                meshes[item.mesh] = true
             end
+        end
+        local meshList = {}
+        for mesh, _ in pairs(meshes) do
+            table.insert(meshList, mesh)
         end
         table.sort(enchantVals)
         out.itemGroup[objType] = {
-            items = data, meshes = meshes, enchantValues = enchValData, maxValue = data[#data].value,
+            items = data, meshes = meshList, enchantValues = enchValData, maxValue = data[#data].value,
             medianValue = data[math.floor(#data / 2)].value,
             maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
             enchant90 = enchantVals[math.floor(#enchantVals * 0.9)] or 0, value90 = data[math.floor(#data * 0.9)],
