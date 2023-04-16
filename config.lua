@@ -331,7 +331,7 @@ this.default = {
         ai = {
             fight = {
                 randomize = true,
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.15, max = 0.15},
             },
             flee = {
                 randomize = true,
@@ -408,9 +408,9 @@ this.default = {
     item = {
         stats = {
             randomize = true,
-            region = {min = 0, max = 2},
+            region = {min = 0.25, max = 2},
         },
-        enchanting = {
+        enchantment = {
             randomize = true,
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
@@ -431,11 +431,11 @@ this.default = {
                 maxMagnitude = 100,
             },
             add = {
-                chance = 1,
+                chance = 0.5,
                 region = {min = 0.5, max = 2},
             },
             remove = {
-                chance = 0,
+                chance = 0.5,
             },
         },
         unique = false,
