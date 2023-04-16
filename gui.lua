@@ -556,6 +556,92 @@ function this.registerModConfig()
                 },
             },
             {
+                label = this.i18n("modConfig.label.itemStats"),
+                class = "FilterPage",
+                components = {
+                    {
+                        buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
+                        class = "Button",
+                        inGameOnly = true,
+                        callback = function()
+                            this.funcs.randomizeBaseItems()
+                        end,
+                    },
+                    {
+                        class = "Category",
+                        label = "",
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randItemMeshes"), this.config.data.item, "changeMesh"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randItemParts"), this.config.data.item, "changeParts"),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.itemStats"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemStats"), this.config.data.item.stats, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "min", 100, 1, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "max", 100, 1, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.itemEnchantment"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemEnch"), this.config.data.item.enchantment, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                            createSettingsBlock_slider(this.config.data.item.enchantment, "maxNumberOfCasts", 1, 1, 30, 1, {label = this.i18n("modConfig.label.numberOfEnchCasts")}),
+                            createSettingsBlock_slider(this.config.data.item.enchantment, "minCost", 1, 1, 100, 1, {label = this.i18n("modConfig.label.minEnchCost")}),
+                            createSettingsBlock_slider(this.config.data.item.enchantment, "maxCost", 1, 1, 5000, 1, {label = this.i18n("modConfig.label.maxEnchCost")}),
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.enchEffects"),
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.safeEnchantmentForConstant"), this.config.data.item.enchantment.effects, "safeMode"),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "oneTypeChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.oneEnchTypeChance")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxCount", 1, 1, 8, 1, {label = this.i18n("modConfig.label.maxEnchEffCount")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegative", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForConstant")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegativeForTarget", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForTarget")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
+                                    {
+                                        class = "Category",
+                                        label = "",
+                                        description = "",
+                                        components = {
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceAddEnchantment")}),
+                                            {
+                                                class = "Category",
+                                                label = this.i18n("modConfig.label.addedEnchPower"),
+                                                description = "",
+                                                components = {
+                                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                                },
+                                            },
+                                        },
+                                    },
+                                    {
+                                        class = "Category",
+                                        label = "",
+                                        description = "",
+                                        components = {
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.remove, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceRemoveEnchantment")}),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            {
                 label = this.i18n("modConfig.label.creatures"),
                 class = "FilterPage",
                 components = {

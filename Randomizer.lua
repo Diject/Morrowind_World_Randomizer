@@ -98,10 +98,13 @@ function this.genStaticData()
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Spells", spellsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Herbs", herbsData)
 end
-local once = true
+
 function this.genNonStaticData()
-    if once then itemLib.randomizeItems(itemLib.generateData()) once = false end
     this.doors.findDoors()
+end
+
+function this.randomizeBaseItems()
+    itemLib.randomizeItems(itemLib.generateData())
 end
 
 local function getGroundZ(vector)
@@ -124,7 +127,7 @@ local function getGroundZ(vector)
     if res ~= nil then
         return res.intersection.z
     end
-    log("Ray tracing error %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
+    log("Ray tracing failed %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
     return nil
 end
 

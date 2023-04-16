@@ -4,6 +4,8 @@ return {
     ["messageBox.enableRandomizer.button.yes"] = "Yes, enable it",
     ["messageBox.enableRandomizer.button.no"] = "No",
 
+    ["messageBox.randomize.button.yes"] = "Yes, randomize them",
+
     ["messageBox.selectDistantLandOption.message"] = "Randomization of statics does not work properly with Distant Land. You can fully disable Distant Land or "..
         "disable Distant Statics (statics will be displayed only in nearby cells). This only applies to this character.",
 
@@ -198,9 +200,11 @@ return {
     ["modConfig.label.profileAdded"] = "The preset added",
     ["modConfig.label.profileNotAdded"] = "This preset already exists",
     ["modConfig.label.selectProfile"] = "Select a preset",
+    ["modConfig.label.selectRandProfile"] = "Select a randomization preset",
     ["modConfig.label.load"] = "Load",
     ["modConfig.label.delete"] = "Delete",
     ["modConfig.label.profileLoaded"] = "The preset has been loaded",
+    ["modConfig.label.theProfileLoaded"] = "\"%{profile}\" preset has been loaded",
     ["modConfig.label.profileNotLoaded"] = "The preset was not loaded",
 
     ["modConfig.description.willBeAppliedAfterNext"] = "Will be applied after the next randomization.",
@@ -219,4 +223,36 @@ return {
     ["modConfig.label.randomizationOfLandTextures"] = "Randomization of land textures",
     ["modConfig.label.randomizeLandTextureOnlyOnce"] = "Randomize land textures only once",
     ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
+
+    ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
+    ["modConfig.label.itemStats"] = "Item stats",
+    ["modConfig.label.randomizeItemStats"] = "Randomize item stats",
+    ["modConfig.label.itemEnchantment"] = "Item enchantments",
+    ["modConfig.label.randomizeItemEnch"] = "Randomize item enchantments",
+    ["modConfig.label.numberOfEnchCasts"] = "The maximum number of times you can cast an enchantment",
+    ["modConfig.label.minEnchCost"] = "Minimum enchantment cost",
+    ["modConfig.label.maxEnchCost"] = "Maximum enchantment cost",
+    ["modConfig.label.enchEffects"] = "Enchantment effects",
+    ["modConfig.label.safeEnchantmentForConstant"] = "Don't add damaging effects to constant enchantments",
+    ["modConfig.label.oneEnchTypeChance"] = "Chances are the effects will be of the same type in terms of range",
+    ["modConfig.label.maxEnchEffCount"] = "Maximum number of effects",
+    ["modConfig.label.chanceToNegativeEffectForConstant"] = "Chance to add a negative effect to a constant enchantment",
+    ["modConfig.label.chanceToNegativeEffectForTarget"] = "Chance to add a negative effect to a target/touch enchantment",
+    ["modConfig.label.maxEnchEffectDuration"] = "Maximum effect duration",
+    ["modConfig.label.maxEnchEffectRadius"] = "Maximum effect radius",
+    ["modConfig.label.maxEnchEffectMagnitude"] = "Maximum effect magnitude",
+    ["modConfig.label.chanceAddEnchantment"] = "Chance to add an enchantment to an item without it",
+    ["modConfig.label.chanceRemoveEnchantment"] = "Chance to remove an enchantment",
+    ["modConfig.label.addedEnchPower"] = "The power of a new enchantment",
+    ["modConfig.label.randItemMeshes"] = "Randomize item models",
+    ["modConfig.label.randItemParts"] = "randomize wearable parts",
+
+    ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
+    ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
+
+    ["modConfig.message.randItemStats"] = "Do you want to randomize item stats (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.label.randBaseItemToPreset"] = "Randomize according to loaded preset",
+    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
+    ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
+    ["modConfig.label.randBaseItemAll"] = "Randomize all",
 }

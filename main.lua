@@ -7,6 +7,7 @@ local i18n = mwse.loadTranslations("Morrowind_World_Randomizer")
 local log = include("Morrowind_World_Randomizer.log")
 local generator = include("Morrowind_World_Randomizer.generator")
 local itemLib = include("Morrowind_World_Randomizer.item")
+local presetMenu = include("Morrowind_World_Randomizer.presetMenu")(i18n)
 
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
@@ -101,7 +102,6 @@ local function randomizeLoadedCells(addedGameTime, forceCellRandomization, force
             if forceCellRandomization or cellLastRandomizeTime == nil or not randomizer.config.getConfig().cells.randomizeOnlyOnce and
                     ((tes3.getSimulationTimestamp() - cellLastRandomizeTime.gameTime + addedGameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
                     (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown) then
-
                 forcedCellRandomization(cell, forceActorRandomization)
             end
         end
@@ -252,6 +252,37 @@ local function mobileActivated(e)
     end
 end
 
+local function randomizeBaseItemsCallback(e)
+    if e.button == 0 then
+        randomizer.randomizeBaseItems()
+    elseif e.button == 1 then
+        randomizer.config.getConfig().item.stats.randomize = true
+        randomizer.config.getConfig().item.enchantment.randomize = false
+        randomizer.config.getConfig().item.changeParts = false
+        randomizer.config.getConfig().item.changeMesh = false
+        randomizer.randomizeBaseItems()
+    elseif e.button == 2 then
+        randomizer.config.getConfig().item.stats.randomize = false
+        randomizer.config.getConfig().item.enchantment.randomize = false
+        randomizer.config.getConfig().item.changeParts = true
+        randomizer.config.getConfig().item.changeMesh = true
+        randomizer.randomizeBaseItems()
+    elseif e.button == 3 then
+        randomizer.config.getConfig().item.stats.randomize = true
+        randomizer.config.getConfig().item.enchantment.randomize = true
+        randomizer.config.getConfig().item.changeParts = true
+        randomizer.config.getConfig().item.changeMesh = true
+        randomizer.randomizeBaseItems()
+    end
+end
+
+local function randomizeBaseItemsMessage()
+    tes3.messageBox({ message = i18n("modConfig.message.randItemStats"),
+        buttons = {i18n("modConfig.label.randBaseItemToPreset"), i18n("modConfig.label.randBaseItemOnlyStats"),
+            i18n("modConfig.label.randBaseItemOnlyModels"), i18n("modConfig.label.randBaseItemAll"), i18n("messageBox.enableRandomizer.button.no")},
+        callback = randomizeBaseItemsCallback, showInDialog = false})
+end
+
 local function landscapeRandOptionCallback(e)
     if e.button == 0 then
         randomizer.config.global.landscape.randomize = true
@@ -259,6 +290,7 @@ local function landscapeRandOptionCallback(e)
         generateRandomizedLandscapeTextureIndices()
         loadRandomizedLandscapeTextures()
     end
+    randomizeBaseItemsMessage()
 end
 
 local function showLandscapeRandOptionMessage()
@@ -266,6 +298,8 @@ local function showLandscapeRandOptionMessage()
         tes3.messageBox({ message = i18n("messageBox.enableLandscapeRand.message"),
             buttons = {i18n("messageBox.enableRandomizer.button.yes"), i18n("messageBox.enableRandomizer.button.no")},
             callback = landscapeRandOptionCallback, showInDialog = false})
+    else
+        randomizeBaseItemsMessage()
     end
 end
 
@@ -286,18 +320,32 @@ local function distantLandOptionsCallback(e)
     showLandscapeRandOptionMessage()
 end
 
+local function distLandMessage(e)
+    if mge.enabled() and (mge.render.distantStatics or mge.render.distantLand) then
+        tes3.messageBox({ message = i18n("messageBox.selectDistantLandOption.message"),
+            buttons = {i18n("messageBox.selectDistantLandOption.button.disableDistantLand"), i18n("messageBox.selectDistantLandOption.button.disableDistantStatics"),
+            i18n("messageBox.selectDistantLandOption.button.disableRandomization"), i18n("messageBox.selectDistantLandOption.button.doNothing")},
+            callback = distantLandOptionsCallback, showInDialog = false})
+    else
+        randomizeLoadedCells()
+        showLandscapeRandOptionMessage()
+    end
+end
+
+local function presetMessage()
+    local func = function(preset)
+        if preset then
+            tes3.messageBox(i18n("modConfig.label.theProfileLoaded", {profile = preset}))
+        end
+        distLandMessage()
+    end
+    presetMenu.createMenu(func, func)
+end
+
 local function enableRandomizerCallback(e)
     if e.button == 0 then
         randomizer.config.getConfig().enabled = true
-        if mge.enabled() and (mge.render.distantStatics or mge.render.distantLand) then
-            tes3.messageBox({ message = i18n("messageBox.selectDistantLandOption.message"),
-                buttons = {i18n("messageBox.selectDistantLandOption.button.disableDistantLand"), i18n("messageBox.selectDistantLandOption.button.disableDistantStatics"),
-                i18n("messageBox.selectDistantLandOption.button.disableRandomization"), i18n("messageBox.selectDistantLandOption.button.doNothing")},
-                callback = distantLandOptionsCallback, showInDialog = false})
-        else
-            randomizeLoadedCells()
-            showLandscapeRandOptionMessage()
-        end
+        presetMessage()
     end
 end
 
@@ -364,5 +412,6 @@ event.register(tes3.event.initialized, function(e)
 end)
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
-    randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures})
+    randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures,
+    randomizeBaseItems = randomizer.randomizeBaseItems})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)
