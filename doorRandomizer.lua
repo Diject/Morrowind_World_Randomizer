@@ -115,6 +115,9 @@ local function findingCells_In(cells, cell, depth)
 end
 
 local function saveDoorOrigDestination(reference)
+    if reference == nil or reference.destination == nil then
+        return
+    end
     local data = dataSaver.getObjectData(reference)
     if data.origDestination == nil then
         local cellData = {id = reference.destination.cell.isInterior and reference.destination.cell.editorName or nil,
@@ -357,7 +360,8 @@ local function randomizeSmart_InToIn(cellData)
 end
 
 local function replaceDoorDestinations(door1, door2)
-    if door1 and door2 then
+    if door1 and door2 and not this.forbiddenDoorIds[door1.baseObject.id:lower()] and
+            not this.forbiddenDoorIds[door2.baseObject.id:lower()] then
         saveDoorOrigDestination(door1)
         saveDoorOrigDestination(door2)
         local door1OrigDestData = getDoorOriginalDestinationData(door1)
@@ -384,7 +388,7 @@ local function replaceDoorDestinations(door1, door2)
 end
 
 local function setDoorDestination(door, newCell, newMark)
-    if door and newCell and newMark then
+    if door and newCell and newMark and not this.forbiddenDoorIds[door.baseObject.id:lower()] then
         saveDoorOrigDestination(door)
         local doorDest = door.destination
 
