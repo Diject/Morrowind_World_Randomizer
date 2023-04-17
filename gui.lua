@@ -291,7 +291,7 @@ function this.registerModConfig()
                                                 buttonText = this.i18n("modConfig.label.delete"),
                                                 inGameOnly = true,
                                                 callback = function()
-                                                    if currentConfig and currentConfig.value ~= "default" then
+                                                    if currentConfig and not this.config.defaultProfileNames[currentConfig.value] then
                                                         for i, val in pairs(profilesList) do
                                                             if val.value == currentConfig.value then
                                                                 this.config.deleteProfile(val.value)

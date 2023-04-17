@@ -5,6 +5,11 @@ local this = {}
 
 this.fullyLoaded = false;
 
+this.defaultProfileNames = {
+    ["default"] = true,
+    ["extended"] = true,
+}
+
 local globalConfigName = "MWWRandomizer_Global"
 local configName = "MWWRandomizer_Config"
 local profileFileName = "MWWRandomizer_Profiles"
@@ -161,7 +166,7 @@ this.default = {
             randomize = false,
             region = {min = 0.5, max = 0.5},
             add = {
-                chance = 1,
+                chance = 0.1,
                 count = 0,
             },
         },
@@ -256,7 +261,7 @@ this.default = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 1,
+                chance = 0.1,
                 count = 0,
             },
         },
@@ -449,8 +454,68 @@ this.data = deepcopy(this.default)
 
 this.profiles = mwse.loadConfig(profileFileName)
 if this.profiles == nil then
-    mwse.saveConfig(profileFileName, {default = deepcopy(this.default)})
+    mwse.saveConfig(profileFileName, {})
     this.profiles = mwse.loadConfig(profileFileName)
+end
+
+if not this.profiles["default"] then
+    this.profiles["default"] = deepcopy(this.default)
+end
+
+if not this.profiles["extreme"] then
+    local preset = deepcopy(this.default)
+    local setMinMax
+    setMinMax = function(toTable)
+        for label, val in pairs(toTable) do
+            if type(val) == "table" then
+                if label == "region" then
+                    if val.min <= 0.5 and val.max <= 0.5 then
+                        val.min = 1
+                        val.max = 1
+                    elseif val.min == 0.5 and val.max == 1.5 then
+                        val.min = 0.25
+                        val.max = 1.75
+                    end
+                else
+                    setMinMax(val)
+                end
+            end
+        end
+    end
+    setMinMax(preset)
+    preset.herbs.herbSpeciesPerCell = 20
+    preset.containers.lock.add.chance = 1
+    preset.containers.trap.add.chance = 1
+    preset.creatures.attack.region.min = 0.25
+    preset.creatures.attack.region.min = 1.75
+    preset.creatures.spells.add.count = 20
+    preset.creatures.spells.add.levelReference = 1
+    preset.creatures.abilities.add.chance = 0.25
+    preset.creatures.abilities.add.count = 4
+    preset.creatures.diseases.add.count = 4
+    preset.creatures.effects.positive.add.count = 4
+    preset.creatures.effects.negative.add.count = 1
+
+    preset.NPCs.spells.add.count = 10
+    preset.NPCs.spells.add.levelReference = 1
+    preset.NPCs.abilities.add.chance = 0.25
+    preset.NPCs.abilities.add.count = 4
+    preset.NPCs.diseases.add.count = 4
+    preset.NPCs.head.genderLimit = false
+    preset.NPCs.effects.positive.add.count = 4
+    preset.NPCs.effects.negative.add.count = 1
+    preset.NPCs.ai.fight.region.min = 0.15
+    preset.NPCs.ai.fight.region.max = 0.15
+
+    preset.transport.unrandomizedCount = 0
+    preset.transport.toDoorsCount = 1
+
+    preset.doors.nearestCellDepth = 4
+    preset.doors.chance = 1
+
+    preset.item.enchantment.add.chance = 1
+
+    this.profiles["extended"] = preset
 end
 
 function this.getValueByPath(path)
