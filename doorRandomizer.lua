@@ -153,10 +153,12 @@ local function getBackDoorFromReference(reference)
             local nearestDoor
             local minDistance = math.huge
             for door in origDestinationData.cell:iterateReferences(tes3.objectType.door) do
-                local distance = door.position:distance(origDestinationData.marker.position)
-                if minDistance > distance then
-                    nearestDoor = door
-                    minDistance = distance
+                if door.destination then
+                    local distance = door.position:distance(origDestinationData.marker.position)
+                    if minDistance > distance then
+                        nearestDoor = door
+                        minDistance = distance
+                    end
                 end
             end
             return nearestDoor
