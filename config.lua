@@ -364,7 +364,7 @@ this.default = {
     },
     doors = {
         randomize = true,
-        onlyOnCellRandomization = false,
+        onlyOnCellRandomization = true,
         doNotRandomizeInToIn = false,
         smartInToInRandomization = {
             enabled = true,
@@ -510,8 +510,8 @@ if not this.profiles["extreme"] then
     preset.transport.unrandomizedCount = 0
     preset.transport.toDoorsCount = 1
 
-    preset.doors.nearestCellDepth = 4
-    preset.doors.chance = 1
+    preset.doors.nearestCellDepth = 3
+    preset.doors.chance = 0.5
 
     preset.item.enchantment.add.chance = 1
 
