@@ -138,7 +138,7 @@ local function getDoorOriginalDestinationData(reference)
             cell = tes3.getCell{ id = dest.cell.id }
         end
         return {cell = cell, marker = {position = tes3vector3.new(dest.x, dest.y, dest.z), orientation = tes3vector3.new(0, 0, dest.rotZ)}}
-    else
+    elseif reference.destination then
         local marker = reference.destination.marker
         return {cell = reference.destination.cell, marker = {
             position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
