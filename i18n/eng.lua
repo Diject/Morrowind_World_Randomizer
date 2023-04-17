@@ -255,4 +255,11 @@ return {
     ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
     ["modConfig.label.randBaseItemAll"] = "Randomize all",
+
+    ["modConfig.label.excludeScrolls"] = "Exclude scrolls",
+    ["modConfig.label.excludeAlchemy"] = "Exclude potions",
+    ["modConfig.label.dontAddToScrolls"] = "Don't add to scrolls",
+    ["modConfig.label.addNewEnch"] = "Add a new enchantment",
+    ["modConfig.label.removeEnch"] = "Remove an enchantment",
+    ["modConfig.label.maxAlchemyEffCount"] = "Maximum number of effects for a potion",
 }

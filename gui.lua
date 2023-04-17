@@ -592,6 +592,8 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemEnch"), this.config.data.item.enchantment, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.excludeScrolls"), this.config.data.item.enchantment, "exceptScrolls"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.excludeAlchemy"), this.config.data.item.enchantment, "exceptAlchemy"),
                             createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
                             createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
                             createSettingsBlock_slider(this.config.data.item.enchantment, "maxNumberOfCasts", 1, 1, 30, 1, {label = this.i18n("modConfig.label.numberOfEnchCasts")}),
@@ -605,6 +607,7 @@ function this.registerModConfig()
                                     createOnOffIngameButton(this.i18n("modConfig.label.safeEnchantmentForConstant"), this.config.data.item.enchantment.effects, "safeMode"),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "oneTypeChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.oneEnchTypeChance")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxCount", 1, 1, 8, 1, {label = this.i18n("modConfig.label.maxEnchEffCount")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxAlchemyCount", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxAlchemyEffCount")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegative", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForConstant")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegativeForTarget", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForTarget")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
@@ -612,9 +615,10 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
                                     {
                                         class = "Category",
-                                        label = "",
+                                        label = this.i18n("modConfig.label.addNewEnch"),
                                         description = "",
                                         components = {
+                                            createOnOffIngameButton(this.i18n("modConfig.label.dontAddToScrolls"), this.config.data.item.enchantment.add, "exceptScrolls"),
                                             createSettingsBlock_slider(this.config.data.item.enchantment.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceAddEnchantment")}),
                                             {
                                                 class = "Category",
@@ -629,7 +633,7 @@ function this.registerModConfig()
                                     },
                                     {
                                         class = "Category",
-                                        label = "",
+                                        label = this.i18n("modConfig.label.removeEnch"),
                                         description = "",
                                         components = {
                                             createSettingsBlock_slider(this.config.data.item.enchantment.remove, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceRemoveEnchantment")}),

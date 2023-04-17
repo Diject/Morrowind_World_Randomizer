@@ -418,6 +418,7 @@ this.default = {
         enchantment = {
             randomize = true,
             exceptScrolls = true,
+            exceptAlchemy = true,
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
             maxNumberOfCasts = 10,
@@ -428,6 +429,7 @@ this.default = {
                 safeMode = true,
                 oneTypeChance = 0.75,
                 maxCount = 6,
+                maxAlchemyCount = 3,
                 countPowMul = 2,
                 threshold = 0.2,
                 chanceToNegative = 0.2,
@@ -442,7 +444,7 @@ this.default = {
                 region = {min = 0.5, max = 2},
             },
             remove = {
-                chance = 0.5,
+                chance = 0.25,
             },
         },
         unique = false,
@@ -515,6 +517,10 @@ if not this.profiles["extreme"] then
     preset.doors.chance = 0.5
 
     preset.item.enchantment.add.chance = 1
+    preset.item.enchantment.remove.chance = 0.5
+    preset.item.enchantment.add.exceptScrolls = false
+    preset.item.enchantment.exceptScrolls = false
+    preset.item.enchantment.exceptAlchemy = false
 
     this.profiles["extended"] = preset
 end
