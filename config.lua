@@ -498,6 +498,8 @@ if not this.profiles["extreme"] then
     preset.creatures.diseases.add.count = 4
     preset.creatures.effects.positive.add.count = 4
     preset.creatures.effects.negative.add.count = 1
+    preset.creatures.ai.fight.region.min = 0
+    preset.creatures.ai.fight.region.max = 1
 
     preset.NPCs.spells.add.count = 10
     preset.NPCs.spells.add.levelReference = 1
