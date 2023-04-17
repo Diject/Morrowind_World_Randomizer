@@ -105,6 +105,13 @@ end
 
 function this.randomizeBaseItems()
     itemLib.randomizeItems(itemLib.generateData())
+    local cells = tes3.getActiveCells()
+    if cells ~= nil then
+        for i, cell in pairs(cells) do
+            itemLib.fixCell(cell)
+        end
+    end
+    itemLib.fixPlayerInventory()
 end
 
 local function getGroundZ(vector)
