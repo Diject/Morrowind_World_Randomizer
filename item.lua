@@ -128,6 +128,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     end
 
     --add a new effect with a minimum value until it reaches the threshold
+    local effectUniqueness = {}
     local addedCount = 0
     local enchVal = 0
     for i = 1, effCount do
@@ -142,15 +143,15 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
                 effectLib.effectsData.forbiddenForConstantType or {}) or -1
 
             local iteration = 0
-            while (effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal and iteration < 20 do
+            while ((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal or effectUniqueness[effectId]) and iteration < 20 do
                 iteration = iteration + 1
                 effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
                     effectLib.effectsData.forbiddenForConstantType or {}) or -1
             end
-            if (effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal then break end
 
-            local magicEffect = effectLib.effectsData.effect[effectId]
+            effectUniqueness[effectId] = true
             newEnch.effects[i].id = effectId
+            local magicEffect = newEnch.effects[i].object
             if not magicEffect.hasNoMagnitude then
                 newEnch.effects[i].min = 1
                 newEnch.effects[i].max = 1
@@ -204,7 +205,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         local effect = newEnch.effects[effectPos]
         local effectData = effects[effectPos]
         local effectCost = (isConstant and effectLib.calculateEffectCostForConstant(effectData) or effectLib.calculateEffectCost(effectData))
-        local magicEffect = effectLib.effectsData.effect[effect.id]
+        local magicEffect = effect.object
         if magicEffect == nil then goto continue end
         local baseCost = magicEffect.baseMagickaCost
         local rnd = isConstant and 0 or math.random()
@@ -540,6 +541,15 @@ function this.fixCell(cell)
         end
         if ref.itemData then
             this.fixItemData(ref.itemData, ref.baseObject)
+        end
+    end
+end
+
+function this.fixPlayerInventory()
+    local player = tes3.mobilePlayer
+    if player then
+        for stack, item, count, itemData in this.iterItems(player.inventory) do
+            this.fixItemData(itemData, item)
         end
     end
 end
