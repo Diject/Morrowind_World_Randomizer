@@ -417,6 +417,7 @@ this.default = {
         },
         enchantment = {
             randomize = true,
+            exceptScrolls = true,
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
             maxNumberOfCasts = 10,

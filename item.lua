@@ -326,7 +326,8 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
 
     log("Base object randomization %s", tostring(object))
 
-    if this.itemTypeWhiteList[object.objectType] then
+    if this.itemTypeWhiteList[object.objectType] and
+            not (this.config.item.enchantment.exceptScrolls and object.objectType == tes3.objectType.book) then
 
         local newBase = createNewItem and object:createCopy() or object
 
@@ -344,7 +345,7 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                     enchPower = -1
                 else
                     if enchCost == nil then
-                        enchCost =  this.getEnchantPower(object.enchantment)
+                        enchCost = this.getEnchantPower(object.enchantment)
                     end
                 end
 
