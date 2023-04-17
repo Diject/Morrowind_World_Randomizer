@@ -196,7 +196,7 @@ local function loaded(e)
             end
         end
 
-        randomizeLoadedCells()
+        -- randomizeLoadedCells()  -- This will crash the game if item enchantments are randomized
 
     end
 end
