@@ -348,7 +348,8 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                     end
                 end
 
-            elseif this.config.item.enchantment.add.chance > math.random() then
+            elseif this.config.item.enchantment.add.chance > math.random() and
+                    not (this.config.item.enchantment.add.exceptScrolls and object.objectType == tes3.objectType.book) then
                 enchPower = (newEnchValue or 1) *
                     random.GetBetween(this.config.item.enchantment.add.region.min, this.config.item.enchantment.add.region.max)
             end

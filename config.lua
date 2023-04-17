@@ -432,6 +432,7 @@ this.default = {
             },
             add = {
                 chance = 0.5,
+                exceptScrolls = true,
                 region = {min = 0.5, max = 2},
             },
             remove = {
