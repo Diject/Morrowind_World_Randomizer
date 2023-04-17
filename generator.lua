@@ -136,7 +136,7 @@ function this.fillCreatures()
                 (object.script == nil or scriptWhiteList[object.script.id] or string.find(object.script.id, "^disease[A-Z].+")) and
                 not string.find(idLow, "kwama queen_") and not string.find(idLow, ".+_summon") and
                 not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and object.health > 0 and
-                not forbiddenModels[(object.mesh or "err"):lower()] then
+                object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and not forbiddenModels[object.mesh:lower()] then
 
             local objSubType = object.type
             if object.swims then
@@ -176,7 +176,8 @@ function this.fillHeadsHairs()
     log("Bodypart list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.bodyPart and not object.deleted and object.raceName and
-                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and not forbiddenModels[(object.mesh or "err"):lower()] and
+                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and
+                object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and not forbiddenModels[object.mesh:lower()] and
                 not forbiddenIds[object.id] then
 
             local raceLow = object.raceName:lower()
@@ -292,7 +293,8 @@ function this.fillHerbs()
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.container and (object.script == nil or scriptWhiteList[object.script.id]) and
                 not object.deleted and object.organic and object.respawns and object.capacity < 5 and
-                not string.find(object.id, "^T_Mw_Mine+") and not forbiddenModels[(object.mesh or "err"):lower()] then
+                not string.find(object.id, "^T_Mw_Mine+") and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
+                not forbiddenModels[object.mesh:lower()] then
 
             table.insert(data, object)
         end
@@ -344,25 +346,27 @@ function this.fingLandTextures()
     local out = {Textures = {}, Groups = {}}
     local count = 0
     for _, texture in pairs(tes3.dataHandler.nonDynamicData.landTextures) do
-        local textureType = 0
-        if (texture.id:find("road") or texture.id:find("ash_04") or texture.id:find("mudflats_01") or
-                texture.id:find("ma_crackedearth")) then
-            textureType = 9
-        elseif (texture.id:find("ice")) then textureType = 10
-        elseif (texture.id:find("grass") or texture.id:find("clover") or texture.id:find("scrub")) then textureType = 1
-        elseif (texture.id:find("sand")) then textureType = 2
-        elseif (texture.id:find("rock") or texture.id:find("stone")) then textureType = 6
-        elseif (texture.id:find("dirt") or texture.id:find("mud") or texture.id:find("muck")) then textureType = 3
-        -- elseif (texture.id:find("snow")) then textureType = 4
-        elseif (texture.id:find("ash")) then textureType = 5
-        elseif (texture.id:find("gravel")) then textureType = 7
-        elseif (texture.id:find("lava")) then textureType = 8
-        end
+        if texture.filename and tes3.getFileSource("Textures\\"..texture.filename) then
+            local textureType = 0
+            if (texture.id:find("road") or texture.id:find("ash_04") or texture.id:find("mudflats_01") or
+                    texture.id:find("ma_crackedearth")) then
+                textureType = 9
+            elseif (texture.id:find("ice")) then textureType = 10
+            elseif (texture.id:find("grass") or texture.id:find("clover") or texture.id:find("scrub")) then textureType = 1
+            elseif (texture.id:find("sand")) then textureType = 2
+            elseif (texture.id:find("rock") or texture.id:find("stone")) then textureType = 6
+            elseif (texture.id:find("dirt") or texture.id:find("mud") or texture.id:find("muck")) then textureType = 3
+            -- elseif (texture.id:find("snow")) then textureType = 4
+            elseif (texture.id:find("ash")) then textureType = 5
+            elseif (texture.id:find("gravel")) then textureType = 7
+            elseif (texture.id:find("lava")) then textureType = 8
+            end
 
-        out.Textures[texture.index] = {Type = textureType}
-        if out.Groups[textureType] == nil then out.Groups[textureType] = {} end
-        table.insert(out.Groups[textureType], texture.index)
-        count = count + 1
+            out.Textures[texture.index] = {Type = textureType}
+            if out.Groups[textureType] == nil then out.Groups[textureType] = {} end
+            table.insert(out.Groups[textureType], texture.index)
+            count = count + 1
+        end
     end
     log("Land testures list generation Count = %i", count)
     return out
