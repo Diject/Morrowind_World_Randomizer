@@ -105,6 +105,8 @@ end
 
 function this.randomizeBaseItems()
     itemLib.randomizeItems(itemLib.generateData())
+    itemLib.clearFixedCellTable()
+    itemLib.addFixedCellTableCheckRequirement()
     local cells = tes3.getActiveCells()
     if cells ~= nil then
         for i, cell in pairs(cells) do

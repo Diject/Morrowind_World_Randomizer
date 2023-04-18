@@ -450,6 +450,7 @@ this.default = {
         unique = false,
         changeParts = true,
         changeMesh = true,
+        tryToFixZCoordinate = true,
     },
 }
 

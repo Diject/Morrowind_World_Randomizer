@@ -4,6 +4,7 @@ local log = include("Morrowind_World_Randomizer.log")
 local random = include("Morrowind_World_Randomizer.Random")
 local effectLib = include("Morrowind_World_Randomizer.magicEffect")
 local genData = include("Morrowind_World_Randomizer.generatorData")
+local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 this.config = include("Morrowind_World_Randomizer.config").data
 
 this.itemTypeWhiteList = {
@@ -25,6 +26,9 @@ this.itemTypeForEnchantment = {
     [tes3.objectType.book] = true,
     [tes3.objectType.clothing] = true,
     [tes3.objectType.weapon] = true,
+}
+
+this.itemTypeForEffects = {
     [tes3.objectType.alchemy] = true,
 }
 
@@ -289,7 +293,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         enchantmentType = enchType,
         isConstant = isConstant,
         power = enchPower,
-        strongThreshold = true,
+        strongThreshold = false,
     }, config)
 
     return newEnch
@@ -371,7 +375,7 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
             this.randomizeStats(newBase, this.config.item.stats.region.min, this.config.item.stats.region.max)
         end
 
-        if this.config.item.enchantment.randomize and this.itemTypeForEnchantment[object.objectType] and
+        if this.config.item.enchantment.randomize and (this.itemTypeForEnchantment[object.objectType] or this.itemTypeForEffects[object.objectType]) and
                 (object.objectType ~= tes3.objectType.book or object.type == tes3.bookType.scroll) and
                 not (this.config.item.enchantment.exceptAlchemy and object.objectType == tes3.objectType.alchemy) and
                 not (this.config.item.enchantment.exceptScrolls and object.objectType == tes3.objectType.book) then
@@ -392,8 +396,9 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                     random.GetBetween(this.config.item.enchantment.add.region.min, this.config.item.enchantment.add.region.max)
             end
 
+            local shouldAddEnchant = false
             if enchPower > this.config.item.enchantment.minCost then
-                if object.objectType == tes3.objectType.alchemy then
+                if this.itemTypeForEffects[object.objectType] and object.effects then
                     this.randomizeEffects(object.effects, {
                         effectCount = this.config.item.enchantment.effects.maxAlchemyCount,
                         thresholdValue = enchPower * this.config.item.enchantment.effects.threshold,
@@ -432,7 +437,7 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                     if newEnch then newEnch.modified = modifiedFlag end
                 end
             end
-            if newBase.enchantment then newBase.enchantment = newEnch end
+            if this.itemTypeForEnchantment[object.objectType] then newBase.enchantment = newEnch end
         end
         newBase.modified = modifiedFlag
         return newBase
@@ -563,7 +568,6 @@ function this.randomizeItems(itemsData)
             local mul = (i / count) ^ this.config.item.enchantment.powMul
             local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
             this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
-            log("test %s", tostring(enchVal))
             this.randomizeBaseItem(item, false, true, encCount, enchVal, mul * data.enchant90)
         end
     end
@@ -586,15 +590,95 @@ function this.fixInventory(inventory)
     end
 end
 
-function this.fixCell(cell)
-    for ref in cell:iterateReferences() do
-        if ref.object.inventory then
-            this.fixInventory(ref.object.inventory)
-        end
-        if ref.itemData then
-            this.fixItemData(ref.itemData, ref.baseObject)
+function this.clearFixedCellTable()
+    if tes3.player then
+        local data = dataSaver.getObjectData(tes3.player)
+        if data and data.fixedCellTable then
+            data.fixedCellTable = {}
         end
     end
+end
+
+function this.addFixedCellTableCheckRequirement()
+    if tes3.player then
+        local data = dataSaver.getObjectData(tes3.player)
+        if data then
+            data.requireCellCheck = true
+        end
+    end
+end
+
+function this.addTofixedCellTable(cell)
+    if tes3.player and cell and this.config.item.tryToFixZCoordinate then
+        local data = dataSaver.getObjectData(tes3.player)
+        if data then
+            if not data.fixedCellTable then data.fixedCellTable = {} end
+            data.fixedCellTable[cell.editorName] = true
+        end
+    end
+end
+
+function this.isCellFixed(cell)
+    if tes3.player and cell then
+        local data = dataSaver.getObjectData(tes3.player)
+        if data and (not data.requireCellCheck or (data.fixedCellTable and data.fixedCellTable[cell.editorName])) then
+            return true
+        end
+    end
+    return false
+end
+
+local function getZ(vector, root)
+    local res1 = tes3.rayTest {
+        position = vector,
+        direction = tes3vector3.new(0, 0, -1),
+        observeAppCullFlag  = true,
+        root = root,
+        useBackTriangles = true,
+        maxDistance = 500
+    }
+    -- local res2 = tes3.rayTest {
+    --     position = tes3vector3.new(vector.x, vector.y, vector.z - 1),
+    --     direction = tes3vector3.new(0, 0, 1),
+    --     observeAppCullFlag = true,
+    --     root = root,
+    --     useBackTriangles = true,
+    --     maxDistance = 500
+    -- }
+    if res1 and res2 then
+        if math.abs(res1.intersection.z - vector.z) < math.abs(res2.intersection.z - vector.z) then
+            return res1.intersection.z
+        else
+            return res2.intersection.z
+        end
+    end
+    if res1 then return res1.intersection.z end
+    if res2 then return res2.intersection.z end
+    log("Ray tracing failed %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
+    return nil
+end
+
+function this.fixCell(cell)
+    for ref in cell:iterateReferences() do
+        if this.itemTypeWhiteList[ref.baseObject.objectType] then
+            if ref.object.inventory then
+                this.fixInventory(ref.object.inventory)
+            end
+            if ref.itemData then
+                if this.config.item.tryToFixZCoordinate and ref.baseObject.boundingBox and not this.isCellFixed(cell) then
+                    local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - ref.baseObject.boundingBox.min.z)
+                    local z = getZ(vector, tes3.game.worldObjectRoot)
+                    if not z then z = getZ(vector, tes3.game.worldLandscapeRoot) end
+                    if z then
+                        ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - ref.baseObject.boundingBox.min.z)
+                        log("position fixed %s", tostring(ref))
+                    end
+                end
+                this.fixItemData(ref.itemData, ref.baseObject)
+            end
+        end
+    end
+    this.addTofixedCellTable(cell)
 end
 
 function this.fixPlayerInventory()
