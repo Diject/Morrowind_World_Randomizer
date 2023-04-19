@@ -2,6 +2,11 @@ local this = {}
 
 this.effectsData = {
     effect = {},
+    byRange = {
+        [tes3.effectRange.self] = {},
+        [tes3.effectRange.target] = {},
+        [tes3.effectRange.touch] = {},
+    },
     forEnchant = {positive = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}},
         negative = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}}},
     forSpell = {positive = {[tes3.effectRange.self] = {}, [tes3.effectRange.target] = {}, [tes3.effectRange.touch] = {}, hasDuration = {}, hasMagnitude = {}, selfMagnitude = {}},
@@ -39,6 +44,9 @@ function this.init()
         this.effectsData.effect[effect.id] = effect
         this.effectsData.skill[effect.id] = effect.skill
         this.effectsData.cost[effect.id] = effect.baseMagickaCost
+        if effect.canCastSelf then table.insert(this.effectsData.byRange[tes3.effectRange.self], effect.id) end
+        if effect.canCastTouch then table.insert(this.effectsData.byRange[tes3.effectRange.touch], effect.id) end
+        if effect.canCastTarget then table.insert(this.effectsData.byRange[tes3.effectRange.target], effect.id) end
         if effect.isHarmful then
             if not effect.appliesOnce then
                 this.effectsData.forbiddenForConstantType[effect.id] = true

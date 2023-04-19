@@ -30,6 +30,7 @@ this.itemTypeForEnchantment = {
 
 this.itemTypeForEffects = {
     [tes3.objectType.alchemy] = true,
+    [tes3.objectType.ingredient] = true,
 }
 
 function this.iterItems(inventory)
@@ -83,6 +84,174 @@ function this.getEnchantPower(enchantment)
         enchVal = enchVal
     end
     return enchVal
+end
+
+local serializeEffects = function(effects)
+    local effOut = {}
+    if effects then
+        for _, effect in pairs(effects) do
+            local effectData = {}
+            if effect.id == -1 then break end
+            effectData.id = effect.id
+            effectData.skill = effect.skill
+            effectData.attribute = effect.attribute
+            effectData.min = effect.min
+            effectData.max = effect.max
+            effectData.duration = effect.duration
+            effectData.radius = effect.radius
+            effectData.rangeType = effect.rangeType
+            table.insert(effOut, effectData)
+        end
+    end
+    return effOut
+end
+
+local varNames = {"id", "objectType", "enchantCapacity", "armorRating", "maxCondition", "quality", "speed", "weight", "chopMin", "chopMax",
+    "slashMin", "slashMax", "thrustMin", "thrustMax", "mesh", "castType", "chargeCost", "maxCharge", "value"}
+local ingrVarNames = {"effects", "effectAttributeIds", "effectSkillIds",}
+function this.serializeBaseObject(object)
+    if not object then return end
+
+    local out = {}
+
+    for _, varName in pairs(varNames) do
+        if object[varName] then
+            out[varName] = object[varName]
+        end
+    end
+
+    if object.objectType ~= tes3.objectType.ingredient then
+        if object.effects then out.effects = serializeEffects(object.effects) end
+    else
+        for _, varName in ipairs(ingrVarNames) do
+            if object[varName] then
+                out[varName] = {}
+                for _, val in pairs(object[varName]) do
+                    table.insert(out[varName], val)
+                end
+            end
+        end
+    end
+
+    if object.enchantment then
+        out.enchantment = {}
+        out.enchantment.castType = object.enchantment.castType
+        out.enchantment.chargeCost = object.enchantment.chargeCost
+        out.enchantment.id = object.enchantment.id
+        out.enchantment.maxCharge = object.enchantment.maxCharge
+        out.enchantment.effects = serializeEffects(object.enchantment.effects)
+    end
+
+    if object.parts then
+        out.parts = {}
+        for _, part in pairs(object.parts) do
+            if part.type ~= 255 then
+                local female
+                local male
+                if part.female ~= nil then
+                    female = part.female.id
+                end
+                if part.male ~= nil then
+                    male = part.male.id
+                end
+                if female or male then table.insert(out.parts, {part.type, female, male}) end
+            end
+        end
+    end
+
+    return out
+end
+
+local function restoreEffects(object, data)
+    for i = 1, 8 do
+        if data[i] then
+            object.effects[i].id = data[i].id
+            object.effects[i].skill = data[i].skill
+            object.effects[i].attribute = data[i].attribute
+            object.effects[i].min = data[i].min
+            object.effects[i].max = data[i].max
+            object.effects[i].duration = data[i].duration
+            object.effects[i].radius = data[i].radius
+            object.effects[i].rangeType = data[i].rangeType
+        else
+            object.effects[i].id = -1
+            object.effects[i].skill = 0
+            object.effects[i].attribute = 0
+            object.effects[i].min = 0
+            object.effects[i].max = 0
+            object.effects[i].duration = 0
+            object.effects[i].radius = 0
+            object.effects[i].rangeType = 0
+        end
+    end
+end
+
+function this.restoreBaseObject(object, data, createNewEnchantment)
+    if not object then return end
+    log("Restoring object data %s", tostring(object))
+    local enchantmentFound = false
+    for varName, val in pairs(data) do
+        if type(val) ~= "table" and varName ~= "id" and varName ~= "objectType" then
+            object[varName] = val
+
+        elseif varName == "effects" then
+            if object.objectType ~= tes3.objectType.ingredient then
+                restoreEffects(object, val)
+            else
+                for i, id in ipairs(val) do
+                    object.effects[i] = id
+                end
+            end
+
+        elseif varName == "effectAttributeIds" then
+            for i, id in ipairs(val) do
+                object.effectAttributeIds[i] = id
+            end
+
+        elseif varName == "effectSkillIds" then
+            for i, id in ipairs(val) do
+                object.effectSkillIds[i] = id
+            end
+
+        elseif varName == "parts" then
+            for pos = 1, #object.parts do
+                local newPartData = val[pos]
+                local part = object.parts[pos]
+                if newPartData then
+                    part.type = newPartData[1]
+                    part.female = newPartData[2] and tes3.getObject(newPartData[2]) or nil
+                    part.male = newPartData[3] and tes3.getObject(newPartData[3]) or nil
+                else
+                    part.type = 255
+                    part.female = nil
+                    part.male = nil
+                end
+            end
+
+        elseif varName == "enchantment" then
+            local enchantment
+            if object.enchantment ~= nil and not createNewEnchantment then
+                enchantment = object.enchantment
+                enchantment.castType = val.castType
+                enchantment.chargeCost = val.chargeCost
+                enchantment.maxCharge = val.maxCharge
+            else
+                local castType = val.castType
+                local chargeCost = val.chargeCost < 1 and 1 or val.chargeCost
+                local maxCharge = val.maxCharge < 1 and 1 or val.maxCharge
+                enchantment = tes3.createObject{objectType = tes3.objectType.enchantment, castType = castType,
+                    chargeCost = chargeCost, maxCharge = maxCharge}
+            end
+            if enchantment then
+                enchantmentFound = true
+                tes3.setSourceless(enchantment, true)
+                restoreEffects(enchantment, val.effects)
+            end
+            object.enchantment = enchantment
+        end
+    end
+    if object.enchantment and not enchantmentFound then object.enchantment = nil end
+    tes3.setSourceless(object, true)
 end
 
 local function chooseGroup(enchType, isConstant)
@@ -267,6 +436,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     local maxCharge
     if not isConstant then
         chargeCost = math.floor(enchPower)
+        if chargeCost < 1 then chargeCost = 1 end
         maxCharge = math.floor(power)
     end
     local newEnch = enchantment ~= nil and enchantment or
@@ -362,7 +532,7 @@ function this.randomizeStats(object, minMul, maxMul)
     end
 end
 
-function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount, enchCost, newEnchValue)
+function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, effectCount, enchCost, newEnchValue)
     if object == nil then return end
 
     log("Base object randomization %s", tostring(object))
@@ -375,14 +545,19 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
             this.randomizeStats(newBase, this.config.item.stats.region.min, this.config.item.stats.region.max)
         end
 
-        if this.config.item.enchantment.randomize and (this.itemTypeForEnchantment[object.objectType] or this.itemTypeForEffects[object.objectType]) and
+        local addEnch = this.config.item.enchantment.add.chance > math.random()
+        local removeEnch = this.config.item.enchantment.remove.chance > math.random()
+
+        if (this.config.item.enchantment.randomize or (object.enchantment == nil and addEnch) or (object.enchantment and removeEnch)) and
+                (this.itemTypeForEnchantment[object.objectType] or this.itemTypeForEffects[object.objectType]) and
                 (object.objectType ~= tes3.objectType.book or object.type == tes3.bookType.scroll) and
                 not (this.config.item.enchantment.exceptAlchemy and object.objectType == tes3.objectType.alchemy) and
-                not (this.config.item.enchantment.exceptScrolls and object.objectType == tes3.objectType.book) then
+                not (this.config.item.enchantment.exceptScrolls and object.objectType == tes3.objectType.book) and
+                not (this.config.item.enchantment.exceptIngredient and object.objectType == tes3.objectType.ingredient) then
             local newEnch = object.enchantment
             local enchPower = enchCost or 0
             if newEnch ~= nil then
-                if this.config.item.enchantment.remove.chance > math.random() then
+                if removeEnch then
                     newEnch = nil
                     enchPower = -1
                 else
@@ -391,26 +566,41 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                     end
                 end
 
-            elseif this.config.item.enchantment.add.chance > math.random() then
+            elseif addEnch then
                 enchPower = (newEnchValue or 1) *
                     random.GetBetween(this.config.item.enchantment.add.region.min, this.config.item.enchantment.add.region.max)
             end
 
-            local shouldAddEnchant = false
-            if enchPower > this.config.item.enchantment.minCost then
+            if enchPower > this.config.item.enchantment.minCost or this.itemTypeForEffects[object.objectType] then
                 if this.itemTypeForEffects[object.objectType] and object.effects then
-                    this.randomizeEffects(object.effects, {
-                        effectCount = this.config.item.enchantment.effects.maxAlchemyCount,
-                        thresholdValue = enchPower * this.config.item.enchantment.effects.threshold,
-                        oneType = true,
-                        rangeType = tes3.effectRange.self,
-                        effGroup_p = effectLib.effectsData.forEnchant.positive[tes3.effectRange.self],
-                        effGroup_n = effectLib.effectsData.forEnchant.negative[tes3.effectRange.self],
-                        enchantmentType = tes3.enchantmentType.castOnce,
-                        isConstant = false,
-                        power = enchPower,
-                        strongThreshold = false,
-                    }, this.config.item)
+                    if object.objectType == tes3.objectType.ingredient then
+                        local effGroup = effectLib.effectsData.byRange[tes3.effectRange.self]
+                        local addedEff = {}
+                        for i = 1, this.config.item.enchantment.effects.maxIngredientCount do
+                            local id = math.random(1, #effGroup)
+                            while addedEff[id] do
+                                id = math.random(1, #effGroup)
+                            end
+                            object.effects[i] = id
+                            addedEff[id] = true
+                            local magEff = effectLib.effectsData.effect[id]
+                            object.effectSkillIds[i] = magEff.targetsSkills and math.random(0, 26) or -1
+                            object.effectAttributeIds[i] = magEff.targetsAttributes and math.random(0, 7) or -1
+                        end
+                    else
+                        this.randomizeEffects(object.effects, {
+                            effectCount = this.config.item.enchantment.effects.maxAlchemyCount,
+                            thresholdValue = enchPower * this.config.item.enchantment.effects.threshold,
+                            oneType = true,
+                            rangeType = tes3.effectRange.self,
+                            effGroup_p = effectLib.effectsData.forEnchant.positive[tes3.effectRange.self],
+                            effGroup_n = effectLib.effectsData.forEnchant.negative[tes3.effectRange.self],
+                            enchantmentType = tes3.enchantmentType.castOnce,
+                            isConstant = false,
+                            power = enchPower,
+                            strongThreshold = false,
+                        }, this.config.item)
+                    end
                 else
                     enchPower = ((newEnch and newEnch.maxCharge) and newEnch.maxCharge or enchPower) *
                         random.GetBetween(this.config.item.enchantment.region.min, this.config.item.enchantment.region.max)
@@ -433,13 +623,31 @@ function this.randomizeBaseItem(object, createNewItem, modifiedFlag, effectCount
                         enchType = math.random(2, 3)
                     end
 
-                    newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, this.config.item)
-                    if newEnch then newEnch.modified = modifiedFlag end
+                    if this.config.item.enchantment.useExisting then
+                        local group = itemsData.enchantments.Groups[enchType]
+                        if group then
+                            local itemPos
+                            if newEnch then
+                                itemPos = itemsData.enchantments.Items[newEnch.id:lower()]
+                            end
+                            if not itemPos then
+                                itemPos = math.floor(#group.Items * math.min(1, newEnchValue / group.Max95))
+                            end
+                            local pos = random.GetRandom(itemPos, #group.Items,
+                                this.config.item.enchantment.existing.region.min, this.config.item.enchantment.existing.region.max)
+                            newEnch = tes3.getObject(group.Items[pos] or "err")
+                        end
+                    else
+                        newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, this.config.item)
+                    end
+                    -- if newEnch then newEnch.modified = modifiedFlag end
                 end
             end
+            if newEnch then tes3.setSourceless(newEnch, true) end
             if this.itemTypeForEnchantment[object.objectType] then newBase.enchantment = newEnch end
         end
-        newBase.modified = modifiedFlag
+        tes3.setSourceless(newBase, true)
+        -- newBase.modified = modifiedFlag
         return newBase
     end
     return nil
@@ -480,7 +688,9 @@ end
 
 function this.generateData()
     local items = {}
-    local out = {parts = {}, itemGroup = {}}
+    local enchantments = {[tes3.enchantmentType.castOnce] = {}, [tes3.enchantmentType.onStrike] = {}, [tes3.enchantmentType.onUse] = {},
+        [tes3.enchantmentType.constant] = {},}
+    local out = {parts = {}, itemGroup = {}, enchantments = {Items = {}, Groups = {}}}
     for itType, val in pairs(this.itemTypeWhiteList) do
         if val then
             items[itType] = {}
@@ -489,6 +699,9 @@ function this.generateData()
 
     log("Item data generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
+        if object.objectType == tes3.objectType.enchantment then
+            table.insert(enchantments[object.castType], {id = object.id, value = this.getEnchantPower(object)})
+        end
         if genData.checkRequirementsForItem(object) and items[object.objectType] ~= nil then
 
             table.insert(items[object.objectType], object)
@@ -523,6 +736,18 @@ function this.generateData()
         end
     end
 
+    for enchType, data in pairs(enchantments) do
+        table.sort(data, function(a, b) return a.value < b.value end)
+        out.enchantments.Groups[enchType] = {Items = {}, Max95 = data[math.floor(#data * 0.95)].value, Max = data[#data].value}
+        local enchTable = out.enchantments.Groups[enchType].Items
+        local pos = 1
+        for i, ench in ipairs(data) do
+            table.insert(enchTable, ench.id)
+            out.enchantments.Items[ench.id:lower()] = pos
+            pos = pos + 1
+        end
+    end
+
     for objType, data in pairs(items) do
         table.sort(data, function(a, b) return a.value < b.value end)
         local meshes = {}
@@ -532,13 +757,14 @@ function this.generateData()
             local enchVal = 0
             if item.enchantment then
                 enchVal = this.getEnchantPower(item.enchantment)
+                if enchVal > 0 then
+                    table.insert(enchantVals, enchVal)
+                    enchValData[item.id] = enchVal
+                end
             elseif objType == tes3.objectType.alchemy then
                 enchVal = this.getEffectsPower(item.effects)
             end
-            if enchVal > 0 then
-                table.insert(enchantVals, enchVal)
-                enchValData[item.id] = enchVal
-            end
+
             if item.mesh and tes3.getFileSource("meshes\\"..item.mesh) then
                 meshes[item.mesh] = true
             end
@@ -561,6 +787,12 @@ function this.generateData()
 end
 
 function this.randomizeItems(itemsData)
+    local plData = dataSaver.getObjectData(tes3.player)
+    if plData then
+        if not plData.newObjects then plData.newObjects = {} end
+        if not plData.newObjects.items then plData.newObjects.items = {} end
+    end
+
     for itType, data in pairs(itemsData.itemGroup) do
         local count = #data.items
         for i, item in pairs(data.items) do
@@ -568,8 +800,30 @@ function this.randomizeItems(itemsData)
             local mul = (i / count) ^ this.config.item.enchantment.powMul
             local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
             this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
-            this.randomizeBaseItem(item, false, true, encCount, enchVal, mul * data.enchant90)
+            this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant90)
+            local itemData = this.serializeBaseObject(item)
+            if plData and itemData then
+                plData.newObjects.items[item.id] = itemData
+            end
         end
+    end
+end
+
+function this.restoreItems()
+    local plData = dataSaver.getObjectData(tes3.player)
+    if plData and plData.newObjects and plData.newObjects.items then
+        for id, data in pairs(plData.newObjects.items) do
+            local item = tes3.getObject(id)
+            if not item then item = tes3.createObject{id = id, objectType = data.objectType} end
+            this.restoreBaseObject(item, data, false)
+        end
+    end
+end
+
+function this.resetItemStorage()
+    local plData = dataSaver.getObjectData(tes3.player)
+    if plData and plData.newObjects and plData.newObjects.items then
+        plData.newObjects.items = {}
     end
 end
 
@@ -590,46 +844,8 @@ function this.fixInventory(inventory)
     end
 end
 
-function this.clearFixedCellTable()
-    if tes3.player then
-        local data = dataSaver.getObjectData(tes3.player)
-        if data and data.fixedCellTable then
-            data.fixedCellTable = {}
-        end
-    end
-end
-
-function this.addFixedCellTableCheckRequirement()
-    if tes3.player then
-        local data = dataSaver.getObjectData(tes3.player)
-        if data then
-            data.requireCellCheck = true
-        end
-    end
-end
-
-function this.addTofixedCellTable(cell)
-    if tes3.player and cell and this.config.item.tryToFixZCoordinate then
-        local data = dataSaver.getObjectData(tes3.player)
-        if data then
-            if not data.fixedCellTable then data.fixedCellTable = {} end
-            data.fixedCellTable[cell.editorName] = true
-        end
-    end
-end
-
-function this.isCellFixed(cell)
-    if tes3.player and cell then
-        local data = dataSaver.getObjectData(tes3.player)
-        if data and (not data.requireCellCheck or (data.fixedCellTable and data.fixedCellTable[cell.editorName])) then
-            return true
-        end
-    end
-    return false
-end
-
 local function getZ(vector, root)
-    local res1 = tes3.rayTest {
+    local res = tes3.rayTest {
         position = vector,
         direction = tes3vector3.new(0, 0, -1),
         observeAppCullFlag  = true,
@@ -637,55 +853,49 @@ local function getZ(vector, root)
         useBackTriangles = true,
         maxDistance = 500
     }
-    -- local res2 = tes3.rayTest {
-    --     position = tes3vector3.new(vector.x, vector.y, vector.z - 1),
-    --     direction = tes3vector3.new(0, 0, 1),
-    --     observeAppCullFlag = true,
-    --     root = root,
-    --     useBackTriangles = true,
-    --     maxDistance = 500
-    -- }
-    if res1 and res2 then
-        if math.abs(res1.intersection.z - vector.z) < math.abs(res2.intersection.z - vector.z) then
-            return res1.intersection.z
-        else
-            return res2.intersection.z
-        end
-    end
-    if res1 then return res1.intersection.z end
-    if res2 then return res2.intersection.z end
+    if res then return res.intersection.z end
     log("Ray tracing failed %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
     return nil
 end
 
-function this.fixCell(cell)
+function this.fixCell(cell, updateModels)
+    local plData = dataSaver.getObjectData(tes3.player)
+    if not plData then return end
+    if not plData.newObjects then plData.newObjects = {} end
+    if not plData.newObjects.items then plData.newObjects.items = {} end
+
     for ref in cell:iterateReferences() do
-        if this.itemTypeWhiteList[ref.baseObject.objectType] then
-            if ref.object.inventory then
-                this.fixInventory(ref.object.inventory)
-            end
-            if ref.itemData then
-                if this.config.item.tryToFixZCoordinate and ref.baseObject.boundingBox and not this.isCellFixed(cell) then
-                    local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - ref.baseObject.boundingBox.min.z)
-                    local z = getZ(vector, tes3.game.worldObjectRoot)
-                    if not z then z = getZ(vector, tes3.game.worldLandscapeRoot) end
-                    if z then
-                        ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - ref.baseObject.boundingBox.min.z)
-                        log("position fixed %s", tostring(ref))
-                    end
+        if ref.object and ref.object.inventory then
+            this.fixInventory(ref.object.inventory)
+        end
+        if ref.itemData and plData.newObjects.items[ref.baseObject.id] then
+            if this.config.item.tryToFixZCoordinate and ref.baseObject.boundingBox then
+                local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - ref.baseObject.boundingBox.min.z)
+                local z = getZ(vector, tes3.game.worldObjectRoot)
+                if not z then z = getZ(vector, tes3.game.worldLandscapeRoot) end
+                if z then
+                    ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - ref.baseObject.boundingBox.min.z)
+                    ref:updateSceneGraph()
+                    log("position fixed %s", tostring(ref))
                 end
-                this.fixItemData(ref.itemData, ref.baseObject)
             end
+            this.fixItemData(ref.itemData, ref.baseObject)
+        end
+        if updateModels and ref.object.objectType == tes3.objectType.npc then
+            ref:updateEquipment()
         end
     end
-    this.addTofixedCellTable(cell)
 end
 
-function this.fixPlayerInventory()
+function this.fixPlayerInventory(updateModels)
     local player = tes3.mobilePlayer
     if player then
         for stack, item, count, itemData in this.iterItems(player.inventory) do
             this.fixItemData(itemData, item)
+        end
+        if updateModels then
+            tes3.player:updateEquipment()
+            tes3.updateInventoryGUI{ reference = tes3.player }
         end
     end
 end

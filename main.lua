@@ -181,6 +181,7 @@ end
 
 local function loaded(e)
     randomizer.config.getConfig()
+    randomizer.restoreItems()
     randomizer.genNonStaticData()
 
     if randomizer.config.getConfig().enabled then
@@ -196,7 +197,7 @@ local function loaded(e)
             end
         end
 
-        -- randomizeLoadedCells()  -- This will crash the game if item enchantments are randomized
+        randomizeLoadedCells()
 
     end
 end

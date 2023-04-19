@@ -104,16 +104,28 @@ function this.genNonStaticData()
 end
 
 function this.randomizeBaseItems()
+    itemLib.resetItemStorage()
     itemLib.randomizeItems(itemLib.generateData())
-    itemLib.clearFixedCellTable()
-    itemLib.addFixedCellTableCheckRequirement()
     local cells = tes3.getActiveCells()
     if cells ~= nil then
         for i, cell in pairs(cells) do
-            itemLib.fixCell(cell)
+            itemLib.fixCell(cell, true)
         end
     end
-    itemLib.fixPlayerInventory()
+    itemLib.fixPlayerInventory(true)
+    tes3.updateInventoryGUI{reference = tes3.player}
+end
+
+function this.restoreItems()
+    itemLib.restoreItems()
+    local cells = tes3.getActiveCells()
+    if cells ~= nil then
+        for i, cell in pairs(cells) do
+            itemLib.fixCell(cell, true)
+        end
+    end
+    itemLib.fixPlayerInventory(true)
+    tes3.updateInventoryGUI{reference = tes3.player}
 end
 
 local function getGroundZ(vector)
