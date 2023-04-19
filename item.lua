@@ -574,7 +574,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
             if enchPower > this.config.item.enchantment.minCost or this.itemTypeForEffects[object.objectType] then
                 if this.itemTypeForEffects[object.objectType] and object.effects then
                     if object.objectType == tes3.objectType.ingredient then
-                        local effGroup = effectLib.effectsData.byRange[tes3.effectRange.self]
+                        local effGroup = effectLib.effectsData.forEnchant[tes3.effectRange.self]
                         local addedEff = {}
                         for i = 1, this.config.item.enchantment.effects.maxIngredientCount do
                             local id = math.random(1, #effGroup)
