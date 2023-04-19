@@ -757,12 +757,12 @@ function this.generateData()
             local enchVal = 0
             if item.enchantment then
                 enchVal = this.getEnchantPower(item.enchantment)
-                if enchVal > 0 then
-                    table.insert(enchantVals, enchVal)
-                    enchValData[item.id] = enchVal
-                end
             elseif objType == tes3.objectType.alchemy then
                 enchVal = this.getEffectsPower(item.effects)
+            end
+            if enchVal > 0 then
+                table.insert(enchantVals, enchVal)
+                enchValData[item.id] = enchVal
             end
 
             if item.mesh and tes3.getFileSource("meshes\\"..item.mesh) then
