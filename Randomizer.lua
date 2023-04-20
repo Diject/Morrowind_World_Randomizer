@@ -40,55 +40,55 @@ function this.genStaticData()
         rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
     end
 
-    if this.config.global.dataTables.usePregeneratedItemData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items_TR")
-        else
-            itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items")
-        end
-    else
+    -- if this.config.global.dataTables.usePregeneratedItemData then
+    --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --         itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items_TR")
+    --     else
+    --         itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items")
+    --     end
+    -- else
         itemsData = generator.fillItems()
-    end
+    -- end
 
-    if this.config.global.dataTables.usePregeneratedCreatureData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures_TR")
-        else
-            creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures")
-        end
-    else
+    -- if this.config.global.dataTables.usePregeneratedCreatureData then
+    --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --         creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures_TR")
+    --     else
+    --         creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures")
+    --     end
+    -- else
         creaturesData = generator.fillCreatures()
-    end
+    -- end
 
-    if this.config.global.dataTables.usePregeneratedHeadHairData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs_TR")
-        else
-            headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs")
-        end
-    else
+    -- if this.config.global.dataTables.usePregeneratedHeadHairData then
+    --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --         headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs_TR")
+    --     else
+    --         headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs")
+    --     end
+    -- else
         headPartsData = generator.fillHeadsHairs()
-    end
+    -- end
 
-    if this.config.global.dataTables.usePregeneratedSpellData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells_TR")
-        else
-            spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells")
-        end
-    else
+    -- if this.config.global.dataTables.usePregeneratedSpellData then
+    --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --         spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells_TR")
+    --     else
+    --         spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells")
+    --     end
+    -- else
         spellsData = generator.fillSpells()
-    end
+    -- end
 
-    if this.config.global.dataTables.usePregeneratedHerbData then
-        if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-            herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs_TR")
-        else
-            herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs")
-        end
-    else
+    -- if this.config.global.dataTables.usePregeneratedHerbData then
+    --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --         herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs_TR")
+    --     else
+    --         herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs")
+    --     end
+    -- else
         herbsData = generator.fillHerbs()
-    end
+    -- end
 
     travelDestinationsData = generator.findTravelDestinations()
     itemLibData = itemLib.generateData()
