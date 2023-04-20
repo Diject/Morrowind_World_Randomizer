@@ -255,7 +255,7 @@ return {
     ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
 
     ["modConfig.message.randItemStats"] = "Do you want to randomize item stats (e.g. weight, price, enchantment, etc.) and item models?",
-    ["modConfig.label.randBaseItemToPreset"] = "Randomize according to loaded preset",
+    ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
     ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
     ["modConfig.label.randBaseItemAll"] = "Randomize all",
@@ -280,4 +280,9 @@ return {
     ["modConfig.label.ingredientEffNum"] = "Number of effects on an ingredient",
 
     ["modConfig.label.allowDoubleLoad"] = "Allow double loading of a save",
+
+    ["messageBox.randomizeOnce.message"] = "Do you want the cells to keep randomizing after a certain period of time or just once (you can do this manually from the Mod Config menu)?",
+    ["modConfig.label.leaveAccordingToPreset"] = "Leave it according to the loaded preset",
+    ["modConfig.label.randomizingAfterCertainPeriod"] = "After a certain period of time",
+    ["modConfig.label.randomizingJustOnce"] = "Just once",
 }

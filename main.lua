@@ -63,10 +63,10 @@ local function randomizeActor(reference)
         playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
     end
 
-    -- if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
-    --     randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
-    --     reference:updateEquipment()
-    -- end
+    if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
+        randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
+        reference:updateEquipment()
+    end
 
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
 
@@ -334,12 +334,32 @@ local function distLandMessage(e)
     end
 end
 
+local function randomizeOnceMessageCallback(e)
+    if e.button == 0 then
+        randomizer.config.getConfig().creatures.randomizeOnlyOnce = false
+        randomizer.config.getConfig().NPCs.randomizeOnlyOnce = false
+        randomizer.config.getConfig().cells.randomizeOnlyOnce = false
+    elseif e.button == 1 then
+        randomizer.config.getConfig().creatures.randomizeOnlyOnce = true
+        randomizer.config.getConfig().NPCs.randomizeOnlyOnce = true
+        randomizer.config.getConfig().cells.randomizeOnlyOnce = true
+    end
+    distLandMessage()
+end
+
+local function randomizeOnceMessage()
+    tes3.messageBox({ message = i18n("messageBox.randomizeOnce.message"),
+        buttons = {i18n("modConfig.label.randomizingAfterCertainPeriod"), i18n("modConfig.label.randomizingJustOnce"),
+            i18n("modConfig.label.leaveAccordingToPreset"),},
+        callback = randomizeOnceMessageCallback, showInDialog = false})
+end
+
 local function presetMessage()
     local func = function(preset)
         if preset then
             tes3.messageBox(i18n("modConfig.label.theProfileLoaded", {profile = preset}))
         end
-        distLandMessage()
+        randomizeOnceMessage()
     end
     presetMenu.createMenu(func, func)
 end
