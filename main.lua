@@ -395,7 +395,7 @@ event.register(tes3.event.initialized, function(e)
     randomizer.genStaticData()
 
     if randomizer.config.global.landscape.randomize then
-        if not isLandscapeTexturesValid() and not randomizer.config.global.landscape.randomizeOnlyOnce then
+        if not isLandscapeTexturesValid() or not randomizer.config.global.landscape.randomizeOnlyOnce then
             generateRandomizedLandscapeTextureIndices()
         end
         loadRandomizedLandscapeTextures()
