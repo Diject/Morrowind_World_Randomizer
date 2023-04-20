@@ -92,6 +92,7 @@ function this.genStaticData()
 
     travelDestinationsData = generator.findTravelDestinations()
     itemLibData = itemLib.generateData()
+    this.saveBaseInitialItemData()
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -117,8 +118,34 @@ function this.fixLoaded()
     end}
 end
 
+local baseInitialItemData = {}
+function this.saveBaseInitialItemData()
+    baseInitialItemData = {}
+    if not itemLibData then return end
+
+    for itType, data in pairs(itemLibData.itemGroup) do
+        for i, item in pairs(data.items) do
+            baseInitialItemData[item.id] = itemLib.serializeBaseObject(item)
+        end
+    end
+end
+
+local needToRestoreInitialItems = false
+function this.restoreBaseInitialItemData()
+    if baseInitialItemData and needToRestoreInitialItems then
+        for id, data in pairs(baseInitialItemData) do
+            local item = tes3.getObject(id)
+            if item then
+                itemLib.restoreBaseObject(item, data, false)
+            end
+        end
+        needToRestoreInitialItems = false
+    end
+end
+
 function this.randomizeBaseItems()
     itemLib.resetItemStorage()
+    needToRestoreInitialItems = true
     itemLib.randomizeItems(itemLibData)
     this.fixLoaded()
 end
@@ -126,6 +153,7 @@ end
 local isDummyLoad = true
 function this.restoreItems()
     if itemLib.hasRandomizedItems then
+        needToRestoreInitialItems = true
         itemLib.restoreItems()
         if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
                 and this.config.global.allowDoubleLoading then

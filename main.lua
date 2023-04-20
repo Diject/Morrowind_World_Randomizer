@@ -176,6 +176,7 @@ end
 
 local function load(e)
     randomizer.restoreAllBaseInitialData()
+    randomizer.restoreBaseInitialItemData()
     randomizer.config.resetConfig()
 end
 
