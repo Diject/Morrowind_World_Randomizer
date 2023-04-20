@@ -19,7 +19,7 @@ function random.GetRandom(pos, itemsCount, lower, upper)
 end
 
 function random.GetBetween(min, max)
-    if min < 1 and min > 0 and max > 1 + min then
+    if min < 1 and min > 0 and max > 2 - min then
         if math.random() < 0.5 then
             return min + math.random() * (1 - min)
         else
