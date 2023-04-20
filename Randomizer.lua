@@ -989,12 +989,14 @@ function this.saveAndRestoreBaseObjectInitialData(object, data)
 end
 
 function this.restoreAllBaseInitialData(data)
-    for id, _ in pairs(data) do
-        local object = tes3.getObject(id)
-        if object then
-            this.saveAndRestoreBaseObjectInitialData(object, data)
+    if data then
+        for id, _ in pairs(data) do
+            local object = tes3.getObject(id)
+            if object then
+                this.saveAndRestoreBaseObjectInitialData(object, data)
+            end
+            data[id] = nil
         end
-        data[id] = nil
     end
 end
 
