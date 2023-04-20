@@ -175,7 +175,7 @@ local function cellActivated(e)
 end
 
 local function load(e)
-    -- randomizer.restoreAllBaseInitialData()
+    randomizer.restoreAllBaseInitialData()
     randomizer.config.resetConfig()
 end
 
