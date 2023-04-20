@@ -127,7 +127,7 @@ local isDummyLoad = true
 function this.restoreItems()
     if itemLib.hasRandomizedItems then
         itemLib.restoreItems()
-        if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile.filename and itemLib.hasRandomizedMeshes()
+        if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
                 and this.config.global.allowDoubleLoading then
             isDummyLoad = false
             tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
