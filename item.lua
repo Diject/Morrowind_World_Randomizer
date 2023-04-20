@@ -20,6 +20,7 @@ this.itemTypeWhiteList = {
     [tes3.objectType.weapon] = true,
     [tes3.objectType.miscItem] = true,
     [tes3.objectType.ammunition] = true,
+    [tes3.objectType.light] = true,
 }
 
 this.itemTypeForEnchantment = {
@@ -109,7 +110,7 @@ local serializeEffects = function(effects)
 end
 
 local varNames = {"id", "objectType", "enchantCapacity", "armorRating", "maxCondition", "quality", "speed", "weight", "chopMin", "chopMax",
-    "slashMin", "slashMax", "thrustMin", "thrustMax", "mesh", "castType", "chargeCost", "maxCharge", "value"}
+    "slashMin", "slashMax", "thrustMin", "thrustMax", "mesh", "castType", "chargeCost", "maxCharge", "value", "time"}
 local ingrVarNames = {"effects", "effectAttributeIds", "effectSkillIds",}
 function this.serializeBaseObject(object)
     if not object then return end
@@ -159,6 +160,10 @@ function this.serializeBaseObject(object)
                 if female or male then table.insert(out.parts, {part.type, female, male}) end
             end
         end
+    end
+
+    if object.color then
+        out.color = {object.color[1], object.color[2], object.color[3]}
     end
 
     return out
@@ -250,6 +255,13 @@ function this.restoreBaseObject(object, data, createNewEnchantment)
                 restoreEffects(enchantment, val.effects)
             end
             object.enchantment = enchantment
+
+        elseif varName == "color" then
+            if object.color then
+                object.color[1] = varName[1]
+                object.color[2] = varName[2]
+                object.color[3] = varName[3]
+            end
         end
     end
     if object.enchantment and not enchantmentFound then object.enchantment = nil end
@@ -486,7 +498,7 @@ function this.randomizeStats(object, minMul, maxMul)
         end
     end
     local intVars = {"enchantCapacity", "armorRating", "maxCondition"}
-    local floatVars_p = {"quality"}
+    local floatVars_p = {"quality", "time"}
     local floatVars_n = {"speed", "weight"}
     log("Item stats id %s", tostring(object))
     if object.value then
@@ -531,6 +543,12 @@ function this.randomizeStats(object, minMul, maxMul)
         object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetween(minMul, maxMul)))
         if object.thrustMax < object.thrustMin then object.thrustMax = object.thrustMin end
         log("thrust %s %s", tostring(object.thrustMin), tostring(object.thrustMax))
+    end
+    if object.color then
+        object.color[1] = math.floor(255 * random.GetBetween(minMul, maxMul))
+        object.color[2] = math.floor(255 * random.GetBetween(minMul, maxMul))
+        object.color[3] = math.floor(255 * random.GetBetween(minMul, maxMul))
+        log("color %s %s %s", tostring(object.color[1]), tostring(object.color[2]), tostring(object.color[3]))
     end
 end
 
