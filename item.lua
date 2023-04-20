@@ -19,6 +19,7 @@ this.itemTypeWhiteList = {
     [tes3.objectType.repairItem] = true,
     [tes3.objectType.weapon] = true,
     [tes3.objectType.miscItem] = true,
+    [tes3.objectType.ammunition] = true,
 }
 
 this.itemTypeForEnchantment = {
@@ -26,6 +27,7 @@ this.itemTypeForEnchantment = {
     [tes3.objectType.book] = true,
     [tes3.objectType.clothing] = true,
     [tes3.objectType.weapon] = true,
+    [tes3.objectType.ammunition] = true,
 }
 
 this.itemTypeForEffects = {
