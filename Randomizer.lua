@@ -15,7 +15,7 @@ local herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs")
 local headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs")
 local travelDestinationsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TravelDestinations")
 local spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells")
-
+local itemLibData = nil
 
 local this = {}
 
@@ -91,6 +91,7 @@ function this.genStaticData()
     end
 
     travelDestinationsData = generator.findTravelDestinations()
+    itemLibData = itemLib.generateData()
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -103,29 +104,38 @@ function this.genNonStaticData()
     this.doors.findDoors()
 end
 
-function this.randomizeBaseItems()
-    itemLib.resetItemStorage()
-    itemLib.randomizeItems(itemLib.generateData())
-    local cells = tes3.getActiveCells()
-    if cells ~= nil then
-        for i, cell in pairs(cells) do
-            itemLib.fixCell(cell, true)
+function this.fixLoaded()
+    timer.start{duration = 1, callback = function()
+        local cells = tes3.getActiveCells()
+        if cells ~= nil then
+            for i, cell in pairs(cells) do
+                itemLib.fixCell(cell, true)
+            end
         end
-    end
-    itemLib.fixPlayerInventory(true)
-    tes3.updateInventoryGUI{reference = tes3.player}
+        itemLib.fixPlayerInventory(true)
+        tes3.updateInventoryGUI{reference = tes3.player}
+    end}
 end
 
+function this.randomizeBaseItems()
+    itemLib.resetItemStorage()
+    itemLib.randomizeItems(itemLibData)
+    this.fixLoaded()
+end
+
+local isDummyLoad = true
 function this.restoreItems()
-    itemLib.restoreItems()
-    local cells = tes3.getActiveCells()
-    if cells ~= nil then
-        for i, cell in pairs(cells) do
-            itemLib.fixCell(cell, true)
+    if itemLib.hasRandomizedItems then
+        itemLib.restoreItems()
+        if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile.filename and itemLib.hasRandomizedMeshes()
+                and this.config.global.allowDoubleLoading then
+            isDummyLoad = false
+            tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
+        else
+            isDummyLoad = true
         end
+        this.fixLoaded()
     end
-    itemLib.fixPlayerInventory(true)
-    tes3.updateInventoryGUI{reference = tes3.player}
 end
 
 local function getGroundZ(vector)
@@ -1001,7 +1011,7 @@ function this.randomizeActorBaseObject(object, actorType)
         return
     end
 
-    object.modified = true
+    -- object.modified = true
 
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))

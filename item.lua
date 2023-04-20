@@ -791,6 +791,8 @@ function this.randomizeItems(itemsData)
     if plData then
         if not plData.newObjects then plData.newObjects = {} end
         if not plData.newObjects.items then plData.newObjects.items = {} end
+        plData.hasRandomizedItemStats = true
+        if this.config.item.changeMesh then plData.hasRandomizedItemMeshes = true end
     end
 
     for itType, data in pairs(itemsData.itemGroup) do
@@ -837,6 +839,22 @@ function this.fixItemData(itemData, item)
     end
 end
 
+function this.hasRandomizedItems()
+    local plData = dataSaver.getObjectData(tes3.player)
+    if plData and plData.hasRandomizedItemStats then
+        return true
+    end
+    return false
+end
+
+function this.hasRandomizedMeshes()
+    local plData = dataSaver.getObjectData(tes3.player)
+    if plData and plData.hasRandomizedItemMeshes then
+        return true
+    end
+    return false
+end
+
 function this.fixInventory(inventory)
     if not inventory then return end
     for stack, item, count, itemData in this.iterItems(inventory) do
@@ -844,14 +862,15 @@ function this.fixInventory(inventory)
     end
 end
 
-local function getZ(vector, root)
+local function getZ(vector, root, ignore)
     local res = tes3.rayTest {
         position = vector,
         direction = tes3vector3.new(0, 0, -1),
         observeAppCullFlag  = true,
         root = root,
         useBackTriangles = true,
-        maxDistance = 500
+        maxDistance = 1000,
+        ignore = ignore,
     }
     if res then return res.intersection.z end
     log("Ray tracing failed %s %s %s", tostring(vector.x), tostring(vector.y), tostring(vector.z))
@@ -868,15 +887,35 @@ function this.fixCell(cell, updateModels)
         if ref.object and ref.object.inventory then
             this.fixInventory(ref.object.inventory)
         end
-        if ref.itemData and plData.newObjects.items[ref.baseObject.id] then
-            if this.config.item.tryToFixZCoordinate and ref.baseObject.boundingBox then
-                local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - ref.baseObject.boundingBox.min.z)
+        if plData.newObjects.items[ref.baseObject.id] then
+            -- if updateModels and ref.mesh ~= ref.baseObject.mesh and ref.sceneNode then
+            --     ref.mesh = ref.baseObject.mesh
+            --     local mesh = tes3.loadMesh(ref.baseObject.mesh):clone()
+            --     -- for i, val in pairs(ref.sceneNode.children) do
+            --     --     if val and val:isOfType(ni.type["NiTriShape"]) then
+            --     --         ref.sceneNode:detachChildAt(i)
+            --     --     end
+            --     -- end
+            --     ref.sceneNode:detachAllChildren()
+            --     ref.sceneNode:attachChild(mesh)
+            --     ref.sceneNode:update()
+            -- end
+            if this.config.item.tryToFixZCoordinate and plData.hasRandomizedItemMeshes and ref.baseObject.boundingBox then
+                local zBox = ref.baseObject.boundingBox.min.z * ref.scale
+                local height = ref.baseObject.boundingBox.max.z - ref.baseObject.boundingBox.min.z
+                local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
                 local z = getZ(vector, tes3.game.worldObjectRoot)
-                if not z then z = getZ(vector, tes3.game.worldLandscapeRoot) end
+                local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
+                if z and zObj then
+                    z = z > zObj and z or zObj
+                elseif z or zObj then
+                    z = z or zObj
+                else
+                    z = getZ(vector, tes3.game.worldLandscapeRoot)
+                end
                 if z then
-                    ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - ref.baseObject.boundingBox.min.z)
-                    ref:updateSceneGraph()
-                    log("position fixed %s", tostring(ref))
+                    ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox)
+                    log("Position fixed %s", tostring(ref))
                 end
             end
             this.fixItemData(ref.itemData, ref.baseObject)
@@ -885,6 +924,7 @@ function this.fixCell(cell, updateModels)
             ref:updateEquipment()
         end
     end
+    log("Cell fixed %s", tostring(cell.editorName))
 end
 
 function this.fixPlayerInventory(updateModels)
@@ -897,6 +937,7 @@ function this.fixPlayerInventory(updateModels)
             tes3.player:updateEquipment()
             tes3.updateInventoryGUI{ reference = tes3.player }
         end
+        log("Player inventory fixed")
     end
 end
 

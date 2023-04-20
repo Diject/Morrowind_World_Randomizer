@@ -75,6 +75,7 @@ this.globalDefault = {
     logging = false,
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
+    allowDoubleLoading = true,
     landscape = {
         randomize = false,
         randomizeOnlyOnce = false,
