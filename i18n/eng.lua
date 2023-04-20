@@ -27,6 +27,9 @@ return {
     ["modConfig.label.minMultiplier"] = "Minimum multiplier %%s%%%%",
     ["modConfig.label.maxMultiplier"] = "Maximum multiplier %%s%%%%",
 
+    ["modConfig.label.minVal"] = "Minimum %%s",
+    ["modConfig.label.maxVal"] = "Maximum %%s",
+
     ["modConfig.label.enableRandomizer"] = "Enable Randomizer",
 
     ["modConfig.label.pregeneratedDataTables"] = "Pregenerated data tables",
@@ -228,11 +231,12 @@ return {
     ["modConfig.label.itemStats"] = "Item stats",
     ["modConfig.label.randomizeItemStats"] = "Randomize item stats",
     ["modConfig.label.itemEnchantment"] = "Item enchantments",
-    ["modConfig.label.randomizeItemEnch"] = "Randomize item enchantments",
-    ["modConfig.label.numberOfEnchCasts"] = "The maximum number of times you can cast an enchantment",
+    ["modConfig.label.randomizeItemEnch"] = "Randomize the enchantment on an item of equipment",
+    ["modConfig.label.numberOfEnchCasts"] = "The number of times you can cast an enchantment",
     ["modConfig.label.minEnchCost"] = "Minimum enchantment cost",
     ["modConfig.label.maxEnchCost"] = "Maximum enchantment cost",
-    ["modConfig.label.enchEffects"] = "Enchantment effects",
+    ["modConfig.label.enchCost"] = "Enchantment cost",
+    ["modConfig.label.enchEffects"] = "Effects",
     ["modConfig.label.safeEnchantmentForConstant"] = "Don't add damaging effects to constant enchantments",
     ["modConfig.label.oneEnchTypeChance"] = "Chances are the effects will be of the same type in terms of range",
     ["modConfig.label.maxEnchEffCount"] = "Maximum number of effects",
@@ -262,4 +266,18 @@ return {
     ["modConfig.label.addNewEnch"] = "Add a new enchantment",
     ["modConfig.label.removeEnch"] = "Remove an enchantment",
     ["modConfig.label.maxAlchemyEffCount"] = "Maximum number of effects for a potion",
+    ["modConfig.label.dontRemoveFromScrolls"] = "Don't remove from scrolls",
+
+    ["modConfig.label.randomizeEffectsFromScrolls"] = "Randomize the enchantment on a scroll",
+    ["modConfig.label.randomizeEffectsFromAlchemy"] = "Randomize effects on a potions",
+    ["modConfig.label.randomizeEffectsFromIngredient"] = "Randomize effects on a ingredient",
+
+    ["modConfig.label.newEnchPower"] = "New enchantment power",
+
+    ["modConfig.label.useExistingEnch"] = "Randomize to the enchantment that exists in the game",
+    ["modConfig.label.existedEnchValue"] = "Region to randomize existing enchantments",
+    ["modConfig.label.potionEffNum"] = "Number of effects on a potion",
+    ["modConfig.label.ingredientEffNum"] = "Number of effects on an ingredient",
+
+    ["modConfig.label.allowDoubleLoad"] = "Allow double loading of a save",
 }

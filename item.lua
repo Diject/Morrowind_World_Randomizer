@@ -429,9 +429,9 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     end
     local isConstant = enchType == tes3.enchantmentType.constant
     local enchPower = (isConstant or enchType == tes3.enchantmentType.castOnce or canBeUsedOnce) and power or
-        power / random.GetBetween(1, config.enchantment.maxNumberOfCasts)
+        power / random.GetBetween(config.enchantment.numberOfCasts.min, config.enchantment.numberOfCasts.max)
     if enchPower < 1 then enchPower = 1 end
-    if enchPower > config.enchantment.maxCost then enchPower = config.enchantment.maxCost end
+    if enchPower > config.enchantment.cost.max then enchPower = config.enchantment.cost.max end
     local chargeCost
     local maxCharge
     if not isConstant then
@@ -546,7 +546,8 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
         end
 
         local addEnch = this.config.item.enchantment.add.chance > math.random()
-        local removeEnch = this.config.item.enchantment.remove.chance > math.random()
+        local removeEnch = this.config.item.enchantment.remove.chance > math.random() and
+            not (this.config.item.enchantment.remove.exceptScrolls and object.objectType == tes3.objectType.book)
 
         if (this.config.item.enchantment.randomize or (object.enchantment == nil and addEnch) or (object.enchantment and removeEnch)) and
                 (this.itemTypeForEnchantment[object.objectType] or this.itemTypeForEffects[object.objectType]) and
@@ -571,25 +572,32 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                     random.GetBetween(this.config.item.enchantment.add.region.min, this.config.item.enchantment.add.region.max)
             end
 
-            if enchPower > this.config.item.enchantment.minCost or this.itemTypeForEffects[object.objectType] then
+            if enchPower > this.config.item.enchantment.cost.min or this.itemTypeForEffects[object.objectType] then
                 if this.itemTypeForEffects[object.objectType] and object.effects then
                     if object.objectType == tes3.objectType.ingredient then
                         local effGroup = effectLib.effectsData.forEnchant[tes3.effectRange.self]
                         local addedEff = {}
-                        for i = 1, this.config.item.enchantment.effects.maxIngredientCount do
-                            local id = math.random(1, #effGroup)
-                            while addedEff[id] do
-                                id = math.random(1, #effGroup)
+                        local effCOunt = math.random(math.floor(this.config.item.enchantment.effects.ingredientCount.min),
+                            math.floor(this.config.item.enchantment.effects.ingredientCount.max))
+                        for i = 1, 4 do
+                            if i <= effCOunt then
+                                local id = math.random(1, #effGroup)
+                                while addedEff[id] do
+                                    id = math.random(1, #effGroup)
+                                end
+                                object.effects[i] = id
+                                addedEff[id] = true
+                                local magEff = effectLib.effectsData.effect[id]
+                                object.effectSkillIds[i] = magEff.targetsSkills and math.random(0, 26) or -1
+                                object.effectAttributeIds[i] = magEff.targetsAttributes and math.random(0, 7) or -1
+                            else
+                                object.effects[i] = -1
                             end
-                            object.effects[i] = id
-                            addedEff[id] = true
-                            local magEff = effectLib.effectsData.effect[id]
-                            object.effectSkillIds[i] = magEff.targetsSkills and math.random(0, 26) or -1
-                            object.effectAttributeIds[i] = magEff.targetsAttributes and math.random(0, 7) or -1
                         end
                     else
                         this.randomizeEffects(object.effects, {
-                            effectCount = this.config.item.enchantment.effects.maxAlchemyCount,
+                            effectCount = math.random(math.floor(this.config.item.enchantment.effects.alchemyCount.min),
+                                math.floor(this.config.item.enchantment.effects.alchemyCount.max)),
                             thresholdValue = enchPower * this.config.item.enchantment.effects.threshold,
                             oneType = true,
                             rangeType = tes3.effectRange.self,
