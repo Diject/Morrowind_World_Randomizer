@@ -282,7 +282,9 @@ function this.randomizeEffects(effects, effData, config)
     local effCount = effData.effectCount
     local thresholdVal = effData.thresholdValue
     local oneType = effData.oneType
-    local rangeType, effGroup_p, effGroup_n = effData.rangeType, effData.effGroup_p, effData.effGroup_n
+    local rangeType = effData.rangeType
+    local effGroup_p = effData.effGroup_p
+    local effGroup_n = effData.effGroup_n
     local enchType = effData.enchantmentType
     local isConstant = effData.isConstant
     local enchPower = effData.power
@@ -463,7 +465,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     local effGroup_p
     local effGroup_n
     local rangeType
-    if oneType then
+    if oneType or isConstant then
         rangeType, effGroup_p, effGroup_n = chooseGroup(enchType, isConstant)
     end
 
@@ -1010,7 +1012,7 @@ local function getZ(vector, root, ignore)
         observeAppCullFlag  = true,
         root = root,
         useBackTriangles = true,
-        maxDistance = 1000,
+        maxDistance = 150,
         ignore = ignore,
     }
     if res then return res.intersection.z end
