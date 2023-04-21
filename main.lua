@@ -207,7 +207,7 @@ local goldToAdd = 0
 local function leveledItemPicked(e)
     if randomizer.config.getConfig().enabled then
         if randomizer.config.data.containers.items.randomize and e.pick ~= nil and e.pick.id ~= nil and
-                not randomizer.isRandomizationStoppedTemp(e.spawner) then
+                not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
 
             if e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
 
@@ -228,6 +228,7 @@ local function leveledItemPicked(e)
 
             end
             local newId = randomizer.getNewRandomItemId(e.pick.id)
+            log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(newId))
             if newId ~= nil then
                 e.pick = tes3.getObject(newId)
             end
@@ -239,6 +240,7 @@ local function leveledCreaturePicked(e)
     if randomizer.config.getConfig().enabled then
         if e.pick ~= nil and randomizer.config.data.creatures.randomize then
             local newId = randomizer.getRandomCreatureId(e.pick.id)
+            log("Leveled creature picked %s to %s", tostring(e.pick.id), tostring(newId))
             if newId ~= nil then
                 e.pick = tes3.getObject(newId)
             end

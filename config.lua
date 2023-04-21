@@ -101,6 +101,7 @@ this.default = {
     },
     herbs = {
         randomize = true,
+        doNotRandomizeInventory = true,
         herbSpeciesPerCell = 5,
     },
     containers = {

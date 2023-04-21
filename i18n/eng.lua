@@ -285,4 +285,6 @@ return {
     ["modConfig.label.leaveAccordingToPreset"] = "Leave it according to the loaded preset",
     ["modConfig.label.randomizingAfterCertainPeriod"] = "After a certain period of time",
     ["modConfig.label.randomizingJustOnce"] = "Just once",
+
+    ["modConfig.label.doNotRandomizeInventoryForHerb"] = "Don't randomize inventory for new herbs",
 }

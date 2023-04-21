@@ -416,6 +416,9 @@ function this.createObject(object)
                 reference.itemData.count = object.itemData.count
                 log("New object count %s", tostring(reference.itemData.count))
             end
+            if object.stopRand then
+                this.StopRandomization(reference)
+            end
         end
         return reference
     end
@@ -599,7 +602,8 @@ function this.randomizeCell(cell)
                             end
 
                             -- this.StopRandomizationTemp(object)
-                            table.insert(newObjects, {id = newId, pos = posVector, rot = rot, scale = objectScale, cell = cell})
+                            local stopRand = this.config.data.herbs.doNotRandomizeInventory
+                            table.insert(newObjects, {id = newId, pos = posVector, rot = rot, scale = objectScale, stopRand = stopRand, cell = cell})
                             putOriginMark(object)
                             object:disable()
 

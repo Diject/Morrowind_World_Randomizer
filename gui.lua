@@ -1491,6 +1491,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHerbs"), this.config.data.herbs, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInventoryForHerb"), this.config.data.herbs, "doNotRandomizeInventory"),
                             createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = this.i18n("modConfig.label.herbSpeciesPerCell")}),
                         },
                     },
