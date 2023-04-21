@@ -227,7 +227,7 @@ this.default = {
         ai = {
             fight = {
                 randomize = true,
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.1, max = 0.2},
             },
             flee = {
                 randomize = true,
@@ -337,7 +337,7 @@ this.default = {
         ai = {
             fight = {
                 randomize = true,
-                region = {min = 0.15, max = 0.15},
+                region = {min = 0.1, max = 0.2},
             },
             flee = {
                 randomize = true,
@@ -414,7 +414,7 @@ this.default = {
     item = {
         stats = {
             randomize = true,
-            region = {min = 0.25, max = 2},
+            region = {min = 0.5, max = 2},
         },
         enchantment = {
             randomize = true,
@@ -461,7 +461,7 @@ this.default = {
         },
         unique = false,
         changeParts = true,
-        changeMesh = true,
+        changeMesh = false,
         tryToFixZCoordinate = true,
     },
 }
@@ -474,11 +474,12 @@ if this.profiles == nil then
     this.profiles = mwse.loadConfig(profileFileName)
 end
 
-if not this.profiles["default"] then
+-- if not this.profiles["default"] then
     this.profiles["default"] = deepcopy(this.default)
-end
+-- end
 
-if not this.profiles["extreme"] then
+-- if not this.profiles["extreme"] then
+if true then
     local preset = deepcopy(this.default)
     local setMinMax
     setMinMax = function(toTable)
@@ -500,7 +501,7 @@ if not this.profiles["extreme"] then
     end
     setMinMax(preset)
     preset.herbs.herbSpeciesPerCell = 20
-    preset.containers.lock.add.chance = 1
+    preset.containers.lock.add.chance = 0.5
     preset.containers.trap.add.chance = 1
     preset.creatures.attack.region.min = 0.25
     preset.creatures.attack.region.min = 1.75
@@ -522,20 +523,27 @@ if not this.profiles["extreme"] then
     preset.NPCs.head.genderLimit = false
     preset.NPCs.effects.positive.add.count = 4
     preset.NPCs.effects.negative.add.count = 1
-    preset.NPCs.ai.fight.region.min = 0.15
-    preset.NPCs.ai.fight.region.max = 0.15
+    preset.NPCs.ai.fight.region.min = 0.2
+    preset.NPCs.ai.fight.region.max = 0.2
 
     preset.transport.unrandomizedCount = 0
     preset.transport.toDoorsCount = 1
 
-    preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.5
+    preset.doors.nearestCellDepth = 4
+    preset.doors.chance = 0.4
 
-    preset.item.enchantment.add.chance = 1
-    preset.item.enchantment.remove.chance = 0.5
+    preset.item.enchantment.add.chance = 0.75
+    preset.item.enchantment.remove.chance = 0.25
     preset.item.enchantment.add.exceptScrolls = false
+    preset.item.enchantment.remove.exceptScrolls = false
+    preset.item.enchantment.randomize = true
     preset.item.enchantment.exceptScrolls = false
     preset.item.enchantment.exceptAlchemy = false
+    preset.item.enchantment.exceptIngredient = false
+
+    preset.item.changeMesh = true
+    preset.item.stats.region.min = 0.2
+    preset.item.stats.region.max = 5
 
     this.profiles["extended"] = preset
 end
