@@ -597,8 +597,8 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                     if object.objectType == tes3.objectType.ingredient then
                         local effGroup = effectLib.effectsData.forEnchant[tes3.effectRange.self]
                         local addedEff = {}
-                        local effCOunt = math.random(math.floor(this.config.item.enchantment.effects.ingredientCount.min),
-                            math.floor(this.config.item.enchantment.effects.ingredientCount.max))
+                        local effCOunt = math.random(math.floor(this.config.item.enchantment.effects.ingredient.count.min),
+                            math.floor(this.config.item.enchantment.effects.ingredient.count.max))
                         for i = 1, 4 do
                             if i <= effCOunt then
                                 local id = math.random(1, #effGroup)
@@ -814,6 +814,112 @@ function this.generateData()
     return out
 end
 
+function this.randomizeIngredients(data)
+    if not data then return end
+    local itemArr = {}
+    local itCount = #data.items
+    local effGroup = {}
+    local effGroupDummy = {}
+    for i, val in pairs(effectLib.effectsData.forEnchant[tes3.effectRange.self]) do
+        table.insert(effGroupDummy, {id = val, value = effectLib.effectsData.cost[val]})
+    end
+    table.sort(effGroupDummy, function(a, b) return a.value < b.value end)
+    for _, val in pairs(effGroupDummy) do
+        table.insert(effGroup, val.id)
+    end
+
+    for i, item in pairs(data.items) do
+        local effCOunt = math.random(math.floor(this.config.item.enchantment.effects.ingredient.count.min),
+            math.floor(this.config.item.enchantment.effects.ingredient.count.max))
+        itemArr[i] = {count = effCOunt, effects = {}, id = item.id}
+    end
+
+    local effCount = #effGroup
+
+    local itNormalizedMul = itCount / effCount
+    for i, effId in pairs(effGroup) do
+        local magicEffect = effectLib.effectsData.effect[effId]
+        local normalizedPos = math.floor(i * itNormalizedMul)
+        local count = 1
+        if magicEffect.targetsSkills then
+            count = 27
+        elseif magicEffect.targetsAttributes then
+            count = 8
+        end
+        for j = 1, count do
+            local skillId = magicEffect.targetsSkills and j - 1 or -1
+            local attrId = magicEffect.targetsAttributes and j - 1 or -1
+            local effAltId = string.format("%s%02d%02d", effId, attrId, skillId)
+            for k = 1, this.config.item.enchantment.effects.ingredient.minimumIngrForOneEffect do
+                local pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
+                    this.config.item.enchantment.effects.ingredient.region.max)
+                local iteration = 0
+                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < 30 do
+                    pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
+                        this.config.item.enchantment.effects.ingredient.region.max)
+                    iteration = iteration + 1
+                end
+                if iteration < 20 then
+                    itemArr[pos].count = itemArr[pos].count - 1
+                    itemArr[pos].effects[effAltId] = {id = effId, attr = attrId, skill = skillId}
+                else
+                    log("Cannot foud an item for %s", effAltId)
+                end
+            end
+        end
+    end
+
+    local effNormalizedMul = effCount / itCount
+    for i, itData in pairs(itemArr) do
+        if itData.count > 0 then
+            for j = 1, itData.count do
+                local normalizedPos = math.floor(i * effNormalizedMul)
+                local pos = random.GetRandom(normalizedPos, effCount, this.config.item.enchantment.effects.ingredient.region.min,
+                    this.config.item.enchantment.effects.ingredient.region.max)
+                local iteration = 0
+                while itData.effects[effGroup[pos]] and iteration < 30 do
+                    pos = random.GetRandom(normalizedPos, effCount, this.config.item.enchantment.effects.ingredient.region.min,
+                        this.config.item.enchantment.effects.ingredient.region.max)
+                    iteration = iteration + 1
+                end
+                if iteration < 20 then
+                    local effId = effGroup[pos]
+                    local magicEffect = effectLib.effectsData.effect[effId]
+                    local skillId = magicEffect.targetsSkills and math.random(0, 26) or -1
+                    local attrId = magicEffect.targetsAttributes and math.random(0, 7) or -1
+                    local effAltId = string.format("%s%02d%02d", effId, attrId, skillId)
+                    itData.effects[effAltId] = {id = effId, attr = attrId, skill = skillId}
+                else
+                    log("Cannot add an effect to %s", tostring(itData.id))
+                end
+            end
+            itData.count = 0
+        end
+    end
+
+    for _, itData in pairs(itemArr) do
+        local object = tes3.getObject(itData.id)
+        if object and object.effects then
+            local count = 0
+            for _, effData in pairs(itData.effects) do
+                count = count + 1
+                if count <= 4 then
+                    object.effects[count] = effData.id
+                    object.effectSkillIds[count] = effData.skill
+                    object.effectAttributeIds[count] = effData.attr
+                end
+            end
+            for i = count + 1, 4 do
+                object.effects[i] = -1
+            end
+
+            if this.config.item.stats.randomize then
+                this.randomizeStats(object, this.config.item.stats.region.min, this.config.item.stats.region.max)
+            end
+        end
+    end
+end
+
 function this.randomizeItems(itemsData)
     local plData = dataSaver.getObjectData(tes3.player)
     if plData then
@@ -824,16 +930,23 @@ function this.randomizeItems(itemsData)
     end
 
     for itType, data in pairs(itemsData.itemGroup) do
-        local count = #data.items
-        for i, item in pairs(data.items) do
-            local enchVal = data.enchantValues[item.id]
-            local mul = (i / count) ^ this.config.item.enchantment.powMul
-            local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
-            this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
-            this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant90)
-            local itemData = this.serializeBaseObject(item)
-            if plData and itemData then
-                plData.newObjects.items[item.id] = itemData
+        if itType == tes3.objectType.ingredient then
+            if this.config.item.enchantment.effects.ingredient.smartRandomization and
+                    not this.config.item.enchantment.exceptIngredient then
+                this.randomizeIngredients(data)
+            end
+        else
+            local count = #data.items
+            for i, item in pairs(data.items) do
+                local enchVal = data.enchantValues[item.id]
+                local mul = (i / count) ^ this.config.item.enchantment.powMul
+                local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
+                this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
+                this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant90)
+                local itemData = this.serializeBaseObject(item)
+                if plData and itemData then
+                    plData.newObjects.items[item.id] = itemData
+                end
             end
         end
     end

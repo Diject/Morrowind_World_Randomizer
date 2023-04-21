@@ -695,8 +695,8 @@ function this.registerModConfig()
                                         label = this.i18n("modConfig.label.ingredientEffNum"),
                                         description = "",
                                         components = {
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredientCount, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredientCount, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
                                         },
                                     },
                                 },

@@ -435,7 +435,12 @@ this.default = {
                 oneTypeChance = 0.75,
                 maxCount = 6,
                 alchemyCount = {min = 1, max = 3},
-                ingredientCount = {min = 2, max = 4},
+                ingredient = {
+                    smartRandomization = true,
+                    minimumIngrForOneEffect = 3,
+                    count = {min = 3, max = 4},
+                    region = {min = 0.4, max = 0.4},
+                },
                 countPowMul = 2,
                 threshold = 0.2,
                 chanceToNegative = 0.2,
