@@ -926,6 +926,8 @@ function this.randomizeMobileActor(mobile)
     mobile:updateOpacity()
 end
 
+local actorObjectsInitialData = {}
+
 function this.getBaseObjectData(object)
     local data = {spells = {}}
 
@@ -955,6 +957,10 @@ function this.getBaseObjectData(object)
     end
     if object.head then
         data.head = object.head.id
+    end
+
+    if not actorObjectsInitialData[object.id] then
+        actorObjectsInitialData[object.id] = data
     end
 
     return data
@@ -1009,7 +1015,8 @@ function this.saveAndRestoreBaseObjectInitialData(object, data)
         local objectData = data[object.id]
 
         if objectData == nil then
-            data[object.id] = this.getBaseObjectData(object)
+            local objData = this.getBaseObjectData(object)
+            data[object.id] = objData
         else
             this.setBaseObjectData(object, objectData)
         end
@@ -1017,14 +1024,13 @@ function this.saveAndRestoreBaseObjectInitialData(object, data)
 end
 
 function this.restoreAllBaseInitialData(data)
-    if data then
-        for id, _ in pairs(data) do
-            local object = tes3.getObject(id)
-            if object then
-                this.saveAndRestoreBaseObjectInitialData(object, data)
-            end
-            data[id] = nil
+    local dt = data ~= nil and data or actorObjectsInitialData
+    for id, objData in pairs(dt) do
+        local object = tes3.getObject(id)
+        if object then
+            this.setBaseObjectData(object, objData)
         end
+        dt[id] = nil
     end
 end
 
