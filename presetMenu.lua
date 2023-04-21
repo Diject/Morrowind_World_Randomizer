@@ -62,8 +62,20 @@ function this.createMenu(okFunction, cancelFunction)
     local selectedProfile = "default"
     local item = createDropdownItem(selectedProfile)
 
-    local dropdownActive = false
+    local dropdownActive = true
     local dropdownClick
+    for _, label in ipairs(profileList) do
+
+        local listItem = createDropdownItem(label)
+        listItem:register("mouseClick", function ()
+            dropdown:destroyChildren()
+            item = createDropdownItem(label)
+            item:register("mouseClick", dropdownClick)
+            selectedProfile = label
+            dropdownActive = false
+            menu:updateLayout()
+        end)
+    end
     dropdownClick = function()
         if not dropdownActive then
             dropdownActive = true
@@ -95,8 +107,8 @@ function this.createMenu(okFunction, cancelFunction)
     button_block.autoHeight = true
     button_block.childAlignX = 1.0
 
-    local button_cancel = button_block:createButton{ text = tes3.findGMST("sCancel").value }
     local button_ok = button_block:createButton{ text = tes3.findGMST("sOK").value }
+    local button_cancel = button_block:createButton{ text = tes3.findGMST("sCancel").value }
 
     button_cancel:register(tes3.uiEvent.mouseClick, function()
         tes3ui.leaveMenuMode()
