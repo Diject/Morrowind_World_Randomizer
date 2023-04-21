@@ -498,6 +498,10 @@ function this.randomizeDoor(reference)
                 end
             end
         else
+            local backDoor = getBackDoorFromReference(reference)
+            if backDoor then
+                this.setCDTime(backDoor)
+            end
             this.setCDTime(reference)
         end
 
