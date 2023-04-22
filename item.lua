@@ -408,10 +408,10 @@ function this.randomizeEffects(effects, effData, config)
         if (effect.rangeType == tes3.effectRange.self and magicEffect.isHarmful) or
                 (effect.rangeType ~= tes3.effectRange.self and not magicEffect.isHarmful) then
             enchVal = enchVal - (isConstant and effectLib.calculateEffectCostForConstant(effectData) or
-                effectLib.calculateEffectCost(effectData)) + effectCost
+                effectLib.calculateEffectCost(effectData))
         else
             enchVal = enchVal + (isConstant and effectLib.calculateEffectCostForConstant(effectData) or
-                effectLib.calculateEffectCost(effectData)) - effectCost
+                effectLib.calculateEffectCost(effectData))
         end
         ::continue::
     end
@@ -447,7 +447,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     local enchPower = (isConstant or enchType == tes3.enchantmentType.castOnce or canBeUsedOnce) and power or
         power / random.GetBetween(config.enchantment.numberOfCasts.min, config.enchantment.numberOfCasts.max)
     if enchPower < 1 then enchPower = 1 end
-    if enchPower > config.enchantment.cost.max then enchPower = config.enchantment.cost.max end
+    if not isConstant and enchPower > config.enchantment.cost.max then enchPower = config.enchantment.cost.max end
     local chargeCost
     local maxCharge
     if not isConstant then
@@ -504,52 +504,52 @@ function this.randomizeStats(object, minMul, maxMul)
     local floatVars_n = {"speed", "weight"}
     log("Item stats id %s", tostring(object))
     if object.value then
-        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, object.value * random.GetBetween(minMul, maxMul))) or
-            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, object.value * random.GetBetween(minMul, maxMul))))
+        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))) or
+            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))))
         log("value %s", tostring(object.value))
     end
     for _, var in pairs(intVars) do
         if object[var] then
-            object[var] = math.floor(math.max(0, object[var] * random.GetBetween(minMul, maxMul)))
+            object[var] = math.floor(math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul)))
             log("%s %s", var, tostring(object[var]))
         end
     end
     for _, var in pairs(floatVars_p) do
         if object[var] then
-            object[var] = math.max(0, object[var] * random.GetBetween(minMul, maxMul))
+            object[var] = math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul))
             log("%s %s", var, tostring(object[var]))
         end
     end
     for _, var in pairs(floatVars_n) do
         if object[var] then
-            local div = random.GetBetween(minMul, maxMul)
+            local div = random.GetBetweenForMulDiv(minMul, maxMul)
             if div == 0 then div = 0.05 end
             object[var] = math.max(0, object[var] / div)
             log("%s %s", var, tostring(object[var]))
         end
     end
     if object.chopMin then
-        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetween(minMul, maxMul)))
-        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetween(minMul, maxMul)))
+        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetweenForMulDiv(minMul, maxMul)))
         if object.chopMax < object.chopMin then object.chopMax = object.chopMin end
         log("chop %s %s", tostring(object.chopMin), tostring(object.chopMax))
     end
     if object.slashMin then
-        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetween(minMul, maxMul)))
-        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetween(minMul, maxMul)))
+        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetweenForMulDiv(minMul, maxMul)))
         if object.slashMax < object.slashMin then object.slashMax = object.slashMin end
         log("slash %s %s", tostring(object.slashMin), tostring(object.slashMax))
     end
     if object.thrustMin then
-        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetween(minMul, maxMul)))
-        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetween(minMul, maxMul)))
+        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetweenForMulDiv(minMul, maxMul)))
         if object.thrustMax < object.thrustMin then object.thrustMax = object.thrustMin end
         log("thrust %s %s", tostring(object.thrustMin), tostring(object.thrustMax))
     end
     if object.color then
-        object.color[1] = math.floor(255 * random.GetBetween(minMul, maxMul))
-        object.color[2] = math.floor(255 * random.GetBetween(minMul, maxMul))
-        object.color[3] = math.floor(255 * random.GetBetween(minMul, maxMul))
+        object.color[1] = math.floor(255 * math.random())
+        object.color[2] = math.floor(255 * math.random())
+        object.color[3] = math.floor(255 * math.random())
         log("color %s %s %s", tostring(object.color[1]), tostring(object.color[2]), tostring(object.color[3]))
     end
 end
@@ -632,7 +632,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                         }, this.config.item)
                     end
                 else
-                    enchPower = ((newEnch and newEnch.maxCharge) and newEnch.maxCharge or enchPower) *
+                    enchPower = ((newEnch and newEnch.castType ~= tes3.enchantmentType.constant) and newEnch.maxCharge or enchPower) *
                         random.GetBetween(this.config.item.enchantment.region.min, this.config.item.enchantment.region.max)
                     local enchType = object.objectType == tes3.objectType.weapon and tes3.enchantmentType.onStrike or math.random(2, 3)
                     local usedOnce = false
@@ -808,7 +808,8 @@ function this.generateData()
             items = data, meshes = meshList, enchantValues = enchValData, maxValue = data[#data].value,
             medianValue = data[math.floor(#data / 2)].value,
             maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
-            enchant90 = enchantVals[math.floor(#enchantVals * 0.9)] or 0, value90 = data[math.floor(#data * 0.9)],
+            enchant90 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.9)] or 0),
+            value90 = data[math.floor(#data * 0.9)].value,
         }
     end
 

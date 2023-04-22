@@ -639,8 +639,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.newEnchPower"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
                                 },
                             },
                             {

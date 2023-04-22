@@ -430,14 +430,15 @@ this.default = {
             exceptScrolls = true,
             exceptAlchemy = true,
             exceptIngredient = true,
-            useExisting = false,
+            useExisting = true,
             existing = {
-                region = {min = 0.1, max = 0.1},
+                region = {min = 0.2, max = 0.2},
             },
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
             numberOfCasts = {min = 2, max = 10},
             cost = {min = 5, max = 800},
+            minMaximumGroupCost = 200,
             effects = {
                 tuneStepsCount = 30,
                 safeMode = true,
@@ -540,6 +541,7 @@ if true then
 
     preset.doors.nearestCellDepth = 4
     preset.doors.chance = 0.4
+    preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.add.chance = 0.75
     preset.item.enchantment.remove.chance = 0.25

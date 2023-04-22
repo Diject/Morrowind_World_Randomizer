@@ -27,6 +27,7 @@ this.effectsData = {
         [14] = true,
         [15] = true,
         [16] = true,
+        [18] = true,
         [22] = true,
         [23] = true,
         [24] = true,
