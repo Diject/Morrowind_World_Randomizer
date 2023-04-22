@@ -451,6 +451,14 @@ function this.randomizeCell(cell)
         table.insert(herbsList, id)
     end
 
+    local maxFightOnActor = 0
+    for actor in cell:iterateReferences({tes3.objectType.creature, tes3.objectType.npc}) do
+        if actor and actor.mobile and actor.mobile.fight then
+            maxFightOnActor = math.max(maxFightOnActor, actor.mobile.fight)
+        end
+    end
+    log("Max cell fight %s", tostring(maxFightOnActor))
+
     local importantObjPositions = {}
     if not cell.isInterior then
         for i = cell.gridX - 1, cell.gridX + 1 do
@@ -695,7 +703,10 @@ function this.randomizeCell(cell)
                 if this.config.data.doors.onlyOnCellRandomization then
                     this.doors.randomizeDoor(object)
                 end
-                this.randomizeLockTrap(object)
+                local cnfg = this.config.data.doors
+                local tolock = not cnfg.lock.safeCellMode.enabled or (cnfg.lock.safeCellMode.enabled and maxFightOnActor >= cnfg.lock.safeCellMode.fightValue)
+                local totrap = not cnfg.trap.safeCellMode.enabled or (cnfg.trap.safeCellMode.enabled and maxFightOnActor >= cnfg.trap.safeCellMode.fightValue)
+                this.randomizeLockTrap(object, tolock, totrap)
 
             end
 
@@ -1319,7 +1330,7 @@ function this.resetLockTrapToDefault(reference)
     end
 end
 
-function this.randomizeLockTrap(reference)
+function this.randomizeLockTrap(reference, toLock, toTrap)
     local configTable
     if reference.baseObject.objectType == tes3.objectType.door then
         if this.doors.forbiddenDoorIds[reference.baseObject.id:lower()] then
@@ -1335,20 +1346,20 @@ function this.randomizeLockTrap(reference)
         this.resetLockTrapToDefault(reference)
         setLockTrapCDTimestamp(data, tes3.getSimulationTimestamp() + configTable.lockTrapCooldown)
 
-        if reference.lockNode ~= nil and configTable.lock.randomize and reference.lockNode.level > 0 then
+        if toLock ~= false and reference.lockNode ~= nil and configTable.lock.randomize and reference.lockNode.level > 0 then
             local newLevel = random.GetRandom(reference.lockNode.level, 100, configTable.lock.region.min, configTable.lock.region.max)
 
             log("Lock level %s %s to %s", tostring(reference), tostring(reference.lockNode.level), tostring(newLevel))
             tes3.setLockLevel{ reference = reference, level = newLevel }
         end
-        if (reference.lockNode == nil or reference.lockNode.level == 0) and configTable.lock.add.chance > math.random() then
+        if toLock ~= false and (reference.lockNode == nil or reference.lockNode.level == 0) and configTable.lock.add.chance > math.random() then
             local newLevel = math.random(1, math.min(100, configTable.lock.add.levelMultiplier * tes3.player.object.level))
 
             log("Lock level new %s %s", tostring(reference), tostring(newLevel))
             tes3.setLockLevel{ reference = reference, level = newLevel }
             reference.lockNode.locked = true
         end
-        if reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil and reference.lockNode.trap.id ~= nil then
+        if toTrap ~= false and reference.lockNode ~= nil and configTable.trap.randomize and reference.lockNode.trap ~= nil and reference.lockNode.trap.id ~= nil then
             local trapEffData = spellsData.TouchRange[reference.lockNode.trap.id:lower()]
             if trapEffData ~= nil and #trapEffData > 0 then
                 local trapData = trapEffData[math.random(1, #trapEffData)]
@@ -1363,7 +1374,7 @@ function this.randomizeLockTrap(reference)
                 end
             end
         end
-        if (reference.lockNode == nil or reference.lockNode.trap == nil) and configTable.trap.add.chance > math.random() then
+        if toTrap ~= false and (reference.lockNode == nil or reference.lockNode.trap == nil) and configTable.trap.add.chance > math.random() then
             local newGroup
             if configTable.trap.add.onlyDestructionSchool then
                 newGroup = spellsData.SpellGroups["110"]

@@ -382,6 +382,10 @@ this.default = {
         lockTrapCooldown = 72,
         lock = {
             randomize = true,
+            safeCellMode = {
+                enabled = true,
+                fightValue = 60,
+            },
             region = {min = 0.3, max = 0.3},
             add = {
                 chance = 0.1,
@@ -390,7 +394,11 @@ this.default = {
         },
         trap = {
             randomize = true,
-            region = {min = 1, max = 1},
+            safeCellMode = {
+                enabled = true,
+                fightValue = 50,
+            },
+            region = {min = 0.3, max = 0.3},
             add = {
                 chance = 0.2,
                 levelMultiplier = 5,

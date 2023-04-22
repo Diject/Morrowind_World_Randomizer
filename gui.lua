@@ -1367,6 +1367,15 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.doNotLockIfNoEnemy"), this.config.data.doors.lock.safeCellMode, "enabled"),
+                                    createSettingsBlock_slider(this.config.data.doors.lock.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
+                                },
+                            },
                         },
                     },
 
@@ -1386,6 +1395,15 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.doors.trap.add, "onlyDestructionSchool"),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.doNotTrapIfNoEnemy"), this.config.data.doors.trap.safeCellMode, "enabled"),
+                                    createSettingsBlock_slider(this.config.data.doors.trap.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
                                 },
                             },
                         },

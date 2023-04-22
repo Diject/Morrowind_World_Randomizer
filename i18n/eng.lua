@@ -287,4 +287,8 @@ return {
     ["modConfig.label.randomizingJustOnce"] = "Just once",
 
     ["modConfig.label.doNotRandomizeInventoryForHerb"] = "Don't randomize inventory for new herbs",
+
+    ["modConfig.label.doNotLockIfNoEnemy"] = "Don't lock the door if there is no enemy in the cell",
+    ["modConfig.label.doNotTrapIfNoEnemy"] = "Don't trap the door if there is no enemy in the cell",
+    ["modConfig.label.minFightToBeEnemy"] = "Minimum fight value to be considered an enemy",
 }
