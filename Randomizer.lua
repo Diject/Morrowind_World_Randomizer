@@ -728,6 +728,8 @@ function this.randomizeCell(cell)
     end
 end
 
+local aiBlackList = {["chargen boat guard 1"]=true,["chargen boat guard 2"]=true,["chargen boat guard 3"]=true,["chargen captain"]=true,["chargen class"]=true,["chargen dock guard"]=true,["chargen door guard"]=true,["chargen name"]=true,}
+
 local positiveAttrs = { "chameleon", "waterBreathing", "waterWalking", "swiftSwim", }
 local negativeAttrs = { "sound", "silence", "blind", "paralyze" }
 local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistCommonDisease", "resistBlightDisease", "resistCorprus", "resistPoison", "resistParalysis", "shield" }
@@ -862,10 +864,12 @@ function this.randomizeMobileActor(mobile)
         setNew(mobile.magicka, configTable.magicka.region)
     end
 
-    for label, data in pairs(configTable.ai) do
-        local newVal = random.GetRandom(mobile[label], 100, data.region.min, data.region.max)
-        log("AI %s %s %s to %s", tostring(mobile.object), tostring(label), tostring(mobile[label]), tostring(newVal))
-        mobile[label] = newVal
+    if not aiBlackList[mobile.object.id] then
+        for label, data in pairs(configTable.ai) do
+            local newVal = random.GetRandom(mobile[label], 100, data.region.min, data.region.max)
+            log("AI %s %s %s to %s", tostring(mobile.object), tostring(label), tostring(mobile[label]), tostring(newVal))
+            mobile[label] = newVal
+        end
     end
 
     local posListCount = #positiveAttrs
