@@ -423,7 +423,7 @@ this.default = {
     item = {
         stats = {
             randomize = true,
-            region = {min = 0.5, max = 2},
+            region = {min = 0.75, max = 1.25},
         },
         enchantment = {
             randomize = true,
@@ -526,7 +526,7 @@ if true then
     preset.creatures.ai.fight.region.min = 0
     preset.creatures.ai.fight.region.max = 1
 
-    preset.NPCs.spells.add.count = 10
+    preset.NPCs.spells.add.count = 5
     preset.NPCs.spells.add.levelReference = 1
     preset.NPCs.abilities.add.chance = 0.25
     preset.NPCs.abilities.add.count = 4
@@ -544,6 +544,7 @@ if true then
     preset.doors.chance = 0.4
     preset.doors.trap.safeCellMode.enabled = false
 
+    preset.item.enchantment.useExisting = false
     preset.item.enchantment.add.chance = 0.75
     preset.item.enchantment.remove.chance = 0.25
     preset.item.enchantment.add.exceptScrolls = false
@@ -554,8 +555,8 @@ if true then
     preset.item.enchantment.exceptIngredient = false
 
     preset.item.changeMesh = true
-    preset.item.stats.region.min = 0.2
-    preset.item.stats.region.max = 5
+    preset.item.stats.region.min = 0.5
+    preset.item.stats.region.max = 2
 
     this.profiles["extended"] = preset
 end
