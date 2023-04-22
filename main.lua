@@ -132,17 +132,21 @@ end
 local function isLandscapeTexturesValid()
     if not randomizer.config.global.landscape.textureIndices then return false end
 
+    local gameCount = 0
     local textures = randomizer.config.global.landscape.textureIndices
     for _, texture in pairs(tes3.dataHandler.nonDynamicData.landTextures) do
-        if not textures[tostring(texture.id)] then
-            return false
+        if texture.filename and tes3.getFileSource("Textures\\"..texture.filename) then
+            gameCount = gameCount + 1
+            if not textures[tostring(texture.index)] then
+                return false
+            end
         end
     end
-    local count = 0
+    local savedCount = 0
     for _, _ in pairs(randomizer.config.global.landscape.textureIndices) do
-        count = count + 1
+        savedCount = savedCount + 1
     end
-    if count ~= #tes3.dataHandler.nonDynamicData.landTextures then
+    if savedCount ~= gameCount then
         return false
     end
     return true
