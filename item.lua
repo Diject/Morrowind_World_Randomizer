@@ -277,6 +277,7 @@ local function chooseGroup(enchType, isConstant)
     return rangeType, effGroup_p, effGroup_n
 end
 
+local fortifyEffectIds = {79, 80, 81, 82, 83, 84}
 
 function this.randomizeEffects(effects, effData, config)
     local effCount = effData.effectCount
@@ -311,9 +312,15 @@ function this.randomizeEffects(effects, effData, config)
             end
             local configChance = rangeType ~= tes3.effectRange.self and config.enchantment.effects.chanceToNegativeForTarget or
                 config.enchantment.effects.chanceToNegative
-            local group = math.random() < configChance and effGroup_n or effGroup_p
-            local effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
-                effectLib.effectsData.forbiddenForConstantType or {}) or -1
+            local isNegative = math.random() < configChance
+            local group = isNegative and effGroup_n or effGroup_p
+            local effectId
+            if not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
+                effectId = fortifyEffectIds[math.random(1, #fortifyEffectIds)]
+            else
+                effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
+                    effectLib.effectsData.forbiddenForConstantType or {}) or -1
+            end
 
             local iteration = 0
             while (((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal and strongThreshold) or effectUniqueness[effectId]) and iteration < 20 do
@@ -384,11 +391,15 @@ function this.randomizeEffects(effects, effData, config)
         local rnd = isConstant and 0 or math.random()
         if rnd < 0.6 and not magicEffect.hasNoMagnitude then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
-            local mulConst = isConstant and 100 or 1
-            local magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration + 1) * mulConst) -
-                (effectData.min + effectData.max)) * 0.5
-            local min = random.GetBetween(0, 0.5 * magnitude)
-            local max = random.GetBetween(0, 1.5 * magnitude)
+            local magnitude
+            if isConstant then
+                magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration + 1) * 100)) * 0.5
+            else
+                magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration + 1)) -
+                    (effectData.min + effectData.max)) * 0.5
+            end
+            local min = random.GetBetween(0, 0.75 * magnitude)
+            local max = random.GetBetween(0, 1.25 * magnitude)
             if min > max then min = max end
             effectData.min = math.min(effectData.min + min, config.enchantment.effects.maxMagnitude)
             effectData.max = math.min(effectData.max + max, config.enchantment.effects.maxMagnitude)
@@ -809,6 +820,7 @@ function this.generateData()
             medianValue = data[math.floor(#data / 2)].value,
             maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
             enchant90 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.9)] or 0),
+            enchant95 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.95)] or 0),
             value90 = data[math.floor(#data * 0.9)].value,
         }
     end
@@ -945,7 +957,7 @@ function this.randomizeItems(itemsData)
                 local mul = (i / count) ^ this.config.item.enchantment.powMul
                 local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
                 this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
-                this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant90)
+                this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant95)
                 local itemData = this.serializeBaseObject(item)
                 if plData and itemData then
                     plData.newObjects.items[item.id] = itemData

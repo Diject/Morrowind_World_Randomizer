@@ -79,7 +79,7 @@ this.globalDefault = {
     landscape = {
         randomize = false,
         randomizeOnlyOnce = false,
-        textureIndices = false
+        textureIndices = {},
     }
 }
 
@@ -438,7 +438,7 @@ this.default = {
             powMul = 0.65,
             numberOfCasts = {min = 2, max = 10},
             cost = {min = 5, max = 800},
-            minMaximumGroupCost = 200,
+            minMaximumGroupCost = 150,
             effects = {
                 tuneStepsCount = 30,
                 safeMode = true,
@@ -458,6 +458,7 @@ this.default = {
                 maxDuration = 60,
                 maxRadius = 30,
                 maxMagnitude = 100,
+                fortifyForSelfChance = 0.4,
             },
             add = {
                 chance = 0.5,
