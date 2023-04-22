@@ -500,9 +500,9 @@ if true then
                     if val.min <= 0.5 and val.max <= 0.5 then
                         val.min = 1
                         val.max = 1
-                    elseif val.min == 0.5 and val.max == 1.5 then
-                        val.min = 0.25
-                        val.max = 1.75
+                    -- elseif val.min == 0.5 and val.max == 1.5 then
+                    --     val.min = 0.25
+                    --     val.max = 1.75
                     end
                 else
                     setMinMax(val)
