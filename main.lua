@@ -291,7 +291,9 @@ local function landscapeRandOptionCallback(e)
     if e.button == 0 then
         randomizer.config.global.landscape.randomize = true
         randomizer.config.save()
-        generateRandomizedLandscapeTextureIndices()
+        if not isLandscapeTexturesValid() or not randomizer.config.global.landscape.randomizeOnlyOnce then
+            generateRandomizedLandscapeTextureIndices()
+        end
         loadRandomizedLandscapeTextures()
     end
     randomizeBaseItemsMessage()
