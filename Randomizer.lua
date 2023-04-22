@@ -147,12 +147,15 @@ function this.randomizeBaseItems()
     itemLib.resetItemStorage()
     needToRestoreInitialItems = true
     itemLib.randomizeItems(itemLibData)
+    if itemLib.hasRandomizedMeshes then
+        itemLib.clearFixedCellList()
+    end
     this.fixLoaded()
 end
 
 local isDummyLoad = true
 function this.restoreItems()
-    if itemLib.hasRandomizedItems then
+    if itemLib.hasRandomizedItems() then
         needToRestoreInitialItems = true
         itemLib.restoreItems()
         if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()

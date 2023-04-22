@@ -985,6 +985,13 @@ function this.resetItemStorage()
     end
 end
 
+function this.clearFixedCellList()
+    local data = dataSaver.getObjectData(tes3.player)
+    if data then
+        data.fixedCellList = {}
+    end
+end
+
 function this.fixItemData(itemData, item)
     if not itemData or not item then return end
     if item.enchantment and (itemData.charge == -1 or itemData.charge > item.enchantment.maxCharge) then
@@ -1038,48 +1045,56 @@ function this.fixCell(cell, updateModels)
     if not plData then return end
     if not plData.newObjects then plData.newObjects = {} end
     if not plData.newObjects.items then plData.newObjects.items = {} end
+    if not plData.fixedCellList then plData.fixedCellList = {} end
+
+    if plData.fixedCellList[cell.editorName] then return end
 
     for ref in cell:iterateReferences() do
-        if ref.object and ref.object.inventory then
-            this.fixInventory(ref.object.inventory)
-        end
-        if plData.newObjects.items[ref.baseObject.id] then
-            -- if updateModels and ref.mesh ~= ref.baseObject.mesh and ref.sceneNode then
-            --     ref.mesh = ref.baseObject.mesh
-            --     local mesh = tes3.loadMesh(ref.baseObject.mesh):clone()
-            --     -- for i, val in pairs(ref.sceneNode.children) do
-            --     --     if val and val:isOfType(ni.type["NiTriShape"]) then
-            --     --         ref.sceneNode:detachChildAt(i)
-            --     --     end
-            --     -- end
-            --     ref.sceneNode:detachAllChildren()
-            --     ref.sceneNode:attachChild(mesh)
-            --     ref.sceneNode:update()
-            -- end
-            if this.config.item.tryToFixZCoordinate and plData.hasRandomizedItemMeshes and ref.baseObject.boundingBox then
-                local zBox = ref.baseObject.boundingBox.min.z * ref.scale
-                local height = ref.baseObject.boundingBox.max.z - ref.baseObject.boundingBox.min.z
-                local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
-                local z = getZ(vector, tes3.game.worldObjectRoot)
-                local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
-                if z and zObj then
-                    z = z > zObj and z or zObj
-                elseif z or zObj then
-                    z = z or zObj
-                else
-                    z = getZ(vector, tes3.game.worldLandscapeRoot)
-                end
-                if z then
-                    ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox)
-                    log("Position fixed %s", tostring(ref))
-                end
+        local data = dataSaver.getObjectData(ref)
+        if not (data ~= nil and data.stopRand == true) then
+            if ref.object and ref.object.inventory then
+                this.fixInventory(ref.object.inventory)
             end
-            this.fixItemData(ref.itemData, ref.baseObject)
-        end
-        if updateModels and ref.object.objectType == tes3.objectType.npc then
-            ref:updateEquipment()
+
+            if plData.newObjects.items[ref.baseObject.id] then
+                -- if updateModels and ref.mesh ~= ref.baseObject.mesh and ref.sceneNode then
+                --     ref.mesh = ref.baseObject.mesh
+                --     local mesh = tes3.loadMesh(ref.baseObject.mesh):clone()
+                --     -- for i, val in pairs(ref.sceneNode.children) do
+                --     --     if val and val:isOfType(ni.type["NiTriShape"]) then
+                --     --         ref.sceneNode:detachChildAt(i)
+                --     --     end
+                --     -- end
+                --     ref.sceneNode:detachAllChildren()
+                --     ref.sceneNode:attachChild(mesh)
+                --     ref.sceneNode:update()
+                -- end
+                if this.config.item.tryToFixZCoordinate and plData.hasRandomizedItemMeshes and ref.baseObject.boundingBox then
+                    local zBox = ref.baseObject.boundingBox.min.z * ref.scale
+                    local height = ref.baseObject.boundingBox.max.z - ref.baseObject.boundingBox.min.z
+                    local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
+                    local z = getZ(vector, tes3.game.worldObjectRoot)
+                    local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
+                    if z and zObj then
+                        z = z > zObj and z or zObj
+                    elseif z or zObj then
+                        z = z or zObj
+                    else
+                        z = getZ(vector, tes3.game.worldLandscapeRoot)
+                    end
+                    if z then
+                        ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox)
+                        log("Position fixed %s", tostring(ref))
+                    end
+                end
+                this.fixItemData(ref.itemData, ref.baseObject)
+            end
+            if updateModels and ref.object.objectType == tes3.objectType.npc then
+                ref:updateEquipment()
+            end
         end
     end
+    plData.fixedCellList[cell.editorName] = true
     log("Cell fixed %s", tostring(cell.editorName))
 end
 
@@ -1089,10 +1104,16 @@ function this.fixPlayerInventory(updateModels)
         for stack, item, count, itemData in this.iterItems(player.inventory) do
             this.fixItemData(itemData, item)
         end
+        local weapon
+        if player.readiedWeapon and player.readiedWeapon.itemData then
+            weapon = player.readiedWeapon.object
+            player:unequip{type = tes3.objectType["weapon"]}
+        end
         if updateModels then
             tes3.player:updateEquipment()
             tes3.updateInventoryGUI{ reference = tes3.player }
         end
+        player:equip{item = weapon,}
         log("Player inventory fixed")
     end
 end
