@@ -58,11 +58,6 @@ end
 local function randomizeActor(reference)
     local playerData = dataSaver.getObjectData(tes3.player)
 
-    -- if playerData then
-    --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-    --     playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
-    -- end
-
     if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
         randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
         reference:updateEquipment()
@@ -72,6 +67,11 @@ local function randomizeActor(reference)
 
         forcedActorRandomization(reference)
 
+    end
+
+    if playerData then
+        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+        playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
     end
 end
 
