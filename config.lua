@@ -5,6 +5,11 @@ local this = {}
 
 this.fullyLoaded = false;
 
+this.defaultProfileNames = {
+    ["default"] = true,
+    ["extended"] = true,
+}
+
 local globalConfigName = "MWWRandomizer_Global"
 local configName = "MWWRandomizer_Config"
 local profileFileName = "MWWRandomizer_Profiles"
@@ -70,10 +75,11 @@ this.globalDefault = {
     logging = false,
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
+    allowDoubleLoading = true,
     landscape = {
         randomize = false,
         randomizeOnlyOnce = false,
-        textureIndices = false
+        textureIndices = {},
     }
 }
 
@@ -95,6 +101,7 @@ this.default = {
     },
     herbs = {
         randomize = true,
+        doNotRandomizeInventory = true,
         herbSpeciesPerCell = 5,
     },
     containers = {
@@ -161,7 +168,7 @@ this.default = {
             randomize = false,
             region = {min = 0.5, max = 0.5},
             add = {
-                chance = 1,
+                chance = 0.1,
                 count = 0,
             },
         },
@@ -213,7 +220,7 @@ this.default = {
             negative = {
                 add = {
                     chance = 1,
-                    count = 0,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
@@ -221,7 +228,7 @@ this.default = {
         ai = {
             fight = {
                 randomize = true,
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.1, max = 0.2},
             },
             flee = {
                 randomize = true,
@@ -256,7 +263,7 @@ this.default = {
             randomize = true,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 1,
+                chance = 0.1,
                 count = 0,
             },
         },
@@ -264,7 +271,7 @@ this.default = {
             randomize = false,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 0.05,
+                chance = 0.1,
                 count = 1,
             },
         },
@@ -282,7 +289,7 @@ this.default = {
         },
         attributes = {
             randomize = true,
-            limit = 100,
+            limit = 255,
             region = {min = 0.5, max = 1.5},
         },
         skills = {
@@ -323,7 +330,7 @@ this.default = {
             negative = {
                 add = {
                     chance = 1,
-                    count = 0,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
@@ -331,7 +338,7 @@ this.default = {
         ai = {
             fight = {
                 randomize = true,
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.1, max = 0.2},
             },
             flee = {
                 randomize = true,
@@ -359,7 +366,7 @@ this.default = {
     },
     doors = {
         randomize = true,
-        onlyOnCellRandomization = false,
+        onlyOnCellRandomization = true,
         doNotRandomizeInToIn = false,
         smartInToInRandomization = {
             enabled = true,
@@ -375,6 +382,10 @@ this.default = {
         lockTrapCooldown = 72,
         lock = {
             randomize = true,
+            safeCellMode = {
+                enabled = true,
+                fightValue = 60,
+            },
             region = {min = 0.3, max = 0.3},
             add = {
                 chance = 0.1,
@@ -383,7 +394,11 @@ this.default = {
         },
         trap = {
             randomize = true,
-            region = {min = 1, max = 1},
+            safeCellMode = {
+                enabled = true,
+                fightValue = 50,
+            },
+            region = {min = 0.3, max = 0.3},
             add = {
                 chance = 0.2,
                 levelMultiplier = 5,
@@ -405,14 +420,145 @@ this.default = {
         disableMGEDistantLand = false,
         disableMGEDistantStatics = false,
     },
+    item = {
+        stats = {
+            randomize = true,
+            region = {min = 0.75, max = 1.25},
+            weapon = {
+                region = {min = 0.75, max = 1.25},
+            },
+        },
+        enchantment = {
+            randomize = true,
+            exceptScrolls = true,
+            exceptAlchemy = true,
+            exceptIngredient = true,
+            useExisting = true,
+            existing = {
+                region = {min = 0.2, max = 0.2},
+            },
+            region = {min = 0.5, max = 1.5},
+            powMul = 0.65,
+            numberOfCasts = {min = 2, max = 10},
+            cost = {min = 5, max = 800},
+            minMaximumGroupCost = 100,
+            effects = {
+                tuneStepsCount = 30,
+                safeMode = true,
+                oneTypeChance = 0.75,
+                maxCount = 6,
+                alchemyCount = {min = 1, max = 3},
+                ingredient = {
+                    smartRandomization = true,
+                    minimumIngrForOneEffect = 3,
+                    count = {min = 3, max = 4},
+                    region = {min = 0.4, max = 0.4},
+                },
+                countPowMul = 2,
+                threshold = 0.2,
+                chanceToNegative = 0.2,
+                chanceToNegativeForTarget = 0.8,
+                maxDuration = 60,
+                maxRadius = 30,
+                maxMagnitude = 100,
+                fortifyForSelfChance = 0.4,
+                damageForTargetChance = 0.25,
+            },
+            add = {
+                chance = 0.5,
+                exceptScrolls = true,
+                region = {min = 0.5, max = 2},
+            },
+            remove = {
+                exceptScrolls = true,
+                chance = 0.25,
+            },
+        },
+        unique = false,
+        changeParts = true,
+        changeMesh = false,
+        tryToFixZCoordinate = true,
+    },
 }
 
 this.data = deepcopy(this.default)
 
 this.profiles = mwse.loadConfig(profileFileName)
 if this.profiles == nil then
-    mwse.saveConfig(profileFileName, {default = deepcopy(this.default)})
+    mwse.saveConfig(profileFileName, {})
     this.profiles = mwse.loadConfig(profileFileName)
+end
+
+-- if not this.profiles["default"] then
+    this.profiles["default"] = deepcopy(this.default)
+-- end
+
+-- if not this.profiles["extreme"] then
+if true then
+    local preset = deepcopy(this.default)
+    local setMinMax
+    setMinMax = function(toTable)
+        for label, val in pairs(toTable) do
+            if type(val) == "table" then
+                if label == "region" then
+                    if val.min <= 0.5 and val.max <= 0.5 then
+                        val.min = 1
+                        val.max = 1
+                    -- elseif val.min == 0.5 and val.max == 1.5 then
+                    --     val.min = 0.25
+                    --     val.max = 1.75
+                    end
+                else
+                    setMinMax(val)
+                end
+            end
+        end
+    end
+    setMinMax(preset)
+    preset.herbs.herbSpeciesPerCell = 20
+    preset.containers.lock.add.chance = 0.5
+    preset.containers.trap.add.chance = 1
+    preset.creatures.attack.region.min = 0.25
+    preset.creatures.attack.region.min = 1.75
+    preset.creatures.spells.add.count = 20
+    preset.creatures.spells.add.levelReference = 1
+    preset.creatures.diseases.add.count = 4
+    preset.creatures.effects.positive.add.count = 2
+    preset.creatures.effects.negative.add.count = 1
+    preset.creatures.ai.fight.region.min = 0
+    preset.creatures.ai.fight.region.max = 1
+
+    preset.NPCs.spells.add.count = 5
+    preset.NPCs.spells.add.levelReference = 1
+    preset.NPCs.diseases.add.count = 4
+    preset.NPCs.head.genderLimit = false
+    preset.NPCs.effects.positive.add.count = 2
+    preset.NPCs.effects.negative.add.count = 1
+    preset.NPCs.ai.fight.region.min = 0.2
+    preset.NPCs.ai.fight.region.max = 0.2
+
+    preset.transport.unrandomizedCount = 0
+    preset.transport.toDoorsCount = 1
+
+    preset.doors.nearestCellDepth = 3
+    preset.doors.chance = 0.4
+    preset.doors.trap.safeCellMode.enabled = false
+
+    preset.item.enchantment.useExisting = false
+    preset.item.enchantment.add.chance = 0.75
+    preset.item.enchantment.remove.chance = 0.25
+    preset.item.enchantment.add.exceptScrolls = false
+    preset.item.enchantment.remove.exceptScrolls = false
+    preset.item.enchantment.randomize = true
+    preset.item.enchantment.exceptScrolls = false
+    preset.item.enchantment.exceptAlchemy = false
+    preset.item.enchantment.exceptIngredient = false
+
+    preset.item.changeMesh = true
+    preset.item.stats.region.min = 0.5
+    preset.item.stats.region.max = 2
+
+    this.profiles["extended"] = preset
 end
 
 function this.getValueByPath(path)

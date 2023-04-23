@@ -4,6 +4,8 @@ return {
     ["messageBox.enableRandomizer.button.yes"] = "Yes, enable it",
     ["messageBox.enableRandomizer.button.no"] = "No",
 
+    ["messageBox.randomize.button.yes"] = "Yes, randomize them",
+
     ["messageBox.selectDistantLandOption.message"] = "Randomization of statics does not work properly with Distant Land. You can fully disable Distant Land or "..
         "disable Distant Statics (statics will be displayed only in nearby cells). This only applies to this character.",
 
@@ -24,6 +26,9 @@ return {
 
     ["modConfig.label.minMultiplier"] = "Minimum multiplier %%s%%%%",
     ["modConfig.label.maxMultiplier"] = "Maximum multiplier %%s%%%%",
+
+    ["modConfig.label.minVal"] = "Minimum %%s",
+    ["modConfig.label.maxVal"] = "Maximum %%s",
 
     ["modConfig.label.enableRandomizer"] = "Enable Randomizer",
 
@@ -198,9 +203,11 @@ return {
     ["modConfig.label.profileAdded"] = "The preset added",
     ["modConfig.label.profileNotAdded"] = "This preset already exists",
     ["modConfig.label.selectProfile"] = "Select a preset",
+    ["modConfig.label.selectRandProfile"] = "Select a randomization preset",
     ["modConfig.label.load"] = "Load",
     ["modConfig.label.delete"] = "Delete",
     ["modConfig.label.profileLoaded"] = "The preset has been loaded",
+    ["modConfig.label.theProfileLoaded"] = "\"%{profile}\" preset has been loaded",
     ["modConfig.label.profileNotLoaded"] = "The preset was not loaded",
 
     ["modConfig.description.willBeAppliedAfterNext"] = "Will be applied after the next randomization.",
@@ -219,4 +226,73 @@ return {
     ["modConfig.label.randomizationOfLandTextures"] = "Randomization of land textures",
     ["modConfig.label.randomizeLandTextureOnlyOnce"] = "Randomize land textures only once",
     ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
+
+    ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
+    ["modConfig.label.itemStats"] = "Item attributes",
+    ["modConfig.label.randomizeItemStats"] = "Randomize item attributes",
+    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage attributes",
+    ["modConfig.label.itemEnchantment"] = "Item enchantments",
+    ["modConfig.label.randomizeItemEnch"] = "Randomize the enchantment on an item of equipment",
+    ["modConfig.label.numberOfEnchCasts"] = "The number of times you can cast an enchantment",
+    ["modConfig.label.minEnchCost"] = "Minimum enchantment cost",
+    ["modConfig.label.maxEnchCost"] = "Maximum enchantment cost",
+    ["modConfig.label.enchCost"] = "Enchantment cost",
+    ["modConfig.label.enchEffects"] = "Effects",
+    ["modConfig.label.safeEnchantmentForConstant"] = "Don't add damaging effects to constant enchantments",
+    ["modConfig.label.oneEnchTypeChance"] = "Chances are the effects will be of the same type in terms of range",
+    ["modConfig.label.maxEnchEffCount"] = "Maximum number of effects",
+    ["modConfig.label.chanceToNegativeEffectForConstant"] = "Chance to add a negative effect to a constant enchantment",
+    ["modConfig.label.chanceToNegativeEffectForTarget"] = "Chance to add a negative effect to a target/touch enchantment",
+    ["modConfig.label.maxEnchEffectDuration"] = "Maximum effect duration",
+    ["modConfig.label.maxEnchEffectRadius"] = "Maximum effect radius",
+    ["modConfig.label.maxEnchEffectMagnitude"] = "Maximum effect magnitude",
+    ["modConfig.label.chanceAddEnchantment"] = "Chance to add an enchantment to an item without it",
+    ["modConfig.label.chanceRemoveEnchantment"] = "Chance to remove an enchantment",
+    ["modConfig.label.addedEnchPower"] = "The power of a new enchantment",
+    ["modConfig.label.randItemMeshes"] = "Randomize item models",
+    ["modConfig.label.randItemParts"] = "randomize wearable parts",
+
+    ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
+    ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
+
+    ["modConfig.message.randItemStats"] = "Do you want to randomize item attributes (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
+    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only attributes",
+    ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
+    ["modConfig.label.randBaseItemAll"] = "Randomize all",
+
+    ["modConfig.label.excludeScrolls"] = "Exclude scrolls",
+    ["modConfig.label.excludeAlchemy"] = "Exclude potions",
+    ["modConfig.label.dontAddToScrolls"] = "Don't add to scrolls",
+    ["modConfig.label.addNewEnch"] = "Add a new enchantment",
+    ["modConfig.label.removeEnch"] = "Remove an enchantment",
+    ["modConfig.label.maxAlchemyEffCount"] = "Maximum number of effects for a potion",
+    ["modConfig.label.dontRemoveFromScrolls"] = "Don't remove from scrolls",
+
+    ["modConfig.label.randomizeEffectsFromScrolls"] = "Randomize the enchantment on a scroll",
+    ["modConfig.label.randomizeEffectsFromAlchemy"] = "Randomize effects on a potions",
+    ["modConfig.label.randomizeEffectsFromIngredient"] = "Randomize effects on a ingredient",
+
+    ["modConfig.label.newEnchPower"] = "New enchantment power",
+
+    ["modConfig.label.useExistingEnch"] = "Randomize to the enchantment that exists in the game",
+    ["modConfig.label.existedEnchValue"] = "Region to randomize existing enchantments",
+    ["modConfig.label.potionEffNum"] = "Number of effects on a potion",
+    ["modConfig.label.ingredientEffNum"] = "Number of effects on an ingredient",
+
+    ["modConfig.label.allowDoubleLoad"] = "Allow double loading of a save",
+
+    ["messageBox.randomizeOnce.message"] = "Do you want the cells to keep randomizing after a certain period of time or just once (you can do this manually from the Mod Config menu)?",
+    ["modConfig.label.leaveAccordingToPreset"] = "Leave it according to the loaded preset",
+    ["modConfig.label.randomizingAfterCertainPeriod"] = "After a certain period of time",
+    ["modConfig.label.randomizingJustOnce"] = "Just once",
+
+    ["modConfig.label.doNotRandomizeInventoryForHerb"] = "Don't randomize inventory for new herbs",
+
+    ["modConfig.label.doNotLockIfNoEnemy"] = "Don't lock the door if there is no enemy in the cell",
+    ["modConfig.label.doNotTrapIfNoEnemy"] = "Don't trap the door if there is no enemy in the cell",
+    ["modConfig.label.minFightToBeEnemy"] = "Minimum fight value to be considered an enemy",
+
+    ["modConfig.label.fortifyForSelfChance"] = "Chance to add a fortify type effect to an \"on self\" enchantment",
+    ["modConfig.label.damageForTargetChance"] = "Chance to add a damage type effect to an \"on target/touch\" enchantment",
 }

@@ -115,6 +115,9 @@ local function findingCells_In(cells, cell, depth)
 end
 
 local function saveDoorOrigDestination(reference)
+    if reference == nil or reference.destination == nil then
+        return
+    end
     local data = dataSaver.getObjectData(reference)
     if data.origDestination == nil then
         local cellData = {id = reference.destination.cell.isInterior and reference.destination.cell.editorName or nil,
@@ -135,7 +138,7 @@ local function getDoorOriginalDestinationData(reference)
             cell = tes3.getCell{ id = dest.cell.id }
         end
         return {cell = cell, marker = {position = tes3vector3.new(dest.x, dest.y, dest.z), orientation = tes3vector3.new(0, 0, dest.rotZ)}}
-    else
+    elseif reference.destination then
         local marker = reference.destination.marker
         return {cell = reference.destination.cell, marker = {
             position = tes3vector3.new(marker.position.x, marker.position.y, marker.position.z),
@@ -150,10 +153,12 @@ local function getBackDoorFromReference(reference)
             local nearestDoor
             local minDistance = math.huge
             for door in origDestinationData.cell:iterateReferences(tes3.objectType.door) do
-                local distance = door.position:distance(origDestinationData.marker.position)
-                if minDistance > distance then
-                    nearestDoor = door
-                    minDistance = distance
+                if door.destination then
+                    local distance = door.position:distance(origDestinationData.marker.position)
+                    if minDistance > distance then
+                        nearestDoor = door
+                        minDistance = distance
+                    end
                 end
             end
             return nearestDoor
@@ -267,7 +272,8 @@ local function randomizeSmart_InToIn(cellData)
                 for j = 1, 20 do
                     local randCellId = math.random(1, #cellNames)
                     local rndCellName = cellNames[randCellId]
-                    if not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
+                    if not rndCellName then table.remove(cellNames, randCellId) end --fast bug fix
+                    if rndCellName and not (#cdata.doors == 1 and #cellData[rndCellName].doors == 1) then
                         local rndDoorData = newData[rndCellName].doors[math.random(1, #newData[rndCellName].doors)]
 
                         if this.config.data.doors.smartInToInRandomization.backDoorMode then
@@ -356,7 +362,8 @@ local function randomizeSmart_InToIn(cellData)
 end
 
 local function replaceDoorDestinations(door1, door2)
-    if door1 and door2 then
+    if door1 and door2 and not this.forbiddenDoorIds[door1.baseObject.id:lower()] and
+            not this.forbiddenDoorIds[door2.baseObject.id:lower()] then
         saveDoorOrigDestination(door1)
         saveDoorOrigDestination(door2)
         local door1OrigDestData = getDoorOriginalDestinationData(door1)
@@ -383,7 +390,7 @@ local function replaceDoorDestinations(door1, door2)
 end
 
 local function setDoorDestination(door, newCell, newMark)
-    if door and newCell and newMark then
+    if door and newCell and newMark and not this.forbiddenDoorIds[door.baseObject.id:lower()] then
         saveDoorOrigDestination(door)
         local doorDest = door.destination
 
@@ -491,6 +498,10 @@ function this.randomizeDoor(reference)
                 end
             end
         else
+            local backDoor = getBackDoorFromReference(reference)
+            if backDoor then
+                this.setCDTime(backDoor)
+            end
             this.setCDTime(reference)
         end
 

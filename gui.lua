@@ -163,6 +163,25 @@ local function createOnOffIngameButton(label, varTable, varId, description)
     return data
 end
 
+local function createOnOffIngameNegativeButton(label, varTable, varId, description)
+    local data = {
+        class = "OnOffButton",
+        label = label,
+        description = description,
+        inGameOnly = true,
+        variable = {
+            class = "Variable",
+            get = function(self)
+                return not varTable[varId]
+            end,
+            set = function(self, val)
+                varTable[varId] = not val
+            end,
+        },
+    }
+    return data
+end
+
 function this.registerModConfig()
     local data = {
         name = this.name,
@@ -291,7 +310,7 @@ function this.registerModConfig()
                                                 buttonText = this.i18n("modConfig.label.delete"),
                                                 inGameOnly = true,
                                                 callback = function()
-                                                    if currentConfig and currentConfig.value ~= "default" then
+                                                    if currentConfig and not this.config.defaultProfileNames[currentConfig.value] then
                                                         for i, val in pairs(profilesList) do
                                                             if val.value == currentConfig.value then
                                                                 this.config.deleteProfile(val.value)
@@ -359,6 +378,16 @@ function this.registerModConfig()
                         },
                     },
                     {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.allowDoubleLoad"),
+                        description = "",
+                        variable = {
+                            id = "allowDoubleLoading",
+                            class = "TableVariable",
+                            table = this.config.global,
+                        },
+                    },
+                    {
                         class = "Category",
                         label = this.i18n("modConfig.label.pregeneratedDataTables"),
                         description = "",
@@ -375,66 +404,66 @@ function this.registerModConfig()
                                     end,
                                 },
                             },
-                            {
-                                label = this.i18n("modConfig.label.pregeneratedItems"),
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedItemData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedItemData = val
-                                        this.funcs.generateStaticFunc()
-                                    end,
-                                },
-                            },
-                            {
-                                label = this.i18n("modConfig.label.pregeneratedCreatures"),
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedCreatureData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedCreatureData = val
-                                        this.funcs.generateStaticFunc()
-                                    end,
-                                },
-                            },
-                            {
-                                label = this.i18n("modConfig.label.pregeneratedHeadHair"),
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedHeadHairData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedHeadHairData = val
-                                        this.funcs.generateStaticFunc()
-                                    end,
-                                },
-                            },
-                            {
-                                label = this.i18n("modConfig.label.pregeneratedSpells"),
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedSpellData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedSpellData = val
-                                        this.funcs.generateStaticFunc()
-                                    end,
-                                },
-                            },
-                            {
-                                label = this.i18n("modConfig.label.pregeneratedHerbs"),
-                                class = "OnOffButton",
-                                variable = {
-                                    class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.usePregeneratedHerbData end,
-                                    set = function(self, val)
-                                        this.config.global.dataTables.usePregeneratedHerbData = val
-                                        this.funcs.generateStaticFunc()
-                                    end,
-                                },
-                            },
+                            -- {
+                            --     label = this.i18n("modConfig.label.pregeneratedItems"),
+                            --     class = "OnOffButton",
+                            --     variable = {
+                            --         class = "Variable",
+                            --         get = function(self) return this.config.global.dataTables.usePregeneratedItemData end,
+                            --         set = function(self, val)
+                            --             this.config.global.dataTables.usePregeneratedItemData = val
+                            --             this.funcs.generateStaticFunc()
+                            --         end,
+                            --     },
+                            -- },
+                            -- {
+                            --     label = this.i18n("modConfig.label.pregeneratedCreatures"),
+                            --     class = "OnOffButton",
+                            --     variable = {
+                            --         class = "Variable",
+                            --         get = function(self) return this.config.global.dataTables.usePregeneratedCreatureData end,
+                            --         set = function(self, val)
+                            --             this.config.global.dataTables.usePregeneratedCreatureData = val
+                            --             this.funcs.generateStaticFunc()
+                            --         end,
+                            --     },
+                            -- },
+                            -- {
+                            --     label = this.i18n("modConfig.label.pregeneratedHeadHair"),
+                            --     class = "OnOffButton",
+                            --     variable = {
+                            --         class = "Variable",
+                            --         get = function(self) return this.config.global.dataTables.usePregeneratedHeadHairData end,
+                            --         set = function(self, val)
+                            --             this.config.global.dataTables.usePregeneratedHeadHairData = val
+                            --             this.funcs.generateStaticFunc()
+                            --         end,
+                            --     },
+                            -- },
+                            -- {
+                            --     label = this.i18n("modConfig.label.pregeneratedSpells"),
+                            --     class = "OnOffButton",
+                            --     variable = {
+                            --         class = "Variable",
+                            --         get = function(self) return this.config.global.dataTables.usePregeneratedSpellData end,
+                            --         set = function(self, val)
+                            --             this.config.global.dataTables.usePregeneratedSpellData = val
+                            --             this.funcs.generateStaticFunc()
+                            --         end,
+                            --     },
+                            -- },
+                            -- {
+                            --     label = this.i18n("modConfig.label.pregeneratedHerbs"),
+                            --     class = "OnOffButton",
+                            --     variable = {
+                            --         class = "Variable",
+                            --         get = function(self) return this.config.global.dataTables.usePregeneratedHerbData end,
+                            --         set = function(self, val)
+                            --             this.config.global.dataTables.usePregeneratedHerbData = val
+                            --             this.funcs.generateStaticFunc()
+                            --         end,
+                            --     },
+                            -- },
                         },
                     },
                     {
@@ -551,6 +580,165 @@ function this.registerModConfig()
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeGold"), this.config.data.gold, "randomize"),
                             createSettingsBlock_minmaxp(this.config.data.gold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
                             createSettingsBlock_minmaxp(this.config.data.gold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                        },
+                    },
+                },
+            },
+            {
+                label = this.i18n("modConfig.label.itemStats"),
+                class = "FilterPage",
+                components = {
+                    {
+                        buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
+                        class = "Button",
+                        inGameOnly = true,
+                        callback = function()
+                            this.funcs.randomizeBaseItems()
+                        end,
+                    },
+                    {
+                        class = "Category",
+                        label = "",
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randItemMeshes"), this.config.data.item, "changeMesh"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.randItemParts"), this.config.data.item, "changeParts"),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.itemStats"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemStats"), this.config.data.item.stats, "randomize"),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.weaponDamageStats"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                                },
+                            },
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.itemEnchantment"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemEnch"), this.config.data.item.enchantment, "randomize"),
+                            createOnOffIngameNegativeButton(this.i18n("modConfig.label.randomizeEffectsFromScrolls"), this.config.data.item.enchantment, "exceptScrolls"),
+                            createOnOffIngameNegativeButton(this.i18n("modConfig.label.randomizeEffectsFromAlchemy"), this.config.data.item.enchantment, "exceptAlchemy"),
+                            createOnOffIngameNegativeButton(this.i18n("modConfig.label.randomizeEffectsFromIngredient"), this.config.data.item.enchantment, "exceptIngredient"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.useExistingEnch"), this.config.data.item.enchantment, "useExisting"),
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.existedEnchValue"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_region(this.config.data.item.enchantment.existing.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_offset(this.config.data.item.enchantment.existing.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.newEnchPower"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.numberOfEnchCasts"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.numberOfCasts, "min", 1, 1, 50, 1, {label = this.i18n("modConfig.label.minVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.numberOfCasts, "max", 1, 1, 50, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.enchCost"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "min", 1, 1, 100, 1, {label = this.i18n("modConfig.label.minVal"),}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "max", 1, 1, 5000, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.enchEffects"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.itemEnchantment"),
+                                        description = "",
+                                        components = {
+                                            createOnOffIngameButton(this.i18n("modConfig.label.safeEnchantmentForConstant"), this.config.data.item.enchantment.effects, "safeMode"),
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "oneTypeChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.oneEnchTypeChance")}),
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxCount", 1, 1, 8, 1, {label = this.i18n("modConfig.label.maxEnchEffCount")}),
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegative", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForConstant")}),
+                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegativeForTarget", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForTarget")}),
+                                        },
+                                    },
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.potionEffNum"),
+                                        description = "",
+                                        components = {
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.alchemyCount, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.alchemyCount, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                        },
+                                    },
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.ingredientEffNum"),
+                                        description = "",
+                                        components = {
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.addNewEnch"),
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.dontAddToScrolls"), this.config.data.item.enchantment.add, "exceptScrolls"),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceAddEnchantment")}),
+                                    {
+                                        class = "Category",
+                                        label = this.i18n("modConfig.label.addedEnchPower"),
+                                        description = "",
+                                        components = {
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.removeEnch"),
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.dontRemoveFromScrolls"), this.config.data.item.enchantment.remove, "exceptScrolls"),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.remove, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceRemoveEnchantment")}),
+                                },
+                            },
                         },
                     },
                 },
@@ -1190,6 +1378,15 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.doNotLockIfNoEnemy"), this.config.data.doors.lock.safeCellMode, "enabled"),
+                                    createSettingsBlock_slider(this.config.data.doors.lock.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
+                                },
+                            },
                         },
                     },
 
@@ -1209,6 +1406,15 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
                                     createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.doors.trap.add, "onlyDestructionSchool"),
+                                },
+                            },
+                            {
+                                class = "Category",
+                                label = "",
+                                description = "",
+                                components = {
+                                    createOnOffIngameButton(this.i18n("modConfig.label.doNotTrapIfNoEnemy"), this.config.data.doors.trap.safeCellMode, "enabled"),
+                                    createSettingsBlock_slider(this.config.data.doors.trap.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
                                 },
                             },
                         },
@@ -1314,6 +1520,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHerbs"), this.config.data.herbs, "randomize"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInventoryForHerb"), this.config.data.herbs, "doNotRandomizeInventory"),
                             createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = this.i18n("modConfig.label.herbSpeciesPerCell")}),
                         },
                     },

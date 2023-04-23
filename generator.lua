@@ -1,73 +1,51 @@
 local log = include("Morrowind_World_Randomizer.log")
+local magicEffectLib = include("Morrowind_World_Randomizer.magicEffect")
+local itemLib = include("Morrowind_World_Randomizer.item")
+local genData = include("Morrowind_World_Randomizer.generatorData")
 
 local this = {}
 
-local forbiddenEffectsIds = { -- for abilities and diseases
-    [14] = true,
-    [15] = true,
-    [16] = true,
-    [22] = true,
-    [23] = true,
-    [24] = true,
-    [25] = true,
-    [26] = true,
-    [27] = true,
-    [132] = true,
-    [133] = true,
-    [135] = true,
-}
+local forbiddenEffectsIds = genData.forbiddenEffectsIds
 
-local forbiddenIds = {
-    ["war_axe_airan_ammu"] = true,
-    ["shadow_shield"] = true,
-    ["bonebiter_bow_unique"] = true,
-    ["heart_of_fire"] = true,
-    ["T_WereboarRobe"] = true,
-    ["WerewolfRobe"] = true,
+local forbiddenIds = genData.forbiddenIds
 
+local forbiddenModels = genData.forbiddenModels
 
-    ["vivec_god"] = true,
-    ["wraith_sul_senipul"] = true,
+local scriptWhiteList = genData.scriptWhiteList
 
-    ["ToddTest"] = true,
+local obtainableArtifacts = genData.obtainableArtifacts
 
-    ["WerewolfHead"] = true,
-}
+local skillByEffectId = genData.skillByEffectId
 
-local forbiddenModels = { -- lowercase
-    ["pc\\f\\pc_help_deprec_01.nif"] = true,
-}
-
-local scriptWhiteList = {
-    ["LegionUniform"] = true,
-    ["OrdinatorUniform"] = true,
-}
-
-local obtainableArtifacts = {["boots_apostle_unique"]=true,["tenpaceboots"]=true,["cuirass_savior_unique"]=true,["dragonbone_cuirass_unique"]=true,["lords_cuirass_unique"]=true,["daedric_helm_clavicusvile"]=true,["ebony_shield_auriel"]=true,["towershield_eleidon_unique"]=true,["spell_breaker_unique"]=true,["ring_vampiric_unique"]=true,["ring_warlock_unique"]=true,["warhammer_crusher_unique"]=true,["staff_hasedoki_unique"]=true,["staff_magnus_unique"]=true,["ebony_bow_auriel"]=true,["longbow_shadows_unique"]=true,["claymore_chrysamere_unique"]=true,["claymore_iceblade_unique"]=true,["longsword_umbra_unique"]=true,["dagger_fang_unique"]=true,["mace of slurring"]=true,["robe_lich_unique"]=true,}
-
-local skillByEffectId = {[0]=11,[1]=11,[2]=11,[3]=11,[4]=11,[5]=11,[6]=11,[7]=11,[8]=11,[9]=11,[10]=11,[11]=11,[12]=11,[13]=11,[14]=10,[15]=10,[16]=10,[17]=10,[18]=10,[19]=10,[20]=10,[21]=10,[22]=10,[23]=10,[24]=10,[25]=10,[26]=10,[27]=10,[28]=10,[29]=10,[30]=10,[31]=10,[32]=10,[33]=10,[34]=10,[35]=10,[36]=10,[37]=10,[38]=10,[39]=12,[40]=12,[41]=12,[42]=12,[43]=12,[44]=12,[45]=12,[46]=12,[47]=12,[48]=12,[49]=12,[50]=12,[51]=12,[52]=12,[53]=14,[54]=12,[55]=12,[56]=12,[57]=14,[58]=14,[59]=14,[60]=14,[61]=14,[62]=14,[63]=14,[64]=14,[65]=14,[66]=14,[67]=14,[68]=14,[69]=15,[70]=15,[71]=15,[72]=15,[73]=15,[74]=15,[75]=15,[76]=15,[77]=15,[78]=15,[79]=15,[80]=15,[81]=15,[82]=15,[83]=15,[84]=15,[85]=14,[86]=14,[87]=14,[88]=14,[89]=14,[90]=15,[91]=15,[92]=15,[93]=15,[94]=15,[95]=15,[96]=15,[97]=15,[98]=15,[99]=15,[100]=15,[101]=13,[102]=13,[103]=13,[104]=13,[105]=13,[106]=13,[107]=13,[108]=13,[109]=13,[110]=13,[111]=13,[112]=13,[113]=13,[114]=13,[115]=13,[116]=13,[117]=15,[118]=13,[119]=13,[120]=13,[121]=13,[122]=13,[123]=13,[124]=13,[125]=13,[126]=13,[127]=13,[128]=13,[129]=13,[130]=13,[131]=13,[132]=10,[133]=10,[134]=13,[135]=10,[136]=10,[137]=nil,[138]=13,[139]=13,[140]=13,}
-
-local herbsOffsets = {["flora_bittergreen_07"]=70,["flora_bittergreen_06"]=40,["flora_bittergreen_08"]=50,["flora_bittergreen_09"]=60,["flora_bittergreen_10"]=50,["flora_sedge_01"]=25,["flora_sedge_02"]=25,["flora_kreshweed_02"]=120,["flora_green_lichen_02"]=0,["flora_green_lichen_01"]=5,["flora_ash_yam_02"]=10,["flora_muckspunge_01"]=80,["flora_kreshweed_01"]=80,["flora_muckspunge_05"]=110,["flora_muckspunge_06"]=100,["flora_muckspunge_02"]=90,["flora_ash_yam_01"]=20,["flora_kreshweed_03"]=90,["flora_muckspunge_04"]=80,["flora_muckspunge_03"]=80,["flora_stoneflower_02"]=45,["flora_marshmerrow_02"]=60,["flora_bc_mushroom_07"]=0,["flora_marshmerrow_03"]=70,["flora_saltrice_01"]=50,["flora_bc_mushroom_06"]=10,["flora_saltrice_02"]=50,["flora_bc_mushroom_05"]=15,["flora_wickwheat_01"]=40,["flora_bc_mushroom_03"]=15,["flora_wickwheat_03"]=20,["flora_wickwheat_04"]=25,["flora_bc_shelffungus_03"]=0,["flora_bc_shelffungus_04"]=0,["flora_bc_shelffungus_02"]=0,["flora_chokeweed_02"]=100,["flora_roobrush_02"]=30,["flora_marshmerrow_01"]=70,["flora_wickwheat_02"]=20,["flora_bc_mushroom_01"]=15,["flora_bc_shelffungus_01"]=0,["flora_stoneflower_01"]=40,["flora_plant_05"]=30,["flora_black_lichen_02"]=5,["flora_plant_02"]=30,["flora_black_lichen_01"]=5,["flora_plant_03"]=20,["flora_plant_06"]=30,["flora_plant_08"]=-10,["flora_plant_07"]=5,["flora_fire_fern_01"]=30,["flora_fire_fern_03"]=20,["flora_black_anther_02"]=20,["flora_bc_podplant_01"]=10,["flora_fire_fern_02"]=20,["flora_bc_podplant_02"]=10,["flora_heather_01"]=5,["flora_rm_scathecraw_02"]=70,["flora_comberry_01"]=50,["flora_rm_scathecraw_01"]=100,["flora_bc_mushroom_02"]=15,["flora_bc_mushroom_04"]=15,["flora_bc_mushroom_08"]=10,["flora_plant_04"]=20,["flora_bc_fern_01"]=70,["flora_black_anther_01"]=50,["flora_gold_kanet_01"]=30,["flora_bm_belladonna_01"]=30,["flora_corkbulb"]=0,["flora_bm_belladonna_02"]=30,["flora_gold_kanet_02"]=30,["flora_bittergreen_01"]=60,["flora_bm_holly_02"]=160,["flora_bm_holly_04"]=160,["flora_bm_holly_01"]=160,["flora_bm_holly_05"]=160,["flora_gold_kanet_02_uni"]=30,["flora_bm_belladonna_03"]=30,["flora_bm_wolfsbane_01"]=25,["tramaroot_04"]=40,["flora_bittergreen_04"]=20,["tramaroot_05"]=30,["flora_bittergreen_05"]=50,["tramaroot_03"]=45,["flora_bittergreen_02"]=50,["tramaroot_02"]=85,["flora_willow_flower_01"]=40,["flora_willow_flower_02"]=30,["flora_bittergreen_03"]=80,["contain_trama_shrub_05"]=140,["contain_trama_shrub_01"]=120,["flora_bc_podplant_03"]=10,["flora_bc_podplant_04"]=10,["flora_red_lichen_01"]=5,["flora_red_lichen_02"]=5,["flora_hackle-lo_02"]=20,["flora_hackle-lo_01"]=20,["contain_trama_shrub_02"]=140,["tramaroot_01"]=50,["contain_trama_shrub_03"]=70,["contain_trama_shrub_04"]=120,["contain_trama_shrub_06"]=120,["kollop_01_pearl"]=5,["kollop_02_pearl"]=5,["kollop_03_pearl"]=5,}
+local herbsOffsets = genData.herbsOffsets
 
 local function addItemTable(out, objectTypeStr, objectSubTypeStr)
     if not out.ItemGroups[objectTypeStr] then out.ItemGroups[objectTypeStr] = {} end
     if not out.ItemGroups[objectTypeStr][objectSubTypeStr] then
-        out.ItemGroups[objectTypeStr][objectSubTypeStr] = {Count = 0, Items = {}}
+        out.ItemGroups[objectTypeStr][objectSubTypeStr] = {Count = 0, MaxCost = 0, MaxEnchCost = 0, Items = {}}
     end
 end
 
-local function addItemToTable(out, objectId, objectTypeId, objectSubTypeId, isArtifact)
+local function addItemToTable(out, object, objectTypeId, objectSubTypeId, isArtifact)
+    local objectId = object.id
     local objectTypeStr = mwse.longToString(objectTypeId)
     local objectSubTypeStr = tostring(objectSubTypeId)
     addItemTable(out, objectTypeStr, objectSubTypeStr)
     local gr = out.ItemGroups[objectTypeStr][objectSubTypeStr]
     gr.Count = gr.Count + 1
-    out.Items[objectId:lower()] = {Type = objectTypeStr, SubType = objectSubTypeStr, Position = gr.Count, IsArtifact = isArtifact}
+    local enchCost = itemLib.getEnchantPower(object.enchantment)
+    gr.MaxEnchCost = math.max(gr.MaxEnchCost, enchCost)
+    local cost = object.value or 0
+    gr.MaxCost = math.max(gr.MaxCost, cost)
+    out.Items[objectId:lower()] = {EnchCost = enchCost, Cost = cost, Type = objectTypeStr, SubType = objectSubTypeStr,
+        Position = gr.Count, IsArtifact = isArtifact}
     table.insert(gr.Items, objectId)
     if isArtifact == true then
         addItemTable(out, "ARTF", "0")
         local agr = out.ItemGroups["ARTF"]["0"]
         agr.Count = agr.Count + 1
+        agr.MaxEnchCost = math.max(gr.MaxEnchCost, enchCost)
+        agr.MaxCost = math.max(gr.MaxCost, object.value or 0)
         table.insert(agr.Items, objectId)
     end
 end
@@ -88,16 +66,12 @@ function this.fillItems()
 
     log("Item list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
-        if object ~= nil and not object.deleted and items.data[object.objectType] ~= nil and object.name ~= nil and object.name ~= "" and
-                not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and (object.icon == nil or object.icon ~= "default icon.dds") and
-                object.weight > 0 and not forbiddenModels[(object.mesh or "err"):lower()] then
-
-            if (object.script == nil or scriptWhiteList[object.script.id]) then
-                table.insert(items.data[object.objectType], object)
-            end
-
+        if items.data[object.objectType] ~= nil and genData.checkRequirementsForItem(object) and
+                (object.script == nil or scriptWhiteList[object.script.id]) and object.weight > 0 then
+            table.insert(items.data[object.objectType], object)
         end
     end
+
     for objType, data in pairs(items.data) do
         table.sort(data, function(a, b) return a.value < b.value end)
     end
@@ -112,7 +86,7 @@ function this.fillItems()
         end
 
         if object.enchantment ~= nil or object.skill ~= -1 then
-            addItemToTable(out, object.id, tes3.objectType.book, objSubType)
+            addItemToTable(out, object, tes3.objectType.book, objSubType)
         end
     end
     for typeId, data in pairs(items.data) do
@@ -133,10 +107,10 @@ function this.fillItems()
                         end
                     end
                     if not forbidden then
-                        addItemToTable(out, object.id, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
+                        addItemToTable(out, object, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
                     end
                 else
-                    addItemToTable(out, object.id, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
+                    addItemToTable(out, object, typeId, objSubType, obtainableArtifacts[object.id:lower()] == true)
                 end
             end
         end
@@ -162,7 +136,7 @@ function this.fillCreatures()
                 (object.script == nil or scriptWhiteList[object.script.id] or string.find(object.script.id, "^disease[A-Z].+")) and
                 not string.find(idLow, "kwama queen_") and not string.find(idLow, ".+_summon") and
                 not forbiddenIds[object.id] and object.name ~= "<Deprecated>" and object.health > 0 and
-                not forbiddenModels[(object.mesh or "err"):lower()] then
+                object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and not forbiddenModels[object.mesh:lower()] then
 
             local objSubType = object.type
             if object.swims then
@@ -202,7 +176,8 @@ function this.fillHeadsHairs()
     log("Bodypart list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.bodyPart and not object.deleted and object.raceName and
-                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and not forbiddenModels[(object.mesh or "err"):lower()] and
+                object.partType == tes3.activeBodyPartLayer.base and object.part <= 1 and
+                object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and not forbiddenModels[object.mesh:lower()] and
                 not forbiddenIds[object.id] then
 
             local raceLow = object.raceName:lower()
@@ -246,8 +221,8 @@ function this.fillSpells()
             local baseCost = 0
             local effectCount = 0
             for _, effect in pairs(object.effects) do
-                if effect.id > 0 then
-                    baseCost = baseCost + effect.cost
+                if effect.id >= 0 then
+                    baseCost = baseCost + magicEffectLib.calculateEffectCost(effect)
                     effectCount = effectCount + 1
                 end
             end
@@ -318,7 +293,8 @@ function this.fillHerbs()
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object ~= nil and object.objectType == tes3.objectType.container and (object.script == nil or scriptWhiteList[object.script.id]) and
                 not object.deleted and object.organic and object.respawns and object.capacity < 5 and
-                not string.find(object.id, "^T_Mw_Mine+") and not forbiddenModels[(object.mesh or "err"):lower()] then
+                not string.find(object.id, "^T_Mw_Mine+") and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
+                not forbiddenModels[object.mesh:lower()] then
 
             table.insert(data, object)
         end
@@ -370,25 +346,27 @@ function this.fingLandTextures()
     local out = {Textures = {}, Groups = {}}
     local count = 0
     for _, texture in pairs(tes3.dataHandler.nonDynamicData.landTextures) do
-        local textureType = 0
-        if (texture.id:find("road") or texture.id:find("ash_04") or texture.id:find("mudflats_01") or
-                texture.id:find("ma_crackedearth")) then
-            textureType = 9
-        elseif (texture.id:find("ice")) then textureType = 10
-        elseif (texture.id:find("grass") or texture.id:find("clover") or texture.id:find("scrub")) then textureType = 1
-        elseif (texture.id:find("sand")) then textureType = 2
-        elseif (texture.id:find("rock") or texture.id:find("stone")) then textureType = 6
-        elseif (texture.id:find("dirt") or texture.id:find("mud") or texture.id:find("muck")) then textureType = 3
-        -- elseif (texture.id:find("snow")) then textureType = 4
-        elseif (texture.id:find("ash")) then textureType = 5
-        elseif (texture.id:find("gravel")) then textureType = 7
-        elseif (texture.id:find("lava")) then textureType = 8
-        end
+        if texture.filename and tes3.getFileSource("Textures\\"..texture.filename) then
+            local textureType = 0
+            if (texture.id:find("road") or texture.id:find("ash_04") or texture.id:find("mudflats_01") or
+                    texture.id:find("ma_crackedearth")) then
+                textureType = 9
+            elseif (texture.id:find("ice")) then textureType = 10
+            elseif (texture.id:find("grass") or texture.id:find("clover") or texture.id:find("scrub")) then textureType = 1
+            elseif (texture.id:find("sand")) then textureType = 2
+            elseif (texture.id:find("rock") or texture.id:find("stone")) then textureType = 6
+            elseif (texture.id:find("dirt") or texture.id:find("mud") or texture.id:find("muck")) then textureType = 3
+            -- elseif (texture.id:find("snow")) then textureType = 4
+            elseif (texture.id:find("ash")) then textureType = 5
+            elseif (texture.id:find("gravel")) then textureType = 7
+            elseif (texture.id:find("lava")) then textureType = 8
+            end
 
-        out.Textures[texture.index] = {Type = textureType}
-        if out.Groups[textureType] == nil then out.Groups[textureType] = {} end
-        table.insert(out.Groups[textureType], texture.index)
-        count = count + 1
+            out.Textures[texture.index] = {Type = textureType}
+            if out.Groups[textureType] == nil then out.Groups[textureType] = {} end
+            table.insert(out.Groups[textureType], texture.index)
+            count = count + 1
+        end
     end
     log("Land testures list generation Count = %i", count)
     return out

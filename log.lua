@@ -7,8 +7,10 @@ else
     logging = true
 end
 local label = "[Morrowind World Randomizer] "
-return function(str, ...)
-    if logging then
+if logging then
+    return function(str, ...)
         mwse.log(label.."["..tostring(os.time()).."] "..str, ...)
     end
+else
+    return function() end
 end
