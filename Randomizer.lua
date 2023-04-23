@@ -144,6 +144,7 @@ function this.restoreBaseInitialItemData()
 end
 
 function this.randomizeBaseItems()
+    this.restoreBaseInitialItemData()
     itemLib.resetItemStorage()
     needToRestoreInitialItems = true
     itemLib.randomizeItems(itemLibData)
