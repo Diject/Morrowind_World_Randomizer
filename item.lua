@@ -647,7 +647,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                         random.GetBetween(this.config.item.enchantment.region.min, this.config.item.enchantment.region.max)
                     local enchType = object.objectType == tes3.objectType.weapon and tes3.enchantmentType.onStrike or math.random(2, 3)
                     local usedOnce = false
-                    if object.objectType == tes3.objectType.weapon then
+                    if object.objectType == tes3.objectType.weapon or object.objectType == tes3.objectType.ammunition then
                         if object.isProjectile or object.isAmmo then
                             enchType = tes3.enchantmentType.onStrike
                             usedOnce = true
@@ -813,6 +813,19 @@ function this.generateData()
         local meshList = {}
         for mesh, _ in pairs(meshes) do
             table.insert(meshList, mesh)
+        end
+        if objType == tes3.objectType.ammunition then
+            if out.itemGroup[tes3.objectType.weapon] then
+                for _, mesh in pairs(out.itemGroup[tes3.objectType.weapon].meshes) do
+                    table.insert(meshList, mesh)
+                end
+            end
+        elseif objType == tes3.objectType.weapon then
+            if out.itemGroup[tes3.objectType.ammunition] then
+                for mesh, _ in pairs(meshList) do
+                    table.insert(out.itemGroup[tes3.objectType.ammunition].meshes, mesh)
+                end
+            end
         end
         table.sort(enchantVals)
         out.itemGroup[objType] = {
