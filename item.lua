@@ -323,7 +323,7 @@ function this.randomizeEffects(effects, effData, config)
             end
 
             local iteration = 0
-            while (((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal and strongThreshold) or effectUniqueness[effectId]) and iteration < 20 do
+            while ((((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal) and strongThreshold) or effectUniqueness[effectId]) and iteration < 20 do
                 iteration = iteration + 1
                 effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
                     effectLib.effectsData.forbiddenForConstantType or {}) or -1
@@ -697,7 +697,6 @@ end
 function this.randomizeBaseItemVisuals(item, itemsData, meshesData)
     if item.mesh and this.config.item.changeMesh then
         local mesh = meshesData[math.random(1, #meshesData)]
-        log("Item mesh %s %s", tostring(item), tostring(mesh))
         item.mesh = mesh
     end
     if item.parts and this.config.item.changeParts then
@@ -792,6 +791,8 @@ function this.generateData()
     for objType, data in pairs(items) do
         table.sort(data, function(a, b) return a.value < b.value end)
         local meshes = {}
+        local bowMeshes = {}
+        local crossbowMeshes = {}
         local enchantVals = {0,}
         local enchValData = {}
         for i, item in pairs(data) do
@@ -807,23 +808,33 @@ function this.generateData()
             end
 
             if item.mesh and tes3.getFileSource("meshes\\"..item.mesh) then
-                meshes[item.mesh] = true
+                if objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanBow then
+                    bowMeshes[item.mesh] = true
+                elseif objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanCrossbow then
+                    crossbowMeshes[item.mesh] = true
+                else
+                    meshes[item.mesh] = true
+                end
             end
         end
         local meshList = {}
         for mesh, _ in pairs(meshes) do
             table.insert(meshList, mesh)
         end
+        local bowMeshList = {}
+        for mesh, _ in pairs(bowMeshes) do
+            table.insert(bowMeshList, mesh)
+        end
+        local crossbowMeshList = {}
+        for mesh, _ in pairs(crossbowMeshes) do
+            table.insert(crossbowMeshList, mesh)
+        end
         if objType == tes3.objectType.ammunition then
-            if out.itemGroup[tes3.objectType.weapon] then
-                for _, mesh in pairs(out.itemGroup[tes3.objectType.weapon].meshes) do
-                    table.insert(meshList, mesh)
-                end
-            end
-        elseif objType == tes3.objectType.weapon then
-            if out.itemGroup[tes3.objectType.ammunition] then
-                for mesh, _ in pairs(meshList) do
-                    table.insert(out.itemGroup[tes3.objectType.ammunition].meshes, mesh)
+            local types = {[tes3.weaponType["arrow"]] = true, [tes3.weaponType["axeTwoHand"]] = true, [tes3.weaponType["bluntTwoWide"]] = true,
+                [tes3.weaponType["spearTwoWide"]] = true,}
+            for i, item in pairs(items[tes3.objectType.weapon]) do
+                if item.mesh and types[item.type] and tes3.getFileSource("meshes\\"..item.mesh) then
+                    table.insert(meshList, item.mesh)
                 end
             end
         end
@@ -835,6 +846,7 @@ function this.generateData()
             enchant90 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.9)] or 0),
             enchant95 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.95)] or 0),
             value90 = data[math.floor(#data * 0.9)].value,
+            bowMeshes = #bowMeshList > 0 and bowMeshList or nil, crossbowMeshes = #crossbowMeshList > 0 and crossbowMeshList or nil,
         }
     end
 
@@ -969,7 +981,15 @@ function this.randomizeItems(itemsData)
                 local enchVal = data.enchantValues[item.id]
                 local mul = (i / count) ^ this.config.item.enchantment.powMul
                 local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
-                this.randomizeBaseItemVisuals(item, itemsData, data.meshes)
+                local meshes = data.meshes
+                if itType == tes3.objectType.weapon then
+                    if item.type == tes3.weaponType.marksmanBow and data.bowMeshes then
+                        meshes = data.bowMeshes
+                    elseif item.type == tes3.weaponType.marksmanCrossbow and data.crossbowMeshes then
+                        meshes = data.crossbowMeshes
+                    end
+                end
+                this.randomizeBaseItemVisuals(item, itemsData, meshes)
                 this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant95)
                 local itemData = this.serializeBaseObject(item)
                 if plData and itemData then
