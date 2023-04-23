@@ -1046,14 +1046,14 @@ function this.saveAndRestoreBaseObjectInitialData(object, data)
     end
 end
 
-function this.restoreAllBaseInitialData(data)
+function this.restoreAllBaseInitialData(data, clear)
     local dt = data ~= nil and data or actorObjectsInitialData
     for id, objData in pairs(dt) do
         local object = tes3.getObject(id)
         if object then
             this.setBaseObjectData(object, objData)
         end
-        dt[id] = nil
+        if clear then dt[id] = nil end
     end
 end
 

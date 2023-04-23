@@ -179,7 +179,7 @@ local function cellActivated(e)
 end
 
 local function load(e)
-    randomizer.restoreAllBaseInitialData()
+    randomizer.restoreAllBaseInitialData(nil, true)
     randomizer.restoreBaseInitialItemData()
     randomizer.config.resetConfig()
 end
@@ -193,7 +193,7 @@ local function loaded(e)
         local playerData = dataSaver.getObjectData(tes3.player)
         if playerData then
             if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-            randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects)
+            randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects, false)
         end
         if mge.enabled() then
             if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.render.distantStatics then
