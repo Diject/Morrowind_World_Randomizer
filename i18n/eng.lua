@@ -294,4 +294,5 @@ return {
     ["modConfig.label.minFightToBeEnemy"] = "Minimum fight value to be considered an enemy",
 
     ["modConfig.label.fortifyForSelfChance"] = "Chance to add a fortify type effect to an \"on self\" enchantment",
+    ["modConfig.label.damageForTargetChance"] = "Chance to add a damage type effect to an \"on target/touch\" enchantment",
 }

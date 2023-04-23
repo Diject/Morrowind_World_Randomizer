@@ -220,7 +220,7 @@ this.default = {
             negative = {
                 add = {
                     chance = 1,
-                    count = 0,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
@@ -271,7 +271,7 @@ this.default = {
             randomize = false,
             region = {min = 0.1, max = 0.1},
             add = {
-                chance = 0.05,
+                chance = 0.1,
                 count = 1,
             },
         },
@@ -330,7 +330,7 @@ this.default = {
             negative = {
                 add = {
                     chance = 1,
-                    count = 0,
+                    count = 1,
                     region = {min = 0, max = 100},
                 },
             },
@@ -522,21 +522,17 @@ if true then
     preset.creatures.attack.region.min = 1.75
     preset.creatures.spells.add.count = 20
     preset.creatures.spells.add.levelReference = 1
-    preset.creatures.abilities.add.chance = 0.25
-    preset.creatures.abilities.add.count = 4
     preset.creatures.diseases.add.count = 4
-    preset.creatures.effects.positive.add.count = 4
+    preset.creatures.effects.positive.add.count = 2
     preset.creatures.effects.negative.add.count = 1
     preset.creatures.ai.fight.region.min = 0
     preset.creatures.ai.fight.region.max = 1
 
     preset.NPCs.spells.add.count = 5
     preset.NPCs.spells.add.levelReference = 1
-    preset.NPCs.abilities.add.chance = 0.25
-    preset.NPCs.abilities.add.count = 4
     preset.NPCs.diseases.add.count = 4
     preset.NPCs.head.genderLimit = false
-    preset.NPCs.effects.positive.add.count = 4
+    preset.NPCs.effects.positive.add.count = 2
     preset.NPCs.effects.negative.add.count = 1
     preset.NPCs.ai.fight.region.min = 0.2
     preset.NPCs.ai.fight.region.max = 0.2
@@ -544,7 +540,7 @@ if true then
     preset.transport.unrandomizedCount = 0
     preset.transport.toDoorsCount = 1
 
-    preset.doors.nearestCellDepth = 4
+    preset.doors.nearestCellDepth = 3
     preset.doors.chance = 0.4
     preset.doors.trap.safeCellMode.enabled = false
 

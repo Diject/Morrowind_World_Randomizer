@@ -62,6 +62,14 @@ function this.iterItems(inventory)
     return coroutine.wrap(iterator)
 end
 
+function this.isEnchantContainsForbiddenEffect(enchant)
+    if not enchant or not enchant.effects then return end
+    for i, eff in pairs(enchant.effect) do
+        if effectLib.effectsData.forbiddenForConstantType[eff.id] then return true end
+    end
+    return false
+end
+
 function this.getEffectsPower(effects)
     local enchVal = 0
     if effects then
@@ -278,6 +286,7 @@ local function chooseGroup(enchType, isConstant)
 end
 
 local fortifyEffectIds = {79, 80, 81, 82, 83, 84}
+local damageEffectIds = {14, 15, 16, 23,}
 
 function this.randomizeEffects(effects, effData, config)
     local effCount = effData.effectCount
@@ -317,6 +326,8 @@ function this.randomizeEffects(effects, effData, config)
             local effectId
             if not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
                 effectId = fortifyEffectIds[math.random(1, #fortifyEffectIds)]
+            elseif isNegative and rangeType ~= tes3.effectRange.self and config.enchantment.effects.damageForTargetChance > math.random() then
+                effectId = damageEffectIds[math.random(1, #damageEffectIds)]
             else
                 effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
                     effectLib.effectsData.forbiddenForConstantType or {}) or -1
@@ -684,6 +695,10 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                             local pos = random.GetRandom(itemPos, #group.Items,
                                 this.config.item.enchantment.existing.region.min, this.config.item.enchantment.existing.region.max)
                             newEnch = tes3.getObject(group.Items[pos] or "err")
+                            if enchType == tes3.enchantmentType.constant and this.config.item.enchantment.effects.safeMode and
+                                    this.isEnchantContainsForbiddenEffect(newEnch) then
+                                newEnch = nil
+                            end
                         end
                     else
                         newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, this.config.item)
