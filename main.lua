@@ -187,14 +187,15 @@ end
 local function loaded(e)
     randomizer.config.getConfig()
     randomizer.genNonStaticData()
+    randomizer.restoreItems()
+    local playerData = dataSaver.getObjectData(tes3.player)
+    if playerData then
+        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+        randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects, false)
+        randomizer.addBaseInitialData(playerData.randomizedBaseObjects)
+    end
 
     if randomizer.config.getConfig().enabled then
-        randomizer.restoreItems()
-        local playerData = dataSaver.getObjectData(tes3.player)
-        if playerData then
-            if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-            randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects, false)
-        end
         if mge.enabled() then
             if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.render.distantStatics then
                 mge.render.distantStatics = false
