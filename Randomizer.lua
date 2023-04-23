@@ -951,6 +951,13 @@ end
 
 local actorObjectsInitialData = {}
 
+function this.addBaseInitialData(data)
+    if not data then return end
+    for id, dt in pairs(data) do
+        actorObjectsInitialData[id] = dt
+    end
+end
+
 function this.getBaseObjectData(object)
     local data = {spells = {}}
 
@@ -982,15 +989,15 @@ function this.getBaseObjectData(object)
         data.head = object.head.id
     end
 
-    if not actorObjectsInitialData[object.id] then
-        actorObjectsInitialData[object.id] = data
-    end
-
     return data
 end
 
 function this.setBaseObjectData(object, data)
     if data == nil or object == nil then return nil end
+
+    if not actorObjectsInitialData[object.id] then
+        actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
+    end
 
     if data.spells then
         for i, spell in pairs(object.spells) do
