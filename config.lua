@@ -424,6 +424,9 @@ this.default = {
         stats = {
             randomize = true,
             region = {min = 0.75, max = 1.25},
+            weapon = {
+                region = {min = 0.75, max = 1.25},
+            },
         },
         enchantment = {
             randomize = true,
@@ -438,7 +441,7 @@ this.default = {
             powMul = 0.65,
             numberOfCasts = {min = 2, max = 10},
             cost = {min = 5, max = 800},
-            minMaximumGroupCost = 150,
+            minMaximumGroupCost = 100,
             effects = {
                 tuneStepsCount = 30,
                 safeMode = true,
@@ -459,6 +462,7 @@ this.default = {
                 maxRadius = 30,
                 maxMagnitude = 100,
                 fortifyForSelfChance = 0.4,
+                damageForTargetChance = 0.25,
             },
             add = {
                 chance = 0.5,

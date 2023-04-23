@@ -611,8 +611,17 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemStats"), this.config.data.item.stats, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "min", 100, 1, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
-                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "max", 100, 1, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            {
+                                class = "Category",
+                                label = this.i18n("modConfig.label.weaponDamageStats"),
+                                description = "",
+                                components = {
+                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                                },
+                            },
                         },
                     },
                     {

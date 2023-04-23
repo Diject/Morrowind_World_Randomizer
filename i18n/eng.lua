@@ -228,8 +228,9 @@ return {
     ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
 
     ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
-    ["modConfig.label.itemStats"] = "Item stats",
-    ["modConfig.label.randomizeItemStats"] = "Randomize item stats",
+    ["modConfig.label.itemStats"] = "Item attributes",
+    ["modConfig.label.randomizeItemStats"] = "Randomize item attributes",
+    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage attributes",
     ["modConfig.label.itemEnchantment"] = "Item enchantments",
     ["modConfig.label.randomizeItemEnch"] = "Randomize the enchantment on an item of equipment",
     ["modConfig.label.numberOfEnchCasts"] = "The number of times you can cast an enchantment",
@@ -254,9 +255,9 @@ return {
     ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
     ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
 
-    ["modConfig.message.randItemStats"] = "Do you want to randomize item stats (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.message.randItemStats"] = "Do you want to randomize item attributes (e.g. weight, price, enchantment, etc.) and item models?",
     ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
-    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
+    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only attributes",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
     ["modConfig.label.randBaseItemAll"] = "Randomize all",
 

@@ -58,10 +58,10 @@ end
 local function randomizeActor(reference)
     local playerData = dataSaver.getObjectData(tes3.player)
 
-    if playerData then
-        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-        playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
-    end
+    -- if playerData then
+    --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+    --     playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
+    -- end
 
     if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
         randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
@@ -186,10 +186,15 @@ end
 
 local function loaded(e)
     randomizer.config.getConfig()
-    randomizer.restoreItems()
     randomizer.genNonStaticData()
 
     if randomizer.config.getConfig().enabled then
+        randomizer.restoreItems()
+        local playerData = dataSaver.getObjectData(tes3.player)
+        if playerData then
+            if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+            randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects)
+        end
         if mge.enabled() then
             if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.render.distantStatics then
                 mge.render.distantStatics = false

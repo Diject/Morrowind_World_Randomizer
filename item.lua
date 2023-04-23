@@ -499,7 +499,11 @@ end
 local objLastRand = {}
 
 --cannot randomise more than once every 2 seconds for an object
-function this.randomizeStats(object, minMul, maxMul)
+function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
+    if not minMul then minMul = this.config.item.stats.region.min end
+    if not maxMul then maxMul = this.config.item.stats.region.max end
+    if not weaponMin then weaponMin = this.config.item.stats.weapon.region.min end
+    if not weaponMax then weaponMax = this.config.item.stats.weapon.region.max end
     if object then
         local time = objLastRand[object.id]
         if not time then
@@ -512,7 +516,7 @@ function this.randomizeStats(object, minMul, maxMul)
     end
     local intVars = {"enchantCapacity", "armorRating", "maxCondition"}
     local floatVars_p = {"quality", "time"}
-    local floatVars_n = {"speed", "weight"}
+    local floatVars_n = {"weight"}
     log("Item stats id %s", tostring(object))
     if object.value then
         object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))) or
@@ -539,21 +543,24 @@ function this.randomizeStats(object, minMul, maxMul)
             log("%s %s", var, tostring(object[var]))
         end
     end
+    if object.speed then
+        object.speed = math.max(0, object.speed * random.GetBetweenForMulDiv(weaponMin, weaponMax))
+    end
     if object.chopMin then
-        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetweenForMulDiv(minMul, maxMul)))
-        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.chopMax < object.chopMin then object.chopMax = object.chopMin end
         log("chop %s %s", tostring(object.chopMin), tostring(object.chopMax))
     end
     if object.slashMin then
-        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetweenForMulDiv(minMul, maxMul)))
-        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.slashMax < object.slashMin then object.slashMax = object.slashMin end
         log("slash %s %s", tostring(object.slashMin), tostring(object.slashMax))
     end
     if object.thrustMin then
-        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetweenForMulDiv(minMul, maxMul)))
-        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetweenForMulDiv(minMul, maxMul)))
+        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.thrustMax < object.thrustMin then object.thrustMax = object.thrustMin end
         log("thrust %s %s", tostring(object.thrustMin), tostring(object.thrustMax))
     end
