@@ -324,40 +324,16 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
         local config = this.config.data
         local newItems = {}
         local oldItems = {}
-        local itemCountByType = {}
+        local artifacts = {}
 
         for stack, item, count, itemData in itemLib.iterItems(reference.baseObject.inventory) do
-
             if item.id ~= nil then
                 local itemId = item.id:lower()
                 local itemAdvData = itemsData.Items[itemId]
                 if itemAdvData ~= nil then
-
-                    local itemCountByTypeId = itemAdvData.Type..itemAdvData.SubType
-                    itemCountByType[itemCountByTypeId] = (itemCountByType[itemCountByTypeId] or 0) + 1
-                    local newItemId
-
-                    if config.other.randomizeArtifactsAsSeparateCategory ~= true or itemAdvData.IsArtifact ~= true then
-                        local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
-                        newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count, regionMin, regionMax)]
-                    else
-                        local data = dataSaver.getObjectData(tes3.player)
-                        if data then
-                            if data.unfoundArtifacts == nil or #data.unfoundArtifacts == 0 then
-                                data.unfoundArtifacts = {}
-                                for _, id in pairs(itemsData.ItemGroups["ARTF"]["0"].Items) do
-                                    table.insert(data.unfoundArtifacts, id)
-                                end
-                            end
-                            local idInList = math.random(1, #data.unfoundArtifacts)
-                            newItemId = data.unfoundArtifacts[idInList]
-                            table.remove(data.unfoundArtifacts, idInList)
-                        end
-                        this.StopRandomization(reference)
+                    if config.other.randomizeArtifactsAsSeparateCategory == true and itemAdvData.IsArtifact == true then
+                        artifacts[itemId] = true
                     end
-
-                    table.insert(newItems, {id = newItemId, count = count, itemData = itemData})
-
                 end
             end
         end
@@ -369,15 +345,27 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
                 local itemAdvData = itemsData.Items[itemId]
                 if itemAdvData ~= nil then
 
-                    local itemCountByTypeId = itemAdvData.Type..itemAdvData.SubType
-                    if itemCountByType[itemCountByTypeId] == nil or itemCountByType[itemCountByTypeId] == 0 then
+                    if artifacts[itemId] == nil then
                         local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
                         local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count, regionMin, regionMax)]
                         table.insert(newItems, {id = newItemId, count = count, itemData = itemData})
                         table.insert(oldItems, {id = item.id, count = count})
                     else
-                        itemCountByType[itemCountByTypeId] = itemCountByType[itemCountByTypeId] - 1
-                        table.insert(oldItems, {id = item.id, count = count})
+                        local data = dataSaver.getObjectData(tes3.player)
+                        if data then
+                            if data.unfoundArtifacts == nil or #data.unfoundArtifacts == 0 then
+                                data.unfoundArtifacts = {}
+                                for _, id in pairs(itemsData.ItemGroups["ARTF"]["0"].Items) do
+                                    table.insert(data.unfoundArtifacts, id)
+                                end
+                            end
+                            local idInList = math.random(1, #data.unfoundArtifacts)
+                            local newItemId = data.unfoundArtifacts[idInList]
+                            table.remove(data.unfoundArtifacts, idInList)
+                            table.insert(newItems, {id = newItemId, count = count, itemData = itemData})
+                            table.insert(oldItems, {id = item.id, count = count})
+                        end
+                        this.StopRandomization(reference)
                     end
 
                 elseif stack.object.isGold and config.gold.randomize then
