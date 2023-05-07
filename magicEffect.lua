@@ -101,4 +101,31 @@ function this.calculateEffectCostForConstant(effect)
     return ((effect.min + effect.max) * 100 + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
 end
 
+function this.getEffectsPower(effects)
+    local enchVal = 0
+    if effects then
+        for _, effect in pairs(effects) do
+            if effect.id >= 0 then
+                enchVal = enchVal + this.calculateEffectCost(effect)
+            end
+        end
+    end
+    return enchVal
+end
+
+function this.getEnchantPower(enchantment)
+    local enchVal = 0
+    if enchantment then
+        local calcFunc = enchantment.castType == tes3.enchantmentType.constant and this.calculateEffectCostForConstant or
+            this.calculateEffectCost
+        for _, effect in pairs(enchantment.effects) do
+            if effect.id >= 0 then
+                enchVal = enchVal + calcFunc(effect)
+            end
+        end
+        enchVal = enchVal
+    end
+    return enchVal
+end
+
 return this

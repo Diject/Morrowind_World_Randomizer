@@ -8,6 +8,8 @@ local log = include("Morrowind_World_Randomizer.log")
 local generator = include("Morrowind_World_Randomizer.generator")
 local itemLib = include("Morrowind_World_Randomizer.item")
 local presetMenu = include("Morrowind_World_Randomizer.presetMenu")(i18n)
+local storage = include("Morrowind_World_Randomizer.storage")
+local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
@@ -32,12 +34,14 @@ local function forcedActorRandomization(reference)
         local playerData = dataSaver.getObjectData(tes3.player)
         randomizer.randomizeMobileActor(mobile)
         randomizer.randomizeScale(reference)
-        if playerData then
-            if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-            randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject, playerData.randomizedBaseObjects)
-        end
+        -- if playerData then
+        --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+        --     randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject, playerData.randomizedBaseObjects)
+        -- end
+        -- storage.saveOrRestoreInitialActor(mobile.object.baseObject)
         randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
-        randomizer.randomizeBody(reference)
+        -- storage.saveActor(mobile.object.baseObject)
+
         local configGroup
         if reference.object.objectType == tes3.objectType.npc then
             configGroup = randomizer.config.data.NPCs
@@ -52,6 +56,7 @@ local function forcedActorRandomization(reference)
         else
             randomizer.StopRandomizationTemp(reference)
         end
+        reference:updateEquipment()
     end
 end
 
@@ -59,20 +64,21 @@ local function randomizeActor(reference)
     local playerData = dataSaver.getObjectData(tes3.player)
 
     if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
-        randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
-        reference:updateEquipment()
+        -- randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
+        -- saveRestore.restoreActorBaseObject(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
+        -- reference:updateEquipment()
     end
 
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
-
         forcedActorRandomization(reference)
-
+    else
+        reference:updateEquipment()
     end
 
-    if playerData then
-        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-        playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
-    end
+    -- if playerData then
+    --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
+    --     playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
+    -- end
 end
 
 local function randomizeCellOnly(cell)
@@ -179,21 +185,26 @@ local function cellActivated(e)
 end
 
 local function load(e)
-    randomizer.restoreAllBaseInitialData(nil, true)
-    randomizer.restoreBaseInitialItemData()
+    storage.restoreAllActors(true)
+    storage.restoreAllItems(true)
+    -- randomizer.restoreAllBaseInitialData()
+    -- randomizer.restoreBaseInitialItemData()
     randomizer.config.resetConfig()
+
+    if not e.newGame then
+        if storage.loadFromFile(e.filename) then
+            storage.restoreAllItems()
+            storage.restoreAllActors()
+        end
+    end
 end
 
 local function loaded(e)
     randomizer.config.getConfig()
     randomizer.genNonStaticData()
-    randomizer.restoreItems()
-    local playerData = dataSaver.getObjectData(tes3.player)
-    if playerData then
-        if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-        randomizer.restoreAllBaseInitialData(playerData.randomizedBaseObjects, false)
-        randomizer.addBaseInitialData(playerData.randomizedBaseObjects)
-    end
+    randomizer.restoreItems() -- required for compatibility
+
+    randomizer.restoreAllBaseActorData() -- required for compatibility
 
     if randomizer.config.getConfig().enabled then
         if mge.enabled() then

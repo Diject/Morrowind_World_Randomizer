@@ -3,6 +3,7 @@ local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local random = include("Morrowind_World_Randomizer.Random")
 local light = include("Morrowind_World_Randomizer.light")
 local itemLib = include("Morrowind_World_Randomizer.item")
+local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
@@ -20,6 +21,7 @@ local itemLibData = nil
 local this = {}
 
 this.config = include("Morrowind_World_Randomizer.config")
+this.storage = include("Morrowind_World_Randomizer.storage")
 this.doors = include("Morrowind_World_Randomizer.doorRandomizer")
 this.doors.initConfig(this.config)
 
@@ -123,14 +125,15 @@ function this.saveBaseInitialItemData()
     baseInitialItemData = {}
     if not itemLibData then return end
 
-    for itType, data in pairs(itemLibData.itemGroup) do
-        for i, item in pairs(data.items) do
-            baseInitialItemData[item.id] = itemLib.serializeBaseObject(item)
-        end
-    end
+    -- for itType, data in pairs(itemLibData.itemGroup) do
+    --     for i, item in pairs(data.items) do
+    --         baseInitialItemData[item.id] = itemLib.serializeBaseObject(item)
+    --     end
+    -- end
 end
 
 local needToRestoreInitialItems = false
+---@deprecated
 function this.restoreBaseInitialItemData()
     if baseInitialItemData and needToRestoreInitialItems then
         for id, data in pairs(baseInitialItemData) do
@@ -144,8 +147,10 @@ function this.restoreBaseInitialItemData()
 end
 
 function this.randomizeBaseItems()
-    this.restoreBaseInitialItemData()
-    itemLib.resetItemStorage()
+    -- this.restoreBaseInitialItemData()
+    this.storage.restoreAllItems(true)
+    this.storage.deleteUncreatedItems()
+    -- itemLib.resetItemStorage()
     needToRestoreInitialItems = true
     itemLib.randomizeItems(itemLibData)
     if itemLib.hasRandomizedMeshes then
@@ -155,20 +160,42 @@ function this.randomizeBaseItems()
 end
 
 local isDummyLoad = true
+---@deprecated
 function this.restoreItems()
     if itemLib.hasRandomizedItems() then
         needToRestoreInitialItems = true
         itemLib.restoreItems()
-        if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
-                and this.config.global.allowDoubleLoading then
-            isDummyLoad = false
-            tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
-        else
-            isDummyLoad = true
-        end
+        -- if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
+        --         and this.config.global.allowDoubleLoading then
+        --     isDummyLoad = false
+        --     tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
+        -- else
+        --     isDummyLoad = true
+        -- end
         this.fixLoaded()
     end
 end
+
+event.register(tes3.event.save, function(e)
+    -- local items = dataSaver.getObjectData(tes3.player).newObjects.items
+    -- local itemsJson = json.encode(items, nil)
+    -- local fileTable = {itemsJsonString = itemsJson}
+    -- include("Morrowind_World_Randomizer.file").save.toSaveDirectory(e.filename..".items", fileTable)
+    -- dataSaver.getObjectData(tes3.player).newObjects.items = {}
+    this.storage.saveToFile(e.filename:sub(1, -5))
+end)
+
+-- event.register(tes3.event.load, function(e)
+--     if not e.newGame then
+--         this.storage.loadFromFile(e.filename)
+--         this.storage.restoreAllItems()
+--         -- local fileTable = include("Morrowind_World_Randomizer.file").load.fromSaveDirectory(e.filename..".ess.items")
+--         -- if fileTable then
+--         --     local items = json.decode(fileTable.itemsJsonString)
+--         --     itemLib.restoreItems(items)
+--         -- end
+--     end
+-- end)
 
 local function getGroundZ(vector)
     local res = tes3.rayTest {
@@ -937,122 +964,129 @@ function this.randomizeMobileActor(mobile)
     mobile:updateOpacity()
 end
 
-local actorObjectsInitialData = {}
+-- function this.getBaseObjectData(object)
+--     local data = {spells = {}}
 
-function this.addBaseInitialData(data)
-    if not data then return end
-    for id, dt in pairs(data) do
-        actorObjectsInitialData[id] = dt
-    end
-end
+--     for i, spell in pairs(object.spells) do
+--         table.insert(data.spells, spell.id)
+--     end
+--     data.barterGold = object.barterGold
 
-function this.getBaseObjectData(object)
-    local data = {spells = {}}
+--     if object.aiConfig.travelDestinations ~= nil then
+--         data.travelDestinations = {}
+--         for i, destination in pairs(object.aiConfig.travelDestinations) do
+--             data.travelDestinations[i] = {cell = {id = destination.cell.id, gridX = destination.cell.gridX, gridY = destination.cell.gridY},
+--                 marker = {x = destination.marker.position.x, y = destination.marker.position.y, z = destination.marker.position.z,
+--                 rotX = destination.marker.orientation.x, rotY = destination.marker.orientation.y, rotZ = destination.marker.orientation.z,}}
+--         end
+--     end
 
-    for i, spell in pairs(object.spells) do
-        table.insert(data.spells, spell.id)
-    end
-    data.barterGold = object.barterGold
+--     if object.attacks ~= nil then
+--         data.attacks = {}
+--         for i, val in ipairs(object.attacks) do
+--             table.insert(data.attacks, {val.min, val.max})
+--         end
+--     end
 
-    if object.aiConfig.travelDestinations ~= nil then
-        data.travelDestinations = {}
-        for i, destination in pairs(object.aiConfig.travelDestinations) do
-            data.travelDestinations[i] = {cell = {id = destination.cell.id, gridX = destination.cell.gridX, gridY = destination.cell.gridY},
-                marker = {x = destination.marker.position.x, y = destination.marker.position.y, z = destination.marker.position.z,
-                rotX = destination.marker.orientation.x, rotY = destination.marker.orientation.y, rotZ = destination.marker.orientation.z,}}
-        end
-    end
+--     if object.hair then
+--         data.hair = object.hair.id
+--     end
+--     if object.head then
+--         data.head = object.head.id
+--     end
 
-    if object.attacks ~= nil then
-        data.attacks = {}
-        for i, val in ipairs(object.attacks) do
-            table.insert(data.attacks, {val.min, val.max})
-        end
-    end
+--     return data
+-- end
 
-    if object.hair then
-        data.hair = object.hair.id
-    end
-    if object.head then
-        data.head = object.head.id
-    end
+-- function this.setBaseObjectData(object, data)
+--     if data == nil or object == nil then return nil end
 
-    return data
-end
+--     if not actorObjectsInitialData[object.id] then
+--         actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
+--     end
 
-function this.setBaseObjectData(object, data)
-    if data == nil or object == nil then return nil end
+--     if data.spells then
+--         for i, spell in pairs(object.spells) do
+--             object.spells:remove(spell)
+--         end
+--         for i, spellId in ipairs(data.spells) do
+--             object.spells:add(spellId)
+--         end
+--     end
 
-    if not actorObjectsInitialData[object.id] then
-        actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
-    end
+--     object.barterGold = data.barterGold ~= nil and data.barterGold or object.barterGold
 
-    if data.spells then
-        for i, spell in pairs(object.spells) do
-            object.spells:remove(spell)
-        end
-        for i, spellId in ipairs(data.spells) do
-            object.spells:add(spellId)
-        end
-    end
+--     if object.aiConfig.travelDestinations ~= nil and data.travelDestinations ~= nil then
+--         for i, destination in pairs(object.aiConfig.travelDestinations) do
+--             if data.travelDestinations[i] ~= nil then
+--                 destination.cell = tes3.getCell(data.travelDestinations[i].cell)
+--                 destination.marker.position = tes3vector3.new(data.travelDestinations[i].marker.x, data.travelDestinations[i].marker.y,
+--                     data.travelDestinations[i].marker.z)
+--                 destination.marker.orientation = tes3vector3.new(data.travelDestinations[i].marker.rotX, data.travelDestinations[i].marker.rotY,
+--                     data.travelDestinations[i].marker.rotZ)
+--             end
+--         end
+--     end
 
-    object.barterGold = data.barterGold ~= nil and data.barterGold or object.barterGold
+--     if object.attacks ~= nil and data.attacks ~= nil then
+--         for i, val in ipairs(object.attacks) do
+--             if data.attacks[i] ~= nil then
+--                 val.min = data.attacks[i][1]
+--                 val.max = data.attacks[i][2]
+--             end
+--         end
+--     end
 
-    if object.aiConfig.travelDestinations ~= nil and data.travelDestinations ~= nil then
-        for i, destination in pairs(object.aiConfig.travelDestinations) do
-            if data.travelDestinations[i] ~= nil then
-                destination.cell = tes3.getCell(data.travelDestinations[i].cell)
-                destination.marker.position = tes3vector3.new(data.travelDestinations[i].marker.x, data.travelDestinations[i].marker.y,
-                    data.travelDestinations[i].marker.z)
-                destination.marker.orientation = tes3vector3.new(data.travelDestinations[i].marker.rotX, data.travelDestinations[i].marker.rotY,
-                    data.travelDestinations[i].marker.rotZ)
+--     if object.hair and data.hair then
+--         object.hair = tes3.getObject(data.hair)
+--     end
+--     if object.head and data.head then
+--         object.head = tes3.getObject(data.head)
+--     end
+-- end
+
+-- ---@deprecated
+-- function this.saveAndRestoreBaseObjectInitialData(object, data)
+--     if object then
+--         if data[object.id] == nil then data[object.id] = {} end
+--         local objectData = data[object.id]
+
+--         if objectData == nil then
+--             local objData = this.getBaseObjectData(object)
+--             data[object.id] = objData
+--         else
+--             this.setBaseObjectData(object, objectData)
+--         end
+--     end
+-- end
+
+---@deprecated
+function this.restoreAllBaseActorData()
+    local playerData = dataSaver.getObjectData(tes3.player)
+    if not playerData then return end
+    if playerData.randomizedBaseObjects ~= nil then
+        local dt = playerData.randomizedBaseObjects
+        for id, objData in pairs(dt) do
+            local object = tes3.getObject(id)
+            if object then
+                this.storage.addActorData(id, objData, false)
+                this.storage.restoreActor(object, false)
             end
         end
-    end
-
-    if object.attacks ~= nil and data.attacks ~= nil then
-        for i, val in ipairs(object.attacks) do
-            if data.attacks[i] ~= nil then
-                val.min = data.attacks[i][1]
-                val.max = data.attacks[i][2]
-            end
-        end
-    end
-
-    if object.hair and data.hair then
-        object.hair = tes3.getObject(data.hair)
-    end
-    if object.head and data.head then
-        object.head = tes3.getObject(data.head)
+        playerData.randomizedBaseObjects = nil
     end
 end
 
-function this.saveAndRestoreBaseObjectInitialData(object, data)
-    if object then
-        if data[object.id] == nil then data[object.id] = {} end
-        local objectData = data[object.id]
-
-        if objectData == nil then
-            local objData = this.getBaseObjectData(object)
-            data[object.id] = objData
-        else
-            this.setBaseObjectData(object, objectData)
-        end
-    end
-end
-
-function this.restoreAllBaseInitialData(data, clear)
-    local dt = data ~= nil and data or actorObjectsInitialData
-    for id, objData in pairs(dt) do
-        local object = tes3.getObject(id)
-        if object then
-            this.setBaseObjectData(object, objData)
-        end
-        if clear then dt[id] = nil end
-    end
-end
-
+local lastBaseRandTimestamp = {}
 function this.randomizeActorBaseObject(object, actorType)
+    if not object then return end
+    -- to prevent multiple randomization
+    if lastBaseRandTimestamp[object.id] and lastBaseRandTimestamp[object.id] > os.time() then
+        return
+    else
+        lastBaseRandTimestamp[object.id] = os.time() + 2
+    end
+
     local configData = this.config.data
     local configTable
     if object.actorType == tes3.actorType.npc or actorType == tes3.actorType.npc then
@@ -1064,6 +1098,8 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable == nil then
         return
     end
+
+    this.storage.saveOrRestoreInitialActor(object)
 
     -- object.modified = true
 
@@ -1211,6 +1247,10 @@ function this.randomizeActorBaseObject(object, actorType)
         log("Barter gold %s %s to %s", tostring(object), tostring(object.barterGold), tostring(newVal))
         object.barterGold = newVal
     end
+
+    this.randomizeBody(object)
+
+    this.storage.saveActor(object)
 end
 
 local races = {}
@@ -1218,12 +1258,11 @@ for race, val in pairs(headPartsData.Parts) do
     table.insert(races, race)
 end
 
-function this.randomizeBody(reference)
-    local object = reference.object
+function this.randomizeBody(object)
     local configData = this.config.data
     if object.objectType == tes3.objectType.npc then
         local race = object.race.id:lower()
-        if configData.NPCs.hair.randomize and headPartsData.List["1"][object.baseObject.hair.id:lower()] and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.hair.randomize and headPartsData.List["1"][object.hair.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.hair.raceLimit then
@@ -1236,10 +1275,10 @@ function this.randomizeBody(reference)
 
             local hairList = headPartsData.Parts[newRace]["1"][tostring(genderId)]
             local hairId = hairList[math.random(1, #hairList)]
-            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.hair.id), tostring(hairId))
-            object.baseObject.hair = tes3.getObject(hairId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.hair.id), tostring(hairId))
+            object.hair = tes3.getObject(hairId)
         end
-        if configData.NPCs.head.randomize and headPartsData.List["0"][object.baseObject.head.id:lower()] and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.head.randomize and headPartsData.List["0"][object.head.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.head.raceLimit then
@@ -1252,10 +1291,9 @@ function this.randomizeBody(reference)
 
             local headList = headPartsData.Parts[newRace]["0"][tostring(genderId)]
             local headId = headList[math.random(1, #headList)]
-            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.head.id), tostring(headId))
-            object.baseObject.head = tes3.getObject(headId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.head.id), tostring(headId))
+            object.head = tes3.getObject(headId)
         end
-        reference:updateEquipment()
     end
 end
 
