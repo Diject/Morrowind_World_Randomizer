@@ -97,7 +97,8 @@ function this.calculateEffectCost(effect)
     return mul * ((effect.min + effect.max) * (effect.duration + 1) + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
 end
 
-function this.calculateEffectCostForConstant(effect)
+function this.calculateEffectCostForConstant(effect, customDuration)
+    local mul = customDuration and customDuration or 100
     return ((effect.min + effect.max) * 100 + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
 end
 

@@ -406,13 +406,15 @@ this.itemTypeWhiteList = {
 ---@class mwr.generator.itemGroup
 ---@field items table
 ---@field meshes table
+---@field arrowMeshes table|nil
+---@field boltMeshes table|nil
 ---@field enchantValues table<string, number> index - item id
 ---@field maxValue number
 ---@field medianValue number
 ---@field medianEnchant number
 ---@field enchant90 number
 ---@field enchant95 number
----@field value90 number
+---@field values number[10]
 ---@field maxEnchant number
 ---@field bowMeshes table
 ---@field crossbowMeshes table
@@ -530,24 +532,43 @@ function this.generateItemData()
         for mesh, _ in pairs(crossbowMeshes) do
             table.insert(crossbowMeshList, mesh)
         end
+        local arrowMeshes = nil
+        local boltMeshes = nil
         if objType == tes3.objectType.ammunition then
-            local types = {[tes3.weaponType["arrow"]] = true, [tes3.weaponType["axeTwoHand"]] = true, [tes3.weaponType["bluntTwoWide"]] = true,
-                [tes3.weaponType["spearTwoWide"]] = true,}
-            for i, item in pairs(items[tes3.objectType.weapon]) do
-                if item.mesh and types[item.type] and tes3.getFileSource("meshes\\"..item.mesh) then
-                    table.insert(meshList, item.mesh)
+            arrowMeshes = {}
+            boltMeshes = {}
+            local addMesh = function(mesh)
+                if mesh and tes3.getFileSource("meshes\\"..mesh) then
+                    local ms = tes3.loadMesh(mesh)
+                    local boundingBox = ms:createBoundingBox()
+                    if boundingBox.min.y <= -55 then
+                        table.insert(arrowMeshes, mesh)
+                    elseif boundingBox.min.y >= -35 and boundingBox.min.y <= -17 then
+                        table.insert(boltMeshes, mesh)
+                    end
                 end
+            end
+            for i, item in pairs(items[tes3.objectType.weapon]) do
+                addMesh(item.mesh)
+            end
+            for i, mesh in pairs(meshList) do
+                addMesh(mesh)
             end
         end
         table.sort(enchantVals)
+        local values = {}
+        for i = 1, 10 do
+            table.insert(values, data[math.max(math.min(math.floor(#data * i * 0.1), #data), 1)].value or 0)
+        end
         out.itemGroup[objType] = {
             items = data, meshes = meshList, enchantValues = enchValData, maxValue = data[#data].value,
             medianValue = data[math.floor(#data / 2)].value,
             maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
             enchant90 = enchantVals[math.floor(#enchantVals * 0.9)] or 0,
             enchant95 = enchantVals[math.floor(#enchantVals * 0.95)] or 0,
-            value90 = data[math.floor(#data * 0.9)].value,
+            values = values,
             bowMeshes = #bowMeshList > 0 and bowMeshList or nil, crossbowMeshes = #crossbowMeshList > 0 and crossbowMeshList or nil,
+            arrowMeshes = arrowMeshes, boltMeshes = boltMeshes,
         }
     end
 
