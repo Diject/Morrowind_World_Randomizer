@@ -99,6 +99,9 @@ this.default = {
         randomize = true,
         exceptScale = 2.5,
     },
+    flora = {
+        randomize = true,
+    },
     herbs = {
         randomize = true,
         doNotRandomizeInventory = true,

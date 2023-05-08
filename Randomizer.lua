@@ -7,6 +7,7 @@ local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
+local floraData
 
 local generator = include("Morrowind_World_Randomizer.generator")
 
@@ -41,7 +42,7 @@ function this.genStaticData()
         treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
         rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
     end
-
+    floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
     --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
     --         itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items_TR")
@@ -415,7 +416,12 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
         end
 
         for i, item in pairs(newItems) do
-            tes3.addItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
+            local it = tes3.getObject(item.id)
+            if this.config.data.item.unique and (it.objectType == tes3.objectType["weapon"] or
+                    it.objectType == tes3.objectType["armor"] or it.objectType == tes3.objectType["clothing"]) then
+                it = itemLib.randomizeBaseItem(it, {createNewItem = true})
+            end
+            tes3.addItem({ reference = reference, item = it, count = item.count, updateGUI = false })
             log("Item %s added", tostring(item.id))
         end
     end
@@ -450,11 +456,11 @@ function this.randomizeCell(cell)
     local config = this.config.data
 
     local newTreeGroupId = math.random(1, #treesData.TreesGroups)
-    -- if newTreeGroupId == 2 then newTreeGroupId = treesData.GroupsCount - 2 end
-    -- if newTreeGroupId == 3 then newTreeGroupId = treesData.GroupsCount - 1 end
     local newRockGroupId = math.random(1, #rocksData.RocksGroups)
+    local newGrassGroupId = math.random(1, #floraData.Groups)
     local newTreeGroup = treesData.TreesGroups[newTreeGroupId]
     local newRockGroup = rocksData.RocksGroups[newRockGroupId]
+    local newFloraGroup = floraData.Groups[newGrassGroupId]
 
     local herbsList = {}
     local herbsToListCount = config.herbs.herbSpeciesPerCell
@@ -521,6 +527,7 @@ function this.randomizeCell(cell)
 
                 local treeAdvData = treesData.TreesOffset[objectId]
                 local rockAdvData = rocksData.RocksOffset[objectId]
+                local floraAdvData = floraData.Data[objectId]
                 if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
                     if config.trees.randomize and (this.isOrigin(object) or not object.disabled) then
                         local newId = newTreeGroup.Items[math.random(1, newTreeGroup.Count)]
@@ -608,6 +615,40 @@ function this.randomizeCell(cell)
                         object:enable()
                     end
 
+                elseif floraAdvData then
+                    if config.flora.randomize and (this.isOrigin(object) or not object.disabled) then
+                        local newId = newFloraGroup[math.random(1, #newFloraGroup)]
+                        local newAdvData = floraData.Data[newId:lower()]
+                        local newOffset
+                        local radius
+                        if newAdvData == nil then
+                            newOffset = 0
+                            radius = 100
+                        else
+                            newOffset = newAdvData.Offset
+                            radius = newAdvData.Radius
+                        end
+
+                        local scale = objectScale
+                        local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
+                        if distanceToObj < 300 then
+                            scale = math.min(scale, 0.4)
+                        elseif distanceToObj < 1000 then
+                            scale = math.min(scale, 0.4 + 0.75 * distanceToObj / 1000)
+                        end
+
+                        local posVector = getMinGroundPosInCircle(objectPos, radius, (newOffset - math.random(2, 10)) * scale)
+                        if posVector == nil then
+                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 5)) * scale)
+                        end
+                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
+                        putOriginMark(object)
+                        object:disable()
+
+                    elseif this.isOrigin(object) and object.disabled then
+                        this.deleteOriginMark(object)
+                        object:enable()
+                    end
                 end
 
             elseif object.baseObject.objectType == tes3.objectType.container then
@@ -963,102 +1004,6 @@ function this.randomizeMobileActor(mobile)
     mobile:updateDerivedStatistics()
     mobile:updateOpacity()
 end
-
--- function this.getBaseObjectData(object)
---     local data = {spells = {}}
-
---     for i, spell in pairs(object.spells) do
---         table.insert(data.spells, spell.id)
---     end
---     data.barterGold = object.barterGold
-
---     if object.aiConfig.travelDestinations ~= nil then
---         data.travelDestinations = {}
---         for i, destination in pairs(object.aiConfig.travelDestinations) do
---             data.travelDestinations[i] = {cell = {id = destination.cell.id, gridX = destination.cell.gridX, gridY = destination.cell.gridY},
---                 marker = {x = destination.marker.position.x, y = destination.marker.position.y, z = destination.marker.position.z,
---                 rotX = destination.marker.orientation.x, rotY = destination.marker.orientation.y, rotZ = destination.marker.orientation.z,}}
---         end
---     end
-
---     if object.attacks ~= nil then
---         data.attacks = {}
---         for i, val in ipairs(object.attacks) do
---             table.insert(data.attacks, {val.min, val.max})
---         end
---     end
-
---     if object.hair then
---         data.hair = object.hair.id
---     end
---     if object.head then
---         data.head = object.head.id
---     end
-
---     return data
--- end
-
--- function this.setBaseObjectData(object, data)
---     if data == nil or object == nil then return nil end
-
---     if not actorObjectsInitialData[object.id] then
---         actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
---     end
-
---     if data.spells then
---         for i, spell in pairs(object.spells) do
---             object.spells:remove(spell)
---         end
---         for i, spellId in ipairs(data.spells) do
---             object.spells:add(spellId)
---         end
---     end
-
---     object.barterGold = data.barterGold ~= nil and data.barterGold or object.barterGold
-
---     if object.aiConfig.travelDestinations ~= nil and data.travelDestinations ~= nil then
---         for i, destination in pairs(object.aiConfig.travelDestinations) do
---             if data.travelDestinations[i] ~= nil then
---                 destination.cell = tes3.getCell(data.travelDestinations[i].cell)
---                 destination.marker.position = tes3vector3.new(data.travelDestinations[i].marker.x, data.travelDestinations[i].marker.y,
---                     data.travelDestinations[i].marker.z)
---                 destination.marker.orientation = tes3vector3.new(data.travelDestinations[i].marker.rotX, data.travelDestinations[i].marker.rotY,
---                     data.travelDestinations[i].marker.rotZ)
---             end
---         end
---     end
-
---     if object.attacks ~= nil and data.attacks ~= nil then
---         for i, val in ipairs(object.attacks) do
---             if data.attacks[i] ~= nil then
---                 val.min = data.attacks[i][1]
---                 val.max = data.attacks[i][2]
---             end
---         end
---     end
-
---     if object.hair and data.hair then
---         object.hair = tes3.getObject(data.hair)
---     end
---     if object.head and data.head then
---         object.head = tes3.getObject(data.head)
---     end
--- end
-
--- ---@deprecated
--- function this.saveAndRestoreBaseObjectInitialData(object, data)
---     if object then
---         if data[object.id] == nil then data[object.id] = {} end
---         local objectData = data[object.id]
-
---         if objectData == nil then
---             local objData = this.getBaseObjectData(object)
---             data[object.id] = objData
---         else
---             this.setBaseObjectData(object, objectData)
---         end
---     end
--- end
 
 ---@deprecated
 function this.restoreAllBaseActorData()

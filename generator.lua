@@ -576,4 +576,42 @@ function this.generateItemData()
     return out
 end
 
+function this.fillFlora()
+    local data = {}
+    local out = {Data = {}, Groups = {}}
+    for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
+        if object then
+            local id = object.id:lower()
+            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
+                    not forbiddenModels[object.mesh:lower()] and (id:find("grass") or id:find("bush") or id:find("flora")) and
+                    not (id:find("tree") or id:find("log") or id:find("menhir") or id:find("root") or id:find("parasol") or id:find("rock")) then
+                local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
+                if str then
+                    if not data[str] then data[str] = {} end
+                    table.insert(data[str], object)
+                end
+            end
+        end
+    end
+    for _, gr in pairs(data) do
+        local ids = {}
+        for _, object in pairs(gr) do
+            local id = object.id:lower()
+            if object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
+                local ms = tes3.loadMesh(object.mesh)
+                local boundingBox = ms:createBoundingBox()
+                local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
+                if l < 250 then
+                    out.Data[id] = {Offset = -boundingBox.min.z, Radius = l}
+                    table.insert(ids, id)
+                end
+            end
+        end
+        if #ids > 0 then
+            table.insert(out.Groups, ids)
+        end
+    end
+    return out
+end
+
 return this
