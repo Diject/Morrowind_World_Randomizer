@@ -10,6 +10,7 @@ local itemLib = include("Morrowind_World_Randomizer.item")
 local presetMenu = include("Morrowind_World_Randomizer.presetMenu")(i18n)
 local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
+local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
 
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
@@ -184,6 +185,10 @@ local function cellActivated(e)
     end
 end
 
+local function oneSecSimulateTimerCallback()
+    randomizer.updatePlayerInventory()
+end
+
 local function load(e)
     storage.restoreAllActors(true)
     storage.restoreAllItems(true)
@@ -197,9 +202,14 @@ local function load(e)
             storage.restoreAllActors()
         end
     end
+    inventoryEvents.reset()
 end
 
+local oneSecTimer
 local function loaded(e)
+    if not oneSecTimer then
+        oneSecTimer = timer.start{duration = 1, callback = oneSecSimulateTimerCallback, iterations = -1, persist  = false}
+    end
     randomizer.config.getConfig()
     randomizer.genNonStaticData()
     randomizer.restoreItems() -- required for compatibility
@@ -222,6 +232,7 @@ local function loaded(e)
         randomizeLoadedCells()
 
     end
+    inventoryEvents.saveInventoryChanges()
 end
 
 local goldToAdd = 0
@@ -249,9 +260,12 @@ local function leveledItemPicked(e)
 
             end
             local newId = randomizer.getNewRandomItemId(e.pick.id)
-            log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(newId))
-            if newId ~= nil then
-                e.pick = tes3.getObject(newId)
+            if newId then
+                log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(newId))
+                local item = randomizer.getNewItem(newId)
+                if item then
+                    e.pick = item
+                end
             end
         end
     end
@@ -429,6 +443,16 @@ local function calcRestInterrupt(e)
     end
 end
 
+local function filterInventory(e)
+    if randomizer.config.data.item.unique then
+        local wasCreated = itemLib.isItemWasCreated(e.item.id)
+        if e.item.sourceMod and not wasCreated and (e.item.objectType == tes3.objectType.weapon or e.item.objectType == tes3.objectType.armor or
+                e.item.objectType == tes3.objectType.clothing) then
+            e.filter = false
+        end
+    end
+end
+
 event.register(tes3.event.initialized, function(e)
     if not tes3.isModActive(esp_name) then
         gui.hide()
@@ -455,6 +479,8 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.mobileActivated, mobileActivated)
     event.register(tes3.event.activate, activate)
     event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
+    event.register(tes3.event.filterInventory, filterInventory)
+    -- event.register(tes3.event.filterBarterMenu, filterInventory)
     log("Morrowind World Randomizer is ready")
 end)
 

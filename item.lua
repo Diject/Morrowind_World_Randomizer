@@ -335,42 +335,34 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
     return newEnch
 end
 
-local objLastRand = {}
-
---cannot randomise more than once every 2 seconds for an object
-function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
+function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax, baseData)
+    if not baseData then baseData = {} end
     if not minMul then minMul = this.config.item.stats.region.min end
     if not maxMul then maxMul = this.config.item.stats.region.max end
     if not weaponMin then weaponMin = this.config.item.stats.weapon.region.min end
     if not weaponMax then weaponMax = this.config.item.stats.weapon.region.max end
-    if object then
-        local time = objLastRand[object.id]
-        if not time then
-            objLastRand[object.id] = os.time()
-        elseif time > os.time() + 1 then
-            return object
-        else
-            objLastRand[object.id] = os.time()
-        end
-    end
+
     local intVars = {"enchantCapacity", "armorRating", "maxCondition"}
     local floatVars_p = {"quality", "time"}
     local floatVars_n = {"weight"}
     log("Item stats id %s", tostring(object))
     if object.value then
-        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))) or
-            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))))
+        local value = baseData.value or object.value
+        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))) or
+            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))))
         log("value %s", tostring(object.value))
     end
     for _, var in pairs(intVars) do
         if object[var] then
-            object[var] = math.floor(math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul)))
+            local val = baseData[var] or object[var]
+            object[var] = math.floor(math.max(0, val * random.GetBetweenForMulDiv(minMul, maxMul)))
             log("%s %s", var, tostring(object[var]))
         end
     end
     for _, var in pairs(floatVars_p) do
         if object[var] then
-            object[var] = math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul))
+            local val = baseData[var] or object[var]
+            object[var] = math.max(0, val * random.GetBetweenForMulDiv(minMul, maxMul))
             log("%s %s", var, tostring(object[var]))
         end
     end
@@ -378,28 +370,36 @@ function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
         if object[var] then
             local div = random.GetBetweenForMulDiv(minMul, maxMul)
             if div == 0 then div = 0.05 end
-            object[var] = math.max(0, object[var] / div)
+            local val = baseData[var] or object[var]
+            object[var] = math.max(0, val / div)
             log("%s %s", var, tostring(object[var]))
         end
     end
     if object.speed then
-        object.speed = math.max(0, object.speed * random.GetBetweenForMulDiv(weaponMin, weaponMax))
+        local speed = baseData.speed or object.speed
+        object.speed = math.max(0, speed * random.GetBetweenForMulDiv(weaponMin, weaponMax))
     end
     if object.chopMin then
-        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local chopMin = baseData.chopMin or object.chopMin
+        local chopMax = baseData.chopMax or object.chopMax
+        object.chopMin = math.min(65535, math.max(0, chopMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.chopMax = math.min(65535, math.max(0, chopMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.chopMax < object.chopMin then object.chopMax = object.chopMin end
         log("chop %s %s", tostring(object.chopMin), tostring(object.chopMax))
     end
     if object.slashMin then
-        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local slashMin = baseData.slashMin or object.slashMin
+        local slashMax = baseData.slashMax or object.slashMax
+        object.slashMin = math.min(65535, math.max(0, slashMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.slashMax = math.min(65535, math.max(0, slashMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.slashMax < object.slashMin then object.slashMax = object.slashMin end
         log("slash %s %s", tostring(object.slashMin), tostring(object.slashMax))
     end
     if object.thrustMin then
-        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local thrustMin = baseData.thrustMin or object.thrustMin
+        local thrustMax = baseData.thrustMax or object.thrustMax
+        object.thrustMin = math.min(65535, math.max(0, thrustMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.thrustMax = math.min(65535, math.max(0, thrustMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.thrustMax < object.thrustMin then object.thrustMax = object.thrustMin end
         log("thrust %s %s", tostring(object.thrustMin), tostring(object.thrustMax))
     end
@@ -447,12 +447,12 @@ function this.randomizeBaseItem(object, params)
 
     if generator.itemTypeWhiteList[object.objectType] then
 
-        this.storage.saveItem(object)
+        this.storage.saveItem(object, nil, true)
 
         local newBase = createNewItem and object:createCopy() or object
 
         if this.config.item.stats.randomize then
-            this.randomizeStats(newBase, this.config.item.stats.region.min, this.config.item.stats.region.max)
+            this.randomizeStats(newBase, nil, nil, nil, nil, this.storage.getItemData(object.id, true))
         end
 
         this.randomizeBaseItemVisuals(newBase, itemsData)
@@ -579,6 +579,15 @@ function this.randomizeBaseItem(object, params)
         return newBase
     end
     return nil
+end
+
+---@return boolean, string|nil
+function this.isItemWasCreated(id)
+    local data = this.storage.getItemData(id)
+    if data then
+        return data.created, data.originalId
+    end
+    return false, nil
 end
 
 ---@param itemsData mwr.itemStatsData
@@ -943,6 +952,18 @@ function this.fixPlayerInventory(updateModels)
         player:equip{item = weapon,}
         log("Player inventory fixed")
     end
+end
+
+--thanks Hrnchamd#5205 from https://discord.com/channels/210394599246659585/381219559094616064/1088059018448211979
+function this.fixPlayerWeight()
+	local burden = tes3.getEffectMagnitude{reference = tes3.mobilePlayer, effect = tes3.effect.burden}
+	local feather = tes3.getEffectMagnitude{reference = tes3.mobilePlayer, effect = tes3.effect.feather}
+	local weight = tes3.player.object.inventory:calculateWeight() + burden - feather
+	local oldWeight = tes3.mobilePlayer.encumbrance.currentRaw
+
+	if (math.abs(oldWeight - weight) > 0.01) then
+		tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight}
+	end
 end
 
 return this

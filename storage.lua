@@ -84,6 +84,16 @@ function this.addItemData(id, data, isInitial)
 end
 
 ---@param id string
+---@param isInitial boolean|nil
+function this.getItemData(id, isInitial)
+    if isInitial then
+        return this.initial.items[id]
+    else
+        return this.data.items[id]
+    end
+end
+
+---@param id string
 function this.deleteItemData(id)
     this.data.items[id] = nil
 end

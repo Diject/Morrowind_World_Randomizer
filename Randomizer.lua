@@ -4,6 +4,7 @@ local random = include("Morrowind_World_Randomizer.Random")
 local light = include("Morrowind_World_Randomizer.light")
 local itemLib = include("Morrowind_World_Randomizer.item")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
+local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
 
 local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
 local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
@@ -344,6 +345,80 @@ function this.getRandomCreatureId(oldCreatureId)
     return nil
 end
 
+---@param id string
+function this.getNewItem(id)
+    local it = tes3.getObject(id)
+    if it then
+        if this.config.data.item.unique and it.sourceMod and (it.objectType == tes3.objectType.weapon or
+                it.objectType == tes3.objectType.armor or it.objectType == tes3.objectType.clothing) then
+            this.storage.saveItem(it, nil, true)
+            local origItData = this.storage.getItemData(id)
+            if not origItData then
+                it.value = 0
+                it.weight = 0
+                this.storage.saveItem(it)
+            else
+                origItData.value = 0
+                origItData.weight = 0
+            end
+            it = itemLib.randomizeBaseItem(it, {createNewItem = true})
+        end
+    end
+    return it
+end
+
+function this.updatePlayerInventory()
+    if this.config.data.item.unique then
+        local player = tes3.mobilePlayer
+        if not player then return end
+        local changed = inventoryEvents.getInventoryChanges()
+        if changed then
+            for id, data in pairs(changed) do
+                if (data.object.objectType == tes3.objectType.weapon or data.object.objectType == tes3.objectType.armor or
+                        data.object.objectType == tes3.objectType.clothing) then
+                    local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
+                    if wasCreated then
+                        if data.count > 0 then
+                            tes3.addItem{reference = player, item = origId, count = data.count,}
+                        elseif data.count < 0 then
+                            tes3.removeItem{reference = player, item = origId, count = -data.count,}
+                        end
+                    else
+                        if data.count > 0 then
+                            local item = this.getNewItem(id)
+                            if item then
+                                tes3.addItem{reference = player, item = item, count = data.count,}
+                                for i = 1, data.count do
+                                    local equipped = tes3.getEquippedItem{actor = player, objectType = item.objectType, slot = item.slot,
+                                        type = item.objectType == tes3.objectType.weapon and item.type or nil}
+                                    if equipped then
+                                        equipped.object.weight = 0
+                                        player:unequip{item = id}
+                                        player:equip{item = item}
+                                    else
+                                        break
+                                    end
+                                end
+                            end
+                        elseif data.count < 0 then
+                            local count = -data.count
+                            for _, stack in pairs(player.inventory) do
+                                local _, itOrigId = itemLib.isItemWasCreated(stack.object.id)
+                                if data.id == itOrigId then
+                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count}
+                                end
+                                if count <= 0 then break end
+                            end
+                        end
+                    end
+                end
+            end
+            itemLib.fixPlayerWeight()
+            inventoryEvents.saveInventoryChanges()
+        end
+    end
+end
+
 function this.randomizeContainerItems(reference, regionMin, regionMax)
 
     if reference and not this.isRandomizationStopped(reference) and not this.isRandomizationStoppedTemp(reference) then
@@ -416,11 +491,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
         end
 
         for i, item in pairs(newItems) do
-            local it = tes3.getObject(item.id)
-            if this.config.data.item.unique and (it.objectType == tes3.objectType["weapon"] or
-                    it.objectType == tes3.objectType["armor"] or it.objectType == tes3.objectType["clothing"]) then
-                it = itemLib.randomizeBaseItem(it, {createNewItem = true})
-            end
+            local it = this.getNewItem(item.id)
             tes3.addItem({ reference = reference, item = it, count = item.count, updateGUI = false })
             log("Item %s added", tostring(item.id))
         end
@@ -704,7 +775,7 @@ function this.randomizeCell(cell)
                         local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
                         local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count,
                             this.config.data.items.region.min, this.config.data.items.region.max)]
-                        table.insert(newObjects, {id = newItemId, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
+                        table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
                             objectType = object.object.objectType, cell = cell})
                         object:disable()
 
@@ -719,8 +790,8 @@ function this.randomizeCell(cell)
                             end
                             local idInList = math.random(1, #data.unfoundArtifacts)
                             local newItemId = data.unfoundArtifacts[idInList]
-                            local newRef = this.createObject({id = newItemId, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
-                                objectType = object.object.objectType, cell = cell})
+                            local newRef = this.createObject({id = this.getNewItem(newItemId).id, pos = objectPos, rot = objectRot, scale = objectScale,
+                                itemData = object.itemData, objectType = object.object.objectType, cell = cell})
                             if newRef then
                                 table.remove(data.unfoundArtifacts, idInList)
                                 this.StopRandomization(object)

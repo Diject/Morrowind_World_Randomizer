@@ -34,6 +34,7 @@ function this.serializeItemBaseObject(object, originalId)
     local out = {}
 
     out.originalId = originalId
+    out.created = (originalId and object.id ~= originalId) and true or false
 
     for _, varName in pairs(varNames) do
         if object[varName] then
