@@ -32,16 +32,10 @@ end
 local function forcedActorRandomization(reference)
     local mobile = reference.mobile
     if mobile then
-        local playerData = dataSaver.getObjectData(tes3.player)
         randomizer.randomizeMobileActor(mobile)
         randomizer.randomizeScale(reference)
-        -- if playerData then
-        --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-        --     randomizer.saveAndRestoreBaseObjectInitialData(mobile.object.baseObject, playerData.randomizedBaseObjects)
-        -- end
-        -- storage.saveOrRestoreInitialActor(mobile.object.baseObject)
+
         randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
-        -- storage.saveActor(mobile.object.baseObject)
 
         local configGroup
         if reference.object.objectType == tes3.objectType.npc then
@@ -62,24 +56,11 @@ local function forcedActorRandomization(reference)
 end
 
 local function randomizeActor(reference)
-    local playerData = dataSaver.getObjectData(tes3.player)
-
-    if playerData and playerData.randomizedBaseObjects and playerData.randomizedBaseObjects[reference.baseObject.id] then
-        -- randomizer.setBaseObjectData(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
-        -- saveRestore.restoreActorBaseObject(reference.baseObject, playerData.randomizedBaseObjects[reference.baseObject.id])
-        -- reference:updateEquipment()
-    end
-
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
         forcedActorRandomization(reference)
     else
         reference:updateEquipment()
     end
-
-    -- if playerData then
-    --     if playerData.randomizedBaseObjects == nil then playerData.randomizedBaseObjects = {} end
-    --     playerData.randomizedBaseObjects[reference.baseObject.id] = randomizer.getBaseObjectData(reference.baseObject)
-    -- end
 end
 
 local function randomizeCellOnly(cell)
