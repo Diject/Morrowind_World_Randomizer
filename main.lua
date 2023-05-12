@@ -189,20 +189,35 @@ local function oneSecSimulateTimerCallback()
     randomizer.updatePlayerInventory()
 end
 
+local isDummyLoad = true
 local function load(e)
-    storage.restoreAllActors(true)
-    storage.restoreAllItems(true)
-    -- randomizer.restoreAllBaseInitialData()
-    -- randomizer.restoreBaseInitialItemData()
-    randomizer.config.resetConfig()
-
-    if not e.newGame then
-        if storage.loadFromFile(e.filename) then
+    if isDummyLoad then
+        storage.restoreAllActors(true)
+        storage.restoreAllItems(true)
+        randomizer.config.resetConfig()
+        if not e.newGame and storage.loadFromFile(e.filename) then
             storage.restoreAllItems()
             storage.restoreAllActors()
+            if tes3.dataHandler.nonDynamicData.lastLoadedFile and randomizer.config.global.allowDoubleLoading then
+                isDummyLoad = false
+                e.claim = true
+                e.block = true
+                tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
+            end
         end
+    else
+        isDummyLoad = true
     end
     inventoryEvents.reset()
+end
+
+local function save(e)
+    if not e.filename then -- I do not how but once it happened
+        tes3.messageBox({ message = "Save process failed",
+            buttons = {tostring(tes3.findGMST("sOK").value),},})
+    else
+        storage.saveToFile(e.filename:sub(1, -5))
+    end
 end
 
 local oneSecTimer
@@ -473,6 +488,7 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
     event.register(tes3.event.load, load)
+    event.register(tes3.event.save, save)
     event.register(tes3.event.loaded, loaded)
     event.register(tes3.event.leveledItemPicked, leveledItemPicked)
     event.register(tes3.event.leveledCreaturePicked, leveledCreaturePicked)

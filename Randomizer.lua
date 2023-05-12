@@ -161,43 +161,14 @@ function this.randomizeBaseItems()
     this.fixLoaded()
 end
 
-local isDummyLoad = true
 ---@deprecated
 function this.restoreItems()
     if itemLib.hasRandomizedItems() then
         needToRestoreInitialItems = true
         itemLib.restoreItems()
-        -- if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
-        --         and this.config.global.allowDoubleLoading then
-        --     isDummyLoad = false
-        --     tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
-        -- else
-        --     isDummyLoad = true
-        -- end
         this.fixLoaded()
     end
 end
-
-event.register(tes3.event.save, function(e)
-    -- local items = dataSaver.getObjectData(tes3.player).newObjects.items
-    -- local itemsJson = json.encode(items, nil)
-    -- local fileTable = {itemsJsonString = itemsJson}
-    -- include("Morrowind_World_Randomizer.file").save.toSaveDirectory(e.filename..".items", fileTable)
-    -- dataSaver.getObjectData(tes3.player).newObjects.items = {}
-    this.storage.saveToFile(e.filename:sub(1, -5))
-end)
-
--- event.register(tes3.event.load, function(e)
---     if not e.newGame then
---         this.storage.loadFromFile(e.filename)
---         this.storage.restoreAllItems()
---         -- local fileTable = include("Morrowind_World_Randomizer.file").load.fromSaveDirectory(e.filename..".ess.items")
---         -- if fileTable then
---         --     local items = json.decode(fileTable.itemsJsonString)
---         --     itemLib.restoreItems(items)
---         -- end
---     end
--- end)
 
 local function getGroundZ(vector)
     local res = tes3.rayTest {
@@ -1081,12 +1052,22 @@ function this.restoreAllBaseActorData()
     local playerData = dataSaver.getObjectData(tes3.player)
     if not playerData then return end
     if playerData.randomizedBaseObjects ~= nil then
+        local foundData = false
         local dt = playerData.randomizedBaseObjects
         for id, objData in pairs(dt) do
             local object = tes3.getObject(id)
             if object then
+                foundData = true
                 this.storage.addActorData(id, objData, false)
                 this.storage.restoreActor(object, false)
+            end
+        end
+        local cells = tes3.getActiveCells()
+        if foundData and cells ~= nil then
+            for _, cell in pairs(cells) do
+                for ref in cell:iterateReferences({ tes3.objectType.npc }) do
+                    ref:updateEquipment()
+                end
             end
         end
         playerData.randomizedBaseObjects = nil

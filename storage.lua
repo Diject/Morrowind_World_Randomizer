@@ -162,17 +162,12 @@ end
 
 ---@param id string
 ---@param data table
----@param isInitial boolean
+---@param isInitial boolean|nil
 function this.addActorData(id, data, isInitial)
-    if this.data.actors[id] then
-        if isInitial then
-            this.initial.actors[id] = data
-        else
-            this.data.actors[id] = data
-        end
+    if isInitial then
+        this.initial.actors[id] = data
     else
-        this.data.actors[id] = isInitial and nil or data
-        this.initial.actors[id] = isInitial and data or nil
+        this.data.actors[id] = data
     end
 end
 

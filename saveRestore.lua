@@ -119,7 +119,7 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
     log("Restoring object data %s", tostring(object))
     local enchantmentFound = false
     for varName, val in pairs(data) do
-        if type(val) ~= "table" and varName ~= "id" and varName ~= "objectType" and varName ~= "originalId" then
+        if type(val) ~= "table" and varName ~= "id" and varName ~= "objectType" and varName ~= "originalId" and varName ~= "created" then
             object[varName] = val
 
         elseif varName == "effects" then
