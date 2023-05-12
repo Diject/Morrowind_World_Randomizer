@@ -100,6 +100,7 @@ this.default = {
         exceptScale = 2.5,
     },
     flora = {
+        typesPerCell = 3,
         randomize = true,
     },
     herbs = {

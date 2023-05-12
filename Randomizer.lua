@@ -499,10 +499,15 @@ function this.randomizeCell(cell)
 
     local newTreeGroupId = math.random(1, #treesData.TreesGroups)
     local newRockGroupId = math.random(1, #rocksData.RocksGroups)
-    local newGrassGroupId = math.random(1, #floraData.Groups)
     local newTreeGroup = treesData.TreesGroups[newTreeGroupId]
     local newRockGroup = rocksData.RocksGroups[newRockGroupId]
-    local newFloraGroup = floraData.Groups[newGrassGroupId]
+    local newFloraGroup = {}
+    for i = 1, this.config.data.flora.typesPerCell do
+        local groupId = math.random(1, #floraData.Groups)
+        for _, val in pairs(floraData.Groups[groupId] or {}) do
+            table.insert(newFloraGroup, val)
+        end
+    end
 
     local herbsList = {}
     local herbsToListCount = config.herbs.herbSpeciesPerCell
