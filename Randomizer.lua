@@ -833,7 +833,7 @@ end
 local aiBlackList = {["chargen boat guard 1"]=true,["chargen boat guard 2"]=true,["chargen boat guard 3"]=true,["chargen captain"]=true,["chargen class"]=true,["chargen dock guard"]=true,["chargen door guard"]=true,["chargen name"]=true,}
 
 local positiveAttrs = { "chameleon", "waterBreathing", "waterWalking", "swiftSwim", "shield"}
-local negativeAttrs = { "sound", "silence", "paralyze" } -- "blind" banned
+local negativeAttrs = { "sound", "silence" } -- "blind", "paralyze" banned
 local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistCommonDisease", "resistBlightDisease", "resistCorprus", "resistPoison", "resistParalysis" }
 local combatSkillIds = {tes3.skill.block, tes3.skill.armorer,  tes3.skill.mediumArmor, tes3.skill.heavyArmor, tes3.skill.bluntWeapon, tes3.skill.longBlade, tes3.skill.axe, tes3.skill.spear, tes3.skill.athletics,}
 local magicSkillIds = {tes3.skill.enchant, tes3.skill.destruction,  tes3.skill.alteration, tes3.skill.illusion, tes3.skill.conjuration, tes3.skill.mysticism, tes3.skill.restoration, tes3.skill.alchemy, tes3.skill.unarmored,}
