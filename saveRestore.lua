@@ -22,9 +22,11 @@ local serializeEffects = function(effects)
     return effOut
 end
 
-local varNames = {"id", "objectType", "enchantCapacity", "armorRating", "maxCondition", "quality", "speed", "weight", "chopMin", "chopMax",
-    "slashMin", "slashMax", "thrustMin", "thrustMax", "mesh", "castType", "chargeCost", "maxCharge", "value", "time"}
-local ingrVarNames = {"effects", "effectAttributeIds", "effectSkillIds",}
+local varNames = {["id"]=true, ["objectType"]=true, ["enchantCapacity"]=true, ["armorRating"]=true, ["maxCondition"]=true,
+    ["quality"]=true, ["speed"]=true, ["weight"]=true, ["chopMin"]=true, ["chopMax"]=true,["slashMin"]=true, ["slashMax"]=true,
+    ["thrustMin"]=true, ["thrustMax"]=true, ["mesh"]=true, ["castType"]=true, ["chargeCost"]=true, ["maxCharge"]=true, ["value"]=true,
+    ["time"]=true,}
+local ingrVarNames = {["effects"]=true, ["effectAttributeIds"]=true, ["effectSkillIds"]=true,}
 
 ---@param originalId string|nil
 ---@return table
@@ -36,7 +38,7 @@ function this.serializeItemBaseObject(object, originalId)
     out.originalId = originalId
     out.created = (originalId and object.id ~= originalId) and true or false
 
-    for _, varName in pairs(varNames) do
+    for varName, _ in pairs(varNames) do
         if object[varName] then
             out[varName] = object[varName]
         end
@@ -45,7 +47,7 @@ function this.serializeItemBaseObject(object, originalId)
     if object.objectType ~= tes3.objectType.ingredient then
         if object.effects then out.effects = serializeEffects(object.effects) end
     else
-        for _, varName in ipairs(ingrVarNames) do
+        for varName, _ in ipairs(ingrVarNames) do
             if object[varName] then
                 out[varName] = {}
                 for _, val in pairs(object[varName]) do
@@ -112,6 +114,8 @@ local function restoreEffects(object, data)
     end
 end
 
+local forbiddenForRestore = {["id"]=true, ["objectType"]=true,}
+
 ---@param data table
 ---@param createNewEnchantment boolean
 function this.restoreItemBaseObject(object, data, createNewEnchantment)
@@ -119,7 +123,7 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
     log("Restoring object data %s", tostring(object))
     local enchantmentFound = false
     for varName, val in pairs(data) do
-        if type(val) ~= "table" and varName ~= "id" and varName ~= "objectType" and varName ~= "originalId" and varName ~= "created" then
+        if type(val) ~= "table" and varNames[varName] and not forbiddenForRestore[varName] then
             object[varName] = val
 
         elseif varName == "effects" then
