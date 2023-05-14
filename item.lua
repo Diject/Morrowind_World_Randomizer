@@ -763,6 +763,8 @@ end
 function this.randomizeItems(itemsData)
     local plData = dataSaver.getObjectData(tes3.player)
     if plData then
+        if not plData.newObjects then plData.newObjects = {} end
+        if not plData.newObjects.items then plData.newObjects.items = {} end
         plData.hasRandomizedItemStats = true
         if this.config.item.changeMesh then plData.hasRandomizedItemMeshes = true end
     end
@@ -787,9 +789,14 @@ function this.randomizeItems(itemsData)
                         meshes = data.crossbowMeshes
                     end
                 end
-
+                -- this.randomizeBaseItemVisuals(item, itemsData, meshes)
+                -- this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul *  math.max(this.config.item.enchantment.minMaximumGroupCost, data.enchant95))
                 this.randomizeBaseItem(item, {itemsData = itemsData, createNewItem = false, modifiedFlag = false, effectCount = encCount, enchCost = enchVal,
                     newEnchValue = mul * math.min(this.config.item.enchantment.minMaximumGroupCost, data.enchant95)})
+                -- local itemData = this.serializeBaseObject(item)
+                -- if plData and itemData then
+                --     plData.newObjects.items[item.id] = itemData
+                -- end
             end
         end
     end
@@ -839,7 +846,7 @@ end
 
 function this.hasRandomizedItems()
     local plData = dataSaver.getObjectData(tes3.player)
-    if plData and plData.hasRandomizedItemStats then
+    if plData and plData.hasRandomizedItemStats and plData.newObjects and plData.newObjects.items then
         return true
     end
     return false
@@ -847,7 +854,7 @@ end
 
 function this.hasRandomizedMeshes()
     local plData = dataSaver.getObjectData(tes3.player)
-    if plData and plData.hasRandomizedItemMeshes then
+    if plData and plData.hasRandomizedItemMeshes and plData.newObjects and plData.newObjects.items then
         return true
     end
     return false
@@ -891,33 +898,35 @@ function this.fixCell(cell, updateModels)
                 this.fixInventory(ref.object.inventory)
             end
 
-            if this.storage.getItemData(ref.baseObject.id) then
-                if this.config.item.tryToFixZCoordinate then
-                    local boundingBox = ref.baseObject.boundingBox
-                    if not boundingBox then
-                        local ms = tes3.loadMesh(ref.baseObject.mesh)
-                        boundingBox = ms:createBoundingBox()
+            if plData.newObjects.items[ref.baseObject.id] then
+                -- if updateModels and ref.mesh ~= ref.baseObject.mesh and ref.sceneNode then
+                --     ref.mesh = ref.baseObject.mesh
+                --     local mesh = tes3.loadMesh(ref.baseObject.mesh):clone()
+                --     -- for i, val in pairs(ref.sceneNode.children) do
+                --     --     if val and val:isOfType(ni.type["NiTriShape"]) then
+                --     --         ref.sceneNode:detachChildAt(i)
+                --     --     end
+                --     -- end
+                --     ref.sceneNode:detachAllChildren()
+                --     ref.sceneNode:attachChild(mesh)
+                --     ref.sceneNode:update()
+                -- end
+                if this.config.item.tryToFixZCoordinate and plData.hasRandomizedItemMeshes and ref.baseObject.boundingBox then
+                    local zBox = ref.baseObject.boundingBox.min.z * ref.scale
+                    local height = ref.baseObject.boundingBox.max.z - ref.baseObject.boundingBox.min.z
+                    local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
+                    local z = getZ(vector, tes3.game.worldObjectRoot)
+                    local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
+                    if z and zObj then
+                        z = z > zObj and z or zObj
+                    elseif z or zObj then
+                        z = z or zObj
+                    else
+                        z = getZ(vector, tes3.game.worldLandscapeRoot)
                     end
-                    if boundingBox then
-                        local zBox = boundingBox.min.z * ref.scale
-                        local height = boundingBox.max.z - boundingBox.min.z
-                        local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
-                        local z = getZ(vector, tes3.game.worldObjectRoot)
-                        local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
-                        if z and zObj then
-                            z = z > zObj and z or zObj
-                        elseif z or zObj then
-                            z = z or zObj
-                        else
-                            z = getZ(vector, tes3.game.worldLandscapeRoot)
-                        end
-                        if z then
-                            ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox + 0.1)
-                            if ref.orientation.x > 1 or ref.orientation.y > 1 then
-                                ref.orientation = tes3vector3.new(0, 0, ref.orientation.z)
-                            end
-                            log("Position fixed %s", tostring(ref))
-                        end
+                    if z then
+                        ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox)
+                        log("Position fixed %s", tostring(ref))
                     end
                 end
                 this.fixItemData(ref.itemData, ref.baseObject)
