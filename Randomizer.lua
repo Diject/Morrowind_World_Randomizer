@@ -327,10 +327,12 @@ function this.getNewItem(id)
             if not origItData then
                 it.value = 0
                 it.weight = 0
+                if it.enchantment then it.enchantment = nil end
                 this.storage.saveItem(it)
             else
                 origItData.value = 0
                 origItData.weight = 0
+                origItData.enchantment = nil
             end
             it = itemLib.randomizeBaseItem(it, {createNewItem = true})
         end
