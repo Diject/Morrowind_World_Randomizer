@@ -430,18 +430,18 @@ function this.randomizeBaseItem(object, params)
     local effectCount = params.effectCount or math.random(1, this.config.item.enchantment.effects.maxCount)
     local enchCost = params.enchCost
     local newEnchValue = params.newEnchValue
-    if newEnchValue == nil then
-        local itGr = itemsData.itemGroup[object.objectType]
-        local maxCost = this.config.item.enchantment.cost.max
-        newEnchValue = random.GetBetween(this.config.item.enchantment.cost.min, this.config.item.enchantment.cost.max) *
-            (math.min(1, (object.value or 1) / random.GetBetween(itGr.values[7], itGr.values[9])) ^ this.config.item.enchantment.powMul)
-        local slot = object.slot or 0
-        local mul = 0.5
-        if this.enchCostMul[object.objectType] and this.enchCostMul[object.objectType][slot] then
-            mul = this.enchCostMul[object.objectType][slot]
-        end
-        newEnchValue = math.max(newEnchValue, this.config.item.enchantment.cost.min) * mul
-    end
+    -- if newEnchValue == nil then
+    --     local itGr = itemsData.itemGroup[object.objectType]
+    --     local maxCost = this.config.item.enchantment.cost.max
+    --     newEnchValue = random.GetBetween(this.config.item.enchantment.cost.min, this.config.item.enchantment.cost.max) *
+    --         (math.min(1, (object.value or 1) / random.GetBetween(itGr.values[7], itGr.values[9])) ^ this.config.item.enchantment.powMul)
+    --     local slot = object.slot or 0
+    --     local mul = 0.5
+    --     if this.enchCostMul[object.objectType] and this.enchCostMul[object.objectType][slot] then
+    --         mul = this.enchCostMul[object.objectType][slot]
+    --     end
+    --     newEnchValue = math.max(newEnchValue, this.config.item.enchantment.cost.min) * mul
+    -- end
 
     log("Base object randomization %s", tostring(object))
 
@@ -453,6 +453,12 @@ function this.randomizeBaseItem(object, params)
 
         if this.config.item.stats.randomize then
             this.randomizeStats(newBase, nil, nil, nil, nil, this.storage.getItemData(object.id, true))
+        end
+
+        if not newEnchValue then
+            newEnchValue = object.enchantCapacity
+        else
+            newEnchValue = math.max(this.config.item.enchantment.cost.min, newEnchValue)
         end
 
         this.randomizeBaseItemVisuals(newBase, itemsData)
