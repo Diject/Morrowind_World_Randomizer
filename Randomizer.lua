@@ -6,8 +6,8 @@ local itemLib = include("Morrowind_World_Randomizer.item")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
 
-local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
-local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
+local treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
+local rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
 local floraData
 
 local generator = include("Morrowind_World_Randomizer.generator")
@@ -39,10 +39,14 @@ function this.genStaticData()
         end
     end
 
-    if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-        treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
-        rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
-    end
+    -- if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --     -- treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
+    --     -- rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
+    --     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
+    --     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
+    -- end
+    generator.correctStaticsData(treesData)
+    generator.correctStaticsData(rocksData)
     floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
     --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
@@ -96,6 +100,11 @@ function this.genStaticData()
 
     travelDestinationsData = generator.findTravelDestinations()
     itemLibData = itemLib.generateData()
+
+    -- local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
+    -- local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData", newRocksData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -468,10 +477,10 @@ function this.randomizeCell(cell)
     local newObjects = {}
     local config = this.config.data
 
-    local newTreeGroupId = math.random(1, #treesData.TreesGroups)
-    local newRockGroupId = math.random(1, #rocksData.RocksGroups)
-    local newTreeGroup = treesData.TreesGroups[newTreeGroupId]
-    local newRockGroup = rocksData.RocksGroups[newRockGroupId]
+    local newTreeGroupId = math.random(1, #treesData.Groups)
+    local newRockGroupId = math.random(1, #rocksData.Groups)
+    local newTreeGroup = treesData.Groups[newTreeGroupId]
+    local newRockGroup = rocksData.Groups[newRockGroupId]
     local newFloraGroup = {}
     for i = 1, this.config.data.flora.typesPerCell do
         local groupId = math.random(1, #floraData.Groups)
@@ -543,105 +552,38 @@ function this.randomizeCell(cell)
 
             elseif object.baseObject.objectType == tes3.objectType.static and cell.isOrBehavesAsExterior then
 
-                local treeAdvData = treesData.TreesOffset[objectId]
-                local rockAdvData = rocksData.RocksOffset[objectId]
+                local treeAdvData = treesData.Data[objectId]
+                local rockAdvData = rocksData.Data[objectId]
                 local floraAdvData = floraData.Data[objectId]
-                if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
-                    if config.trees.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newTreeGroup.Items[math.random(1, newTreeGroup.Count)]
-                        local newAdvData = treesData.TreesOffset[newId:lower()]
+                local objAdvData = treeAdvData or rockAdvData or floraAdvData
+                if objAdvData then
+                    local success = false
+                    local configLink
+                    local grp
+                    local arr
+                    if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
+                        configLink = config.trees
+                        grp = newTreeGroup
+                        arr = treesData
+                        success = true
+                    elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
+                        configLink = config.stones
+                        grp = newRockGroup
+                        arr = rocksData
+                        success = true
+                    elseif floraAdvData ~= nil then
+                        configLink = config.flora
+                        grp = newFloraGroup
+                        arr = floraData
+                        success = true
+                    end
+                    if success and configLink.randomize and (this.isOrigin(object) or not object.disabled) then
+                        local newId = grp[math.random(1, #grp)]
+                        local newAdvData = arr.Data[newId:lower()]
                         local newOffset
+                        local radius = 300
                         if newAdvData == nil then
                             newOffset = 0
-                        else
-                            newOffset = newAdvData.Offset
-                        end
-
-                        local scale = objectScale
-                        local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
-                        if distanceToObj < 300 then
-                            scale = math.min(scale, 0.25)
-                        elseif distanceToObj < 1000 then
-                            scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
-                        end
-
-                        local posVector = getMinGroundPosInCircle(objectPos, 200, (newOffset - math.random(0, 100)) * scale)
-                        if posVector == nil then
-                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 100)) * scale)
-                        end
-                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
-                        putOriginMark(object)
-                        object:disable()
-
-                    elseif this.isOrigin(object) and object.disabled then
-                        this.deleteOriginMark(object)
-                        object:enable()
-                    end
-
-                elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
-                    if config.stones.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newRockGroup.Items[math.random(1, #newRockGroup.Items)]
-                        if newId then
-                            local newAdvData = rocksData.RocksOffset[newId:lower()]
-                            local newRockOffset
-                            if newAdvData == nil then
-                                newRockOffset = 0
-                            else
-                                newRockOffset = newAdvData.Offset
-                            end
-                            local scale = objectScale
-
-                            if newRockOffset >= 450 then
-                                scale = math.min(objectScale, 1.0)
-                            elseif newRockOffset >= 250 then
-                                scale = math.min(objectScale, 2.0)
-                            end
-
-                            scale = (0.5 + math.random() * 0.5) * scale
-
-                            if objectScale <= 0.4 and scale > 0.4 then
-                                scale = objectScale
-                            end
-
-                            local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
-                            if distanceToObj < 300 then
-                                scale = math.min(scale, 0.25)
-                            elseif distanceToObj < 1000 then
-                                scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
-                            end
-
-                            local offset = newRockOffset
-                            if newRockOffset >= 600 then
-                                offset = offset + math.random(100, 200)
-                            elseif newRockOffset >= 150 then
-                                offset = offset + math.random(0, 100)
-                            end
-
-                            local posVector = getMinGroundPosInCircle(objectPos, 500, offset * scale)
-
-                            if posVector == nil then
-                                posVector = tes3vector3.new(objectPos.x, objectPos.y, (newRockOffset - rockAdvData.Offset) * scale)
-                            end
-
-                            table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
-                            putOriginMark(object)
-                            object:disable()
-                        end
-
-                    elseif this.isOrigin(object) and object.disabled then
-                        this.deleteOriginMark(object)
-                        object:enable()
-                    end
-
-                elseif floraAdvData then
-                    if config.flora.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newFloraGroup[math.random(1, #newFloraGroup)]
-                        local newAdvData = floraData.Data[newId:lower()]
-                        local newOffset
-                        local radius
-                        if newAdvData == nil then
-                            newOffset = 0
-                            radius = 100
                         else
                             newOffset = newAdvData.Offset
                             radius = newAdvData.Radius
@@ -649,17 +591,17 @@ function this.randomizeCell(cell)
 
                         local scale = objectScale
                         local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
-                        if distanceToObj < 300 then
-                            scale = math.min(scale, 0.4)
-                        elseif distanceToObj < 1000 then
-                            scale = math.min(scale, 0.4 + 0.75 * distanceToObj / 1000)
+                        local radiusScaled = radius * scale
+                        if distanceToObj < radiusScaled then
+                            scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.75)
                         end
 
-                        local posVector = getMinGroundPosInCircle(objectPos, radius, (newOffset - math.random(2, 10)) * scale)
+                        local posVector = getMinGroundPosInCircle(objectPos, radius * scale, (newOffset - math.random(0, 10)) * scale)
                         if posVector == nil then
-                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 5)) * scale)
+                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - objAdvData.Offset - math.random(0, 50)) * scale)
                         end
-                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
+                        local newRot = tes3vector3.new(math.min(1, objectRot.x), math.min(1, objectRot.y), objectRot.z)
+                        table.insert(newObjects, {id = newId, pos = posVector, rot = newRot, scale = scale, cell = cell})
                         putOriginMark(object)
                         object:disable()
 

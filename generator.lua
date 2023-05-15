@@ -599,11 +599,13 @@ function this.fillFlora()
             local id = object.id:lower()
             if object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
                 local ms = tes3.loadMesh(object.mesh)
-                local boundingBox = ms:createBoundingBox()
-                local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
-                if l < 250 then
-                    out.Data[id] = {Offset = -boundingBox.min.z, Radius = l}
-                    table.insert(ids, id)
+                if ms then
+                    local boundingBox = ms:createBoundingBox()
+                    local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
+                    if l < 250 then
+                        out.Data[id] = {Offset = -boundingBox.min.z, Radius = l / 2}
+                        table.insert(ids, id)
+                    end
                 end
             end
         end
@@ -612,6 +614,70 @@ function this.fillFlora()
         end
     end
     return out
+end
+
+function this.rebuildRocksTreesData(data)
+    if not data then return end
+    local out = {Data = {}, Groups = {}}
+    local arr
+    if data.RocksOffset then
+        arr = data.RocksOffset
+    elseif data.TreesOffset then
+        arr = data.TreesOffset
+    else
+        arr = {}
+    end
+    for id, dt in pairs(arr) do
+        local object = tes3.getObject(id)
+        if object and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
+            local ms = tes3.loadMesh(object.mesh)
+            if ms then
+                local boundingBox = ms:createBoundingBox()
+                local r = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y)) / 2
+                local offset = dt.Offset
+                if offset == 0 or not offset then
+                    offset = -boundingBox.min.z + (boundingBox.max.z - boundingBox.min.z) * 0.05
+                end
+                out.Data[id] = {Offset = offset, Radius = r}
+            end
+        end
+    end
+    local grpArr
+    if data.RocksGroups then
+        grpArr = data.RocksGroups
+    elseif data.TreesGroups then
+        grpArr = data.TreesGroups
+    else
+        grpArr = {}
+    end
+    for i, dt in pairs(grpArr) do
+        if dt.Items and #dt.Items > 0 then
+            table.insert(out.Groups, dt.Items)
+        end
+    end
+    return out
+end
+
+function this.correctStaticsData(data)
+    for id, _ in pairs(data.Data) do
+        local object = tes3.getObject(id)
+        if not object then
+            data.Data[id] = nil
+        end
+    end
+    local newGroups = {}
+    for _, grp in pairs(data.Groups) do
+        local newGrp = {}
+        for _, id in pairs(grp) do
+            if data.Data[id:lower()] then
+                table.insert(newGrp, id)
+            end
+        end
+        if #newGrp > 0 then
+            table.insert(newGroups, newGrp)
+        end
+    end
+    data.Groups = newGroups
 end
 
 return this
