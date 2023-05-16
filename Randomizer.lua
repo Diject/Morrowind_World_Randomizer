@@ -331,14 +331,17 @@ function this.updatePlayerInventory()
                     if wasCreated then
                         if data.count > 0 then
                             tes3.addItem{reference = player, item = origId, count = data.count,}
+                            log("Added original item %s", tostring(origId))
                         elseif data.count < 0 then
                             tes3.removeItem{reference = player, item = origId, count = -data.count,}
+                            log("Removed original item %s", tostring(origId))
                         end
                     else
                         if data.count > 0 then
                             local item = this.getNewItem(id)
                             if item then
                                 tes3.addItem{reference = player, item = item, count = data.count,}
+                                log("Added unoriginal item %s", tostring(item))
                                 for i = 1, data.count do
                                     local equipped = tes3.getEquippedItem{actor = player, objectType = item.objectType, slot = item.slot,
                                         type = item.objectType == tes3.objectType.weapon and item.type or nil}
@@ -357,6 +360,7 @@ function this.updatePlayerInventory()
                                 local _, itOrigId = itemLib.isItemWasCreated(stack.object.id)
                                 if data.id == itOrigId then
                                     count = count - tes3.removeItem{reference = player, item = stack.object, count = count}
+                                    log("Removed unoriginal item %s", tostring(stack.object))
                                 end
                                 if count <= 0 then break end
                             end
