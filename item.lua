@@ -963,7 +963,7 @@ function this.fixPlayerWeight()
 	local oldWeight = tes3.mobilePlayer.encumbrance.currentRaw
 
 	if (math.abs(oldWeight - weight) > 0.01) then
-		tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight}
+		timer.delayOneFrame(function() tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight} end)
 	end
 end
 
