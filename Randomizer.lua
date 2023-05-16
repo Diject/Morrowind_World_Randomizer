@@ -103,7 +103,7 @@ function this.genStaticData()
 
     -- local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
     -- local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
-    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData", newRocksData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", newRocksData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
@@ -604,8 +604,7 @@ function this.randomizeCell(cell)
                         if posVector == nil then
                             posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - objAdvData.Offset - math.random(0, 50)) * scale)
                         end
-                        local newRot = tes3vector3.new(math.min(1, objectRot.x), math.min(1, objectRot.y), objectRot.z)
-                        table.insert(newObjects, {id = newId, pos = posVector, rot = newRot, scale = scale, cell = cell})
+                        table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
                         putOriginMark(object)
                         object:disable()
 

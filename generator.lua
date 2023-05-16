@@ -603,7 +603,7 @@ function this.fillFlora()
                     local boundingBox = ms:createBoundingBox()
                     local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
                     if l < 250 then
-                        out.Data[id] = {Offset = -boundingBox.min.z, Radius = l / 2}
+                        out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.05, Radius = l / 2}
                         table.insert(ids, id)
                     end
                 end
@@ -636,7 +636,7 @@ function this.rebuildRocksTreesData(data)
                 local r = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y)) / 2
                 local offset = dt.Offset
                 if offset == 0 or not offset then
-                    offset = -boundingBox.min.z + (boundingBox.max.z - boundingBox.min.z) * 0.05
+                    offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.05
                 end
                 out.Data[id] = {Offset = offset, Radius = r}
             end

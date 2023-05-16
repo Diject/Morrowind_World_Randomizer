@@ -166,7 +166,7 @@ local function cellActivated(e)
     end
 end
 
-local function oneSecSimulateTimerCallback()
+local function oneSecRealTimerCallback()
     randomizer.updatePlayerInventory()
 end
 
@@ -201,11 +201,10 @@ local function save(e)
     end
 end
 
-local oneSecTimer
 local function loaded(e)
-    if not oneSecTimer then
-        oneSecTimer = timer.start{duration = 1, callback = oneSecSimulateTimerCallback, iterations = -1, persist  = false}
-    end
+    timer.start{duration = 1, callback = oneSecRealTimerCallback, iterations = -1,
+            persist  = false, type = timer.real}
+
     randomizer.config.getConfig()
     randomizer.genNonStaticData()
     randomizer.restoreItems() -- required for compatibility
