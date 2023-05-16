@@ -40,7 +40,7 @@ function this.getInventoryChanges()
     end
     for id, stack in pairs(this.lastItems) do
         local data = {id = id, count = stack.count, object = stack.object}
-        changed[id] = data
+        changed[id] = {id = id, count = -stack.count, object = stack.object}
         event.trigger(eventNameRem, data)
     end
     this.lastItems = newItemsData
