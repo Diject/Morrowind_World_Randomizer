@@ -28,7 +28,7 @@ function this.getInventoryChanges()
                 event.trigger(eventNameAdd, data)
             elseif stack.count < lastData.count then
                 local data = {id = id, count = lastData.count - stack.count, object = stack.object}
-                changed[id] = data
+                changed[id] = {id = id, count = -data.count, object = stack.object}
                 event.trigger(eventNameRem, data)
             end
             this.lastItems[id] = nil
@@ -72,6 +72,10 @@ end
 
 function this.reset()
     this.lastItems = nil
+end
+
+function this.start()
+    this.lastItems = {}
 end
 
 return this

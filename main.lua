@@ -228,7 +228,7 @@ local function loaded(e)
         randomizeLoadedCells()
 
     end
-    inventoryEvents.saveInventoryChanges()
+    inventoryEvents.start()
 end
 
 local goldToAdd = 0
