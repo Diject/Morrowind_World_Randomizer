@@ -76,6 +76,7 @@ this.globalDefault = {
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
     allowDoubleLoading = true,
+    uniqueId = 0,
     landscape = {
         randomize = false,
         randomizeOnlyOnce = false,
@@ -625,6 +626,10 @@ function this.save()
             tes3.player.modified = true
         end
     end
+end
+
+function this.saveOnlyGlobal()
+    mwse.saveConfig(globalConfigName, this.global)
 end
 
 function this.load()

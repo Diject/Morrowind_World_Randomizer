@@ -6,9 +6,13 @@ local effectLib = include("Morrowind_World_Randomizer.magicEffect")
 local generator = include("Morrowind_World_Randomizer.generator")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
+local globalConfig = include("Morrowind_World_Randomizer.config").global
 this.config = include("Morrowind_World_Randomizer.config").data
 
 this.storage = include("Morrowind_World_Randomizer.storage")
+
+local enchPrefix = "_mwrand_new_ench_"
+local itemPrefix = "_mwrand_new_item_"
 
 ---@type mwr.itemStatsData
 this.data = nil
@@ -87,6 +91,12 @@ function this.iterItems(inventory)
         end
     end
     return coroutine.wrap(iterator)
+end
+
+function this.getUniqueId()
+    if not globalConfig.uniqueId then globalConfig.uniqueId = -1 end
+    globalConfig.uniqueId = globalConfig.uniqueId + 1
+    return globalConfig.uniqueId
 end
 
 function this.isEnchantContainsForbiddenEffect(enchant)
@@ -306,7 +316,8 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         maxCharge = math.max(maxCharge, 1)
     end
     local newEnch = enchantment ~= nil and enchantment or
-        tes3.createObject{objectType = tes3.objectType.enchantment, castType = enchType, chargeCost = chargeCost, maxCharge = maxCharge}
+        tes3.createObject{id = enchPrefix..tostring(this.getUniqueId()), objectType = tes3.objectType.enchantment,
+        castType = enchType, chargeCost = chargeCost, maxCharge = maxCharge}
     log("Enchantment randomization id %s type %i maxCharge %s charge %s", tostring(newEnch), enchType, tostring(power), tostring(enchPower))
     newEnch.maxCharge = power
     local effCount = math.random(1, effectCount or config.enchantment.effects.maxCount)
@@ -430,18 +441,6 @@ function this.randomizeBaseItem(object, params)
     local effectCount = params.effectCount or math.random(1, this.config.item.enchantment.effects.maxCount)
     local enchCost = params.enchCost
     local newEnchValue = params.newEnchValue
-    -- if newEnchValue == nil then
-    --     local itGr = itemsData.itemGroup[object.objectType]
-    --     local maxCost = this.config.item.enchantment.cost.max
-    --     newEnchValue = random.GetBetween(this.config.item.enchantment.cost.min, this.config.item.enchantment.cost.max) *
-    --         (math.min(1, (object.value or 1) / random.GetBetween(itGr.values[7], itGr.values[9])) ^ this.config.item.enchantment.powMul)
-    --     local slot = object.slot or 0
-    --     local mul = 0.5
-    --     if this.enchCostMul[object.objectType] and this.enchCostMul[object.objectType][slot] then
-    --         mul = this.enchCostMul[object.objectType][slot]
-    --     end
-    --     newEnchValue = math.max(newEnchValue, this.config.item.enchantment.cost.min) * mul
-    -- end
 
     log("Base object randomization %s", tostring(object))
 
@@ -449,7 +448,7 @@ function this.randomizeBaseItem(object, params)
 
         this.storage.saveItem(object, nil, true)
 
-        local newBase = createNewItem and object:createCopy() or object
+        local newBase = createNewItem and object:createCopy{id = itemPrefix..tostring(this.getUniqueId())} or object
 
         if this.config.item.stats.randomize then
             this.randomizeStats(newBase, nil, nil, nil, nil, this.storage.getItemData(object.id, true))
@@ -963,7 +962,7 @@ function this.fixPlayerWeight()
 	local oldWeight = tes3.mobilePlayer.encumbrance.currentRaw
 
 	if (math.abs(oldWeight - weight) > 0.01) then
-		timer.delayOneFrame(function() tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight} end)
+		timer.delayOneFrame(function() tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight} end) --to prevent the game from crashing
 	end
 end
 

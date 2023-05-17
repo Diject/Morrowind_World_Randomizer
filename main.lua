@@ -174,7 +174,7 @@ local isDummyLoad = true
 local function load(e)
     if isDummyLoad then
         storage.restoreAllActors(true)
-        storage.restoreAllItems(true)
+        storage.restoreAllItems(true, true)
         randomizer.config.resetConfig()
         if not e.newGame and storage.loadFromFile(e.filename) then
             storage.restoreAllItems()
@@ -193,11 +193,12 @@ local function load(e)
 end
 
 local function save(e)
-    if not e.filename then -- I do not how but once it happened
+    if not e.filename then
         tes3.messageBox({ message = "Save process failed",
             buttons = {tostring(tes3.findGMST("sOK").value),},})
     else
         storage.saveToFile(e.filename:sub(1, -5))
+        randomizer.config.saveOnlyGlobal()
     end
 end
 
