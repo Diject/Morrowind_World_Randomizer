@@ -162,7 +162,8 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
 
         elseif varName == "enchantment" then
             local enchantment
-            if object.enchantment ~= nil and not createNewEnchantment then
+            local enchObj = tes3.getObject(val.id)
+            if object.enchantment ~= nil and not createNewEnchantment and enchObj then
                 enchantment = object.enchantment
                 enchantment.castType = val.castType
                 enchantment.chargeCost = val.chargeCost
@@ -176,8 +177,8 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
             end
             if enchantment then
                 enchantmentFound = true
-                tes3.setSourceless(enchantment, true)
                 restoreEffects(enchantment, val.effects)
+                tes3.setSourceless(enchantment, true)
             end
             object.enchantment = enchantment
 

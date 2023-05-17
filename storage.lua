@@ -99,10 +99,18 @@ function this.deleteItemData(id)
 end
 
 ---@param restoreToInitial boolean|nil
-function this.restoreAllItems(restoreToInitial)
+---@param deleteCreated boolean|nil
+function this.restoreAllItems(restoreToInitial, deleteCreated)
     local arr = restoreToInitial and this.initial.items or this.data.items
-    for id, _ in pairs(arr) do
-        this.restoreItem(id, restoreToInitial)
+    for id, data in pairs(arr) do
+        if deleteCreated and data.created then
+            local object = tes3.getObject(id)
+            if object then
+                tes3.deleteObject(object)
+            end
+        else
+            this.restoreItem(id, restoreToInitial)
+        end
     end
 end
 
