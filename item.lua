@@ -597,7 +597,38 @@ end
 
 ---@param itemsData mwr.itemStatsData
 function this.randomizeBaseItemVisuals(item, itemsData)
-    if item.mesh and this.config.item.changeMesh then
+    local meshChanged = false
+    if item.parts and this.config.item.changeParts then
+        local objSubType
+        if item.type then
+            objSubType = item.type
+        elseif item.slot then
+            objSubType = item.slot
+        end
+        local partsData = itemsData.parts[item.objectType][objSubType][math.random(1, #itemsData.parts[item.objectType][objSubType])]
+        if partsData then
+            for pos = 1, #item.parts do
+                local newPartData = partsData.parts[pos]
+                local part = item.parts[pos]
+                if newPartData then
+                    log("Item part %s %s %s %s", tostring(item), tostring(newPartData[1]), tostring(newPartData[2]), tostring(newPartData[3]))
+                    part.type = newPartData[1]
+                    part.female = newPartData[2] and tes3.getObject(newPartData[2]) or nil
+                    part.male = newPartData[3] and tes3.getObject(newPartData[3]) or nil
+                else
+                    part.type = 255
+                    part.female = nil
+                    part.male = nil
+                end
+            end
+            if this.config.item.linkMeshToParts then
+                item.mesh = partsData.mesh
+                log("Item mesh %s %s", tostring(item), tostring(item.mesh))
+                meshChanged = true
+            end
+        end
+    end
+    if item.mesh and this.config.item.changeMesh and not meshChanged then
         local meshes
         local dt = itemsData.itemGroup[item.objectType]
         if item.objectType == tes3.objectType.weapon then
@@ -618,31 +649,7 @@ function this.randomizeBaseItemVisuals(item, itemsData)
         if meshes then
             local mesh = meshes[math.random(1, #meshes)]
             item.mesh = mesh
-        end
-    end
-    if item.parts and this.config.item.changeParts then
-        local objSubType
-        if item.type then
-            objSubType = item.type
-        elseif item.slot then
-            objSubType = item.slot
-        end
-        local partArr = itemsData.parts[item.objectType][objSubType][math.random(1, #itemsData.parts[item.objectType][objSubType])]
-        if partArr then
-            for pos = 1, #item.parts do
-                local newPartData = partArr[pos]
-                local part = item.parts[pos]
-                if newPartData then
-                    log("Item part %s %s %s %s", tostring(item), tostring(newPartData[1]), tostring(newPartData[2]), tostring(newPartData[3]))
-                    part.type = newPartData[1]
-                    part.female = newPartData[2] and tes3.getObject(newPartData[2]) or nil
-                    part.male = newPartData[3] and tes3.getObject(newPartData[3]) or nil
-                else
-                    part.type = 255
-                    part.female = nil
-                    part.male = nil
-                end
-            end
+            log("Item mesh %s %s", tostring(item), tostring(mesh))
         end
     end
 end

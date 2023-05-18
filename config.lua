@@ -484,6 +484,7 @@ this.default = {
         unique = true,
         changeParts = true,
         changeMesh = false,
+        linkMeshToParts = true,
         tryToFixZCoordinate = true,
     },
 }
@@ -562,6 +563,7 @@ if true then
     preset.item.enchantment.exceptIngredient = false
 
     preset.item.changeMesh = true
+    preset.item.linkMeshToParts = false
     preset.item.stats.region.min = 0.5
     preset.item.stats.region.max = 2
 

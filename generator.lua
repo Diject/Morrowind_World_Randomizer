@@ -398,6 +398,15 @@ this.itemTypeWhiteList = {
     [tes3.objectType.light] = true,
 }
 
+---@class mwr.generator.partsDataStruct
+---@field [1] integer
+---@field [2] string
+---@field [3] string
+
+---@class mwr.generator.partsStruct
+---@field mesh string
+---@field parts mwr.generator.partsDataStruct[]
+
 ---@class mwr.generator.enchantment.group
 ---@field Items string[] enchantment ids
 ---@field Max95 number 95% median value of an enchantment cost in this group
@@ -424,7 +433,7 @@ this.itemTypeWhiteList = {
 ---@field Groups table<tes3.enchantmentType, mwr.generator.enchantment.group>
 
 ---@class mwr.itemStatsData
----@field parts table<tes3.objectType, table<integer, tes3bodyPart>>
+---@field parts table<tes3.objectType, table<integer, table< integer, mwr.generator.partsStruct>>>
 ---@field itemGroup table<tes3.objectType, mwr.generator.itemGroup>
 ---@field enchantments mwr.generator.enchantmentGroup
 
@@ -474,7 +483,7 @@ function this.generateItemData()
                 end
                 if not out.parts[object.objectType] then out.parts[object.objectType] = {} end
                 if not out.parts[object.objectType][objSubType] then out.parts[object.objectType][objSubType] = {} end
-                if #data > 0 then table.insert(out.parts[object.objectType][objSubType], data) end
+                if #data > 0 then table.insert(out.parts[object.objectType][objSubType], {mesh = object.mesh, parts = data}) end
             end
         end
     end
@@ -510,7 +519,7 @@ function this.generateItemData()
                 enchValData[item.id] = enchVal
             end
 
-            if item.mesh and tes3.getFileSource("meshes\\"..item.mesh) then
+            if item.mesh then
                 if objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanBow then
                     bowMeshes[item.mesh] = true
                 elseif objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanCrossbow then
