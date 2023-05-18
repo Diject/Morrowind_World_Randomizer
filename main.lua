@@ -172,7 +172,8 @@ local function cellActivated(e)
 end
 
 local function oneSecRealTimerCallback()
-    if currentMenu == nil or currentMenu == "MenuMap" or currentMenu == "MenuMagic" then
+    local allowMenu = {["MenuMap"]=true, ["MenuMagic"]=true, ["MenuStat"]=true, ["MenuInventory"]=true}
+    if currentMenu == nil or allowMenu[currentMenu] then
         randomizer.updatePlayerInventory()
     end
 end
