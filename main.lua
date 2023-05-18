@@ -164,7 +164,9 @@ local function cellActivated(e)
             randomizer.restoreCellLight(e.cell)
         end
 
-        timer.start{duration = 0.5, callback = function() itemLib.fixCell(e.cell) end}
+        if itemLib.isObjectFixRequired() then
+            timer.start{duration = 0.5, callback = function() itemLib.fixCell(e.cell) end}
+        end
     end
 end
 

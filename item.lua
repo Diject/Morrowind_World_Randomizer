@@ -237,7 +237,7 @@ function this.randomizeEffects(effects, effData, config)
             local magnitude
             local min, max
             if isConstant then
-                magnitude = ((((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / 100) - (effectData.min + effectData.max)) * 0.5
+                magnitude = ((((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / mulForConst) - (effectData.min + effectData.max)) * 0.5
                 local val = random.GetBetween(0, magnitude)
                 min = val
                 max = val
@@ -961,6 +961,13 @@ function this.fixPlayerInventory(updateModels)
     end
 end
 
+function this.isObjectFixRequired()
+    if this.hasRandomizedMeshes() or this.config.item.unique then
+        return true
+    end
+    return false
+end
+
 --thanks Hrnchamd#5205 from https://discord.com/channels/210394599246659585/381219559094616064/1088059018448211979
 function this.fixPlayerWeight()
 	local burden = tes3.getEffectMagnitude{reference = tes3.mobilePlayer, effect = tes3.effect.burden}
@@ -969,7 +976,8 @@ function this.fixPlayerWeight()
 	local oldWeight = tes3.mobilePlayer.encumbrance.currentRaw
 
 	if (math.abs(oldWeight - weight) > 0.01) then
-		timer.delayOneFrame(function() tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight} end) --to prevent the game from crashing
+        tes3.mobilePlayer.encumbrance.current = weight
+		-- tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight}
 	end
 end
 

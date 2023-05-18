@@ -757,7 +757,9 @@ function this.randomizeCell(cell)
         --     this.StopRandomizationTemp(newRef)
         -- end
     end
-    timer.delayOneFrame(function() itemLib.fixCell(cell, false, true) end)
+    if itemLib.isObjectFixRequired() then
+        timer.delayOneFrame(function() itemLib.fixCell(cell, false, true) end)
+    end
 end
 
 local aiBlackList = {["chargen boat guard 1"]=true,["chargen boat guard 2"]=true,["chargen boat guard 3"]=true,["chargen captain"]=true,["chargen class"]=true,["chargen dock guard"]=true,["chargen door guard"]=true,["chargen name"]=true,}
