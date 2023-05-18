@@ -12,6 +12,7 @@ this.initial = {items = {}, actors = {}}
 
 ---@param fileName string
 function this.saveToFile(fileName)
+    log("Saving data to %s", fileName)
     local itemsJson = json.encode(this.data.items, nil)
     local actorsJson = json.encode(this.data.actors, nil)
     local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson}
@@ -21,6 +22,7 @@ end
 ---@param fileName string
 ---@return boolean
 function this.loadFromFile(fileName)
+    log("Loading data from %s", fileName)
     local fileTable = file.load.fromSaveDirectory(fileName..extension)
     if fileTable then
         local items = json.decode(fileTable.itemsJson)

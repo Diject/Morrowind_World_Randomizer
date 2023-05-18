@@ -200,14 +200,17 @@ local function load(e)
     inventoryEvents.reset()
 end
 
-local function save(e)
-    if not e.filename then
-        tes3.messageBox({ message = "Save process failed",
-            buttons = {tostring(tes3.findGMST("sOK").value),},})
+local function saved(e)
+    local filename = e.filename
+    local saveName
+    if filename:len() > 4 and filename:sub(-4):lower() == ".ess" then
+        saveName = filename:sub(1, -5)
     else
-        storage.saveToFile(e.filename:sub(1, -5))
-        randomizer.config.saveOnlyGlobal()
+        saveName = filename
     end
+    log(saveName)
+    storage.saveToFile(saveName)
+    randomizer.config.saveOnlyGlobal()
 end
 
 local function loaded(e)
@@ -485,10 +488,11 @@ event.register(tes3.event.initialized, function(e)
         loadRandomizedLandscapeTextures()
     end
 
+    require("Morrowind_World_Randomizer.customSaveFix")
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
     event.register(tes3.event.load, load)
-    event.register(tes3.event.save, save)
+    event.register(tes3.event.saved, saved)
     event.register(tes3.event.loaded, loaded)
     event.register(tes3.event.leveledItemPicked, leveledItemPicked)
     event.register(tes3.event.leveledCreaturePicked, leveledCreaturePicked)
