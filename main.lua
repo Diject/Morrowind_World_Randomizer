@@ -12,6 +12,8 @@ local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
 
+local currentMenu = nil
+
 local function getCellLastRandomizeTime(cellId)
     local playerData = dataSaver.getObjectData(tes3.player)
     if playerData then
@@ -162,12 +164,14 @@ local function cellActivated(e)
             randomizer.restoreCellLight(e.cell)
         end
 
-        timer.start{duration = 0.1, callback = function() itemLib.fixCell(e.cell) end}
+        timer.start{duration = 0.5, callback = function() itemLib.fixCell(e.cell) end}
     end
 end
 
 local function oneSecRealTimerCallback()
-    randomizer.updatePlayerInventory()
+    if currentMenu == nil or currentMenu == "MenuMap" then
+        randomizer.updatePlayerInventory()
+    end
 end
 
 local isDummyLoad = true
@@ -203,7 +207,7 @@ local function save(e)
 end
 
 local function loaded(e)
-    timer.start{duration = 1, callback = oneSecRealTimerCallback, iterations = -1,
+    timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}
 
     randomizer.config.getConfig()
@@ -449,6 +453,10 @@ local function filterInventory(e)
     end
 end
 
+local function menuEnterExit(e)
+    currentMenu = e.menu and tostring(e.menu) or nil
+end
+
 event.register(tes3.event.initialized, function(e)
     if not tes3.isModActive(esp_name) then
         gui.hide()
@@ -478,6 +486,8 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
     event.register(tes3.event.filterInventory, filterInventory)
     -- event.register(tes3.event.filterBarterMenu, filterInventory)
+    event.register(tes3.event.menuEnter, menuEnterExit)
+    event.register(tes3.event.menuExit, menuEnterExit)
     log("Morrowind World Randomizer is ready")
 end)
 
