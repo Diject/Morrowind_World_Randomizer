@@ -329,6 +329,11 @@ function this.registerModConfig()
                             },
                         },
                     },
+                    {
+                        class = "Info",
+                        label = "",
+                        text = this.i18n("modConfig.text.warningAboutRandomization")
+                    },
                 },
             },
             {
@@ -597,12 +602,32 @@ function this.registerModConfig()
                         end,
                     },
                     {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.makeItemsUnique"),
+                        description = this.i18n("modConfig.description.makeItemsUnique"),
+                        inGameOnly = true,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.item.unique
+                            end,
+                            set = function(self, val)
+                                local newVal = true
+                                if not this.config.data.item.unique then
+                                    newVal = val
+                                end
+                                this.config.data.item.unique = newVal
+                            end,
+                        },
+                    },
+                    {
                         class = "Category",
                         label = "",
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randItemMeshes"), this.config.data.item, "changeMesh"),
                             createOnOffIngameButton(this.i18n("modConfig.label.randItemParts"), this.config.data.item, "changeParts"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.linkMeshToParts"), this.config.data.item, "linkMeshToParts", this.i18n("modConfig.description.linkMeshToParts")),
                         },
                     },
                     {
@@ -678,6 +703,7 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "durationForConstant", 1, 10, 500, 1, {label = this.i18n("modConfig.label.durationForConstant"), description = this.i18n("modConfig.description.durationForConstant")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
                                     {
@@ -1538,6 +1564,15 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeStones"), this.config.data.stones, "randomize"),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.flora"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeFlora"), this.config.data.flora, "randomize"),
+                            createSettingsBlock_slider(this.config.data.flora, "typesPerCell", 1, 1, 10, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {

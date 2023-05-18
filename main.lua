@@ -8,6 +8,7 @@ local log = include("Morrowind_World_Randomizer.log")
 local generator = include("Morrowind_World_Randomizer.generator")
 local itemLib = include("Morrowind_World_Randomizer.item")
 local presetMenu = include("Morrowind_World_Randomizer.presetMenu")(i18n)
+local menus = include("Morrowind_World_Randomizer.menu")(i18n)
 local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
@@ -171,7 +172,7 @@ local function cellActivated(e)
 end
 
 local function oneSecRealTimerCallback()
-    if currentMenu == nil or currentMenu == "MenuMap" then
+    if currentMenu == nil or currentMenu == "MenuMap" or currentMenu == "MenuMagic" then
         randomizer.updatePlayerInventory()
     end
 end
@@ -293,6 +294,12 @@ local function mobileActivated(e)
     end
 end
 
+local function uniqueItemsCallback(res)
+    if res ~= nil then
+        randomizer.config.getConfig().item.unique = res
+    end
+end
+
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -315,6 +322,7 @@ local function randomizeBaseItemsCallback(e)
         randomizer.config.getConfig().item.changeMesh = true
         randomizer.randomizeBaseItems()
     end
+    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function randomizeBaseItemsMessage()

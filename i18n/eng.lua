@@ -228,7 +228,7 @@ return {
     ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
 
     ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
-    ["modConfig.label.itemStats"] = "Item attributes",
+    ["modConfig.label.itemStats"] = "Item stats",
     ["modConfig.label.randomizeItemStats"] = "Randomize item attributes",
     ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage attributes",
     ["modConfig.label.itemEnchantment"] = "Item enchantments",
@@ -295,4 +295,20 @@ return {
 
     ["modConfig.label.fortifyForSelfChance"] = "Chance to add a fortify type effect to an \"on self\" enchantment",
     ["modConfig.label.damageForTargetChance"] = "Chance to add a damage type effect to an \"on target/touch\" enchantment",
+
+    ["modConfig.label.flora"] = "Other static flora",
+    ["modConfig.label.randomizeFlora"] = "Randomize flora",
+    ["modConfig.label.speciesPerCell"] = "Species per cell %%s",
+    ["modConfig.label.linkMeshToParts"] = "Use the same model with a wearable and a world object",
+    ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
+
+    ["modConfig.label.makeItemsUnique"] = "Make all wearable items unique",
+    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf the option is enabled after the start of the game, the current inventory items will change.",
+
+    ["modConfig.label.durationForConstant"] = "The duration component in the constant enchantment formula",
+    ["modConfig.description.durationForConstant"] = "Default id 100.\nMorrowind effect cost formula is\n(Min Magnitude + Max Magnitude) * (Duration + Area) * (Base Cost / 40)\n\nThe lower the value, the more powerful the constant enchantments.",
+
+    ["modConfig.text.warningAboutRandomization"] = "Most of the settings from the following tabs will only be applied during the next randomization.\nMost of the settings are stored in the game session and will be lost if you don't save the game before.",
+
+    ["modConfig.message.uniqueItems"] = "Do you want to make each wearable item unique with random stats and enchantments?\n\nOnce enabled, it cannot be disabled.\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf you want items to be less random, try using DRIP instead.",
 }
