@@ -868,14 +868,14 @@ function this.fixInventory(inventory)
     end
 end
 
-local function getZ(vector, root, ignore, direction)
+local function getZ(vector, root, ignore, disatance)
     local res = tes3.rayTest {
         position = vector,
-        direction = tes3vector3.new(0, 0, direction or -1),
+        direction = tes3vector3.new(0, 0, -1),
         observeAppCullFlag  = true,
         root = root,
         useBackTriangles = true,
-        maxDistance = 100,
+        maxDistance = disatance or 100,
         ignore = ignore,
     }
     if res then return res.intersection.z end
@@ -907,20 +907,10 @@ function this.fixCell(cell, updateModels, force)
                         boundingBox = ms:createBoundingBox()
                     end
                     if boundingBox then
+                        local offset = math.max(20, boundingBox.max.z * ref.scale)
+                        local topPos = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z + offset)
+                        local z = getZ(topPos, tes3.game.worldObjectRoot, {ref}, 50 + offset)
                         local zBox = boundingBox.min.z * ref.scale
-                        local z = getZ(ref.position, tes3.game.worldObjectRoot, {ref})
-                        local zUp = getZ(ref.position, tes3.game.worldPickRoot, {ref}, 1)
-                        if z and zUp then
-                            local diff = (ref.position.z - z) - (zUp - ref.position.z)
-                            if diff > 0 then
-                                local newZ = getZ(tes3vector3.new(ref.position.x, ref.position.y, zUp + diff), tes3.game.worldObjectRoot, {ref})
-                                z = newZ or z
-                            end
-                        elseif z or zUp then
-                            z = z or zUp
-                        else
-                            z = getZ(ref.position, tes3.game.worldLandscapeRoot, {ref})
-                        end
                         if z then
                             ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox + 0.1)
                             if ref.orientation.x > 1 or ref.orientation.y > 1 then

@@ -530,7 +530,7 @@ function this.randomizeCell(cell)
             for j = cell.gridY - 1, cell.gridY + 1 do
                 local objCell = tes3.getCell{ x = i, y = j}
                 if objCell then
-                    for obj in objCell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+                    for obj in objCell:iterateReferences({tes3.objectType.door, tes3.objectType.npc, tes3.objectType.activator}) do
                         if obj ~= nil and obj.disabled ~= true then
                             table.insert(importantObjPositions, obj.position)
                         end
@@ -539,7 +539,7 @@ function this.randomizeCell(cell)
             end
         end
     elseif cell.isOrBehavesAsExterior then
-        for obj in cell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+        for obj in cell:iterateReferences({tes3.objectType.door, tes3.objectType.npc, tes3.objectType.activator}) do
             if obj ~= nil and obj.disabled ~= true then
                 table.insert(importantObjPositions, obj.position)
             end
@@ -606,10 +606,10 @@ function this.randomizeCell(cell)
                         local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
                         local radiusScaled = radius * scale
                         if distanceToObj < radiusScaled then
-                            scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.75)
+                            scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.6)
                         end
 
-                        local posVector = getMinGroundPosInCircle(objectPos, radius * scale, (newOffset - math.random(0, 10)) * scale)
+                        local posVector = getMinGroundPosInCircle(objectPos, radius * scale, newOffset * scale)
                         if posVector == nil then
                             posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - objAdvData.Offset - math.random(0, 50)) * scale)
                         end

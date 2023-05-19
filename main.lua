@@ -90,9 +90,9 @@ local function randomizeLoadedCells(addedGameTime, forceCellRandomization, force
     if cells ~= nil then
         for i, cell in pairs(cells) do
             local cellLastRandomizeTime = getCellLastRandomizeTime(cell.editorName)
-            if forceCellRandomization or cellLastRandomizeTime == nil or not randomizer.config.getConfig().cells.randomizeOnlyOnce and
+            if forceCellRandomization or cellLastRandomizeTime == nil or (not randomizer.config.getConfig().cells.randomizeOnlyOnce and
                     ((tes3.getSimulationTimestamp() - cellLastRandomizeTime.gameTime + addedGameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
-                    (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown) then
+                    (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown)) then
                 forcedCellRandomization(cell, forceActorRandomization)
             end
         end
@@ -155,9 +155,9 @@ local function cellActivated(e)
     if randomizer.config.getConfig().enabled then
 
         local cellLastRandomizeTime = getCellLastRandomizeTime(e.cell.editorName)
-        if cellLastRandomizeTime == nil or not randomizer.config.getConfig().cells.randomizeOnlyOnce and
+        if cellLastRandomizeTime == nil or (not randomizer.config.getConfig().cells.randomizeOnlyOnce and
                 ((tes3.getSimulationTimestamp() - cellLastRandomizeTime.gameTime) > randomizer.config.global.cellRandomizationCooldown_gametime or
-                (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown) then
+                (os.time() - cellLastRandomizeTime.timestamp) > randomizer.config.global.cellRandomizationCooldown)) then
 
             randomizeCellOnly(e.cell)
 
@@ -181,23 +181,21 @@ end
 local isDummyLoad = true
 local function load(e)
     if isDummyLoad then
+        inventoryEvents.reset()
         storage.restoreAllActors(true)
         storage.restoreAllItems(true, true)
         randomizer.config.resetConfig()
         if not e.newGame and storage.loadFromFile(e.filename) then
             storage.restoreAllItems()
             storage.restoreAllActors()
-            if tes3.dataHandler.nonDynamicData.lastLoadedFile and randomizer.config.global.allowDoubleLoading then
-                isDummyLoad = false
-                e.claim = true
-                e.block = true
-                tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
-            end
+            isDummyLoad = false
+            e.claim = true
+            e.block = true
+            tes3.loadGame(e.filename..".ess")
         end
     else
         isDummyLoad = true
     end
-    inventoryEvents.reset()
 end
 
 local function saved(e)
@@ -208,7 +206,6 @@ local function saved(e)
     else
         saveName = filename
     end
-    log(saveName)
     storage.saveToFile(saveName)
     randomizer.config.saveOnlyGlobal()
 end
@@ -473,6 +470,7 @@ end
 
 local function menuEnterExit(e)
     currentMenu = e.menu and tostring(e.menu) or nil
+    log("Current menu %s", tostring(currentMenu))
 end
 
 event.register(tes3.event.initialized, function(e)

@@ -593,7 +593,8 @@ function this.fillFlora()
             local id = object.id:lower()
             if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
                     not forbiddenModels[object.mesh:lower()] and (id:find("grass") or id:find("bush") or id:find("flora")) and
-                    not (id:find("tree") or id:find("log") or id:find("menhir") or id:find("root") or id:find("parasol") or id:find("rock")) then
+                    not (id:find("tree") or id:find("log") or id:find("menhir") or id:find("root") or id:find("parasol") or id:find("rock") or
+                    id:find("plane")) then
                 local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
                 if str then
                     if not data[str] then data[str] = {} end

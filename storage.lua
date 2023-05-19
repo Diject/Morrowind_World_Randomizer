@@ -63,7 +63,12 @@ function this.restoreItem(id, restoreToInitial)
         local object = tes3.getObject(origId)
         if object then
             if data.originalId and data.originalId ~= data.id then
-                object = object:createCopy{id = data.id, sourceless = true}
+                local newObj = tes3.getObject(data.id)
+                if not newObj then
+                    object = object:createCopy{id = data.id, sourceless = true}
+                else
+                    object = newObj
+                end
             elseif not this.initial.items[origId] then
                 this.initial.items[origId] = saveRestore.serializeItemBaseObject(object)
             end
@@ -185,7 +190,7 @@ function this.restoreAllActors(restoreToInitial)
     local arr = restoreToInitial and this.initial.actors or this.data.actors
     for id, data in pairs(arr) do
         local object = tes3.getObject(id)
-        saveRestore.restoreActorBaseObject(object, data)
+        this.restoreActor(object, restoreToInitial)
     end
 end
 
