@@ -239,7 +239,11 @@ local function loaded(e)
         randomizeLoadedCells()
 
     end
-    inventoryEvents.start()
+    if randomizer.config.getConfig().item.unique then
+        inventoryEvents.saveInventoryChanges()
+    else
+        inventoryEvents.start()
+    end
 end
 
 local goldToAdd = 0
@@ -298,12 +302,6 @@ local function mobileActivated(e)
     end
 end
 
-local function uniqueItemsCallback(res)
-    if res ~= nil then
-        randomizer.config.getConfig().item.unique = res
-    end
-end
-
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -326,7 +324,6 @@ local function randomizeBaseItemsCallback(e)
         randomizer.config.getConfig().item.changeMesh = true
         randomizer.randomizeBaseItems()
     end
-    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function randomizeBaseItemsMessage()
@@ -334,6 +331,13 @@ local function randomizeBaseItemsMessage()
         buttons = {i18n("modConfig.label.randBaseItemToPreset"), i18n("modConfig.label.randBaseItemOnlyStats"),
             i18n("modConfig.label.randBaseItemOnlyModels"), i18n("modConfig.label.randBaseItemAll"), i18n("messageBox.enableRandomizer.button.no")},
         callback = randomizeBaseItemsCallback, showInDialog = false})
+end
+
+local function uniqueItemsCallback(res)
+    if res ~= nil then
+        randomizer.config.getConfig().item.unique = res
+    end
+    randomizeBaseItemsMessage()
 end
 
 local function landscapeRandOptionCallback(e)
@@ -345,7 +349,7 @@ local function landscapeRandOptionCallback(e)
         end
         loadRandomizedLandscapeTextures()
     end
-    randomizeBaseItemsMessage()
+    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function showLandscapeRandOptionMessage()
@@ -354,7 +358,7 @@ local function showLandscapeRandOptionMessage()
             buttons = {i18n("messageBox.enableRandomizer.button.yes"), i18n("messageBox.enableRandomizer.button.no")},
             callback = landscapeRandOptionCallback, showInDialog = false})
     else
-        randomizeBaseItemsMessage()
+        menus.uniqueItemOptions(uniqueItemsCallback)
     end
 end
 

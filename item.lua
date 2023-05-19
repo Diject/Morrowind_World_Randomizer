@@ -781,7 +781,7 @@ function this.randomizeItems(itemsData)
                     not this.config.item.enchantment.exceptIngredient then
                 this.randomizeIngredients(data)
             end
-        else
+        elseif not (this.config.item.unique and (itType == tes3.objectType.armor or itType == tes3.objectType.clothing or itType == tes3.objectType.weapon)) then
             local count = #data.items
             for i, item in pairs(data.items) do
                 local enchVal = data.enchantValues[item.id]
@@ -947,16 +947,32 @@ function this.fixPlayerInventory(updateModels)
         for stack, item, count, itemData in this.iterItems(player.inventory) do
             this.fixItemData(itemData, item)
         end
-        local weapon
-        if player.readiedWeapon and player.readiedWeapon.itemData then
-            weapon = player.readiedWeapon.object
-            player:unequip{type = tes3.objectType["weapon"]}
-        end
         if updateModels then
             tes3.player:updateEquipment()
             tes3.updateInventoryGUI{ reference = tes3.player }
         end
-        player:equip{item = weapon,}
+        local objTypes = {[tes3.objectType.armor] = 10, [tes3.objectType.clothing] = 9, [tes3.objectType.weapon] = 13}
+        for objType, maxId in pairs(objTypes) do
+            for i = 0, maxId do
+                local equipped = tes3.getEquippedItem{actor = player, slot = objType ~= tes3.objectType.weapon and i or nil,
+                    type = objType == tes3.objectType.weapon and i or nil}
+                if equipped and equipped.object and equipped.itemData then
+                    local id = equipped.object.id
+                    local itData = {charge = equipped.itemData.charge, condition = equipped.itemData.condition}
+                    player:unequip{item = equipped.object, itemData = equipped.itemData}
+                    local found = false
+                    for stack, item, count, itemData in this.iterItems(player.inventory) do
+                        if item.id == id and itemData and itemData.charge == itData.charge and itemData.condition == itData.condition then
+                            found = true
+                            player:equip{item = tes3.getObject(id), itemData = itemData}
+                        end
+                    end
+                    if not found then
+                        player:equip{item = tes3.getObject(id)}
+                    end
+                end
+            end
+        end
         log("Player inventory fixed")
     end
 end
