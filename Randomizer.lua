@@ -346,12 +346,16 @@ function this.updatePlayerInventory()
                                 tes3.addItem{reference = player, item = item, count = data.count,}
                                 updated = true
                                 log("Added unoriginal item %s", tostring(item))
+                                local origItem = tes3.getObject(id)
+                                if origItem then
+                                    origItem.value = 0
+                                    origItem.weight = 0
+                                    origItem.enchantment = nil
+                                end
                                 for i = 1, data.count do
                                     local equipped = tes3.getEquippedItem{actor = player, objectType = item.objectType, slot = item.slot,
                                         type = item.objectType == tes3.objectType.weapon and item.type or nil}
                                     if equipped then
-                                        equipped.object.weight = 0
-                                        equipped.object.enchantment = nil
                                         player:unequip{item = data.object}
                                         player:equip{item = item}
                                     else

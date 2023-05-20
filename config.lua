@@ -438,7 +438,7 @@ this.default = {
             exceptScrolls = true,
             exceptAlchemy = true,
             exceptIngredient = true,
-            useExisting = true,
+            useExisting = false,
             existing = {
                 region = {min = 0.2, max = 0.2},
             },

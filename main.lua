@@ -299,6 +299,14 @@ local function mobileActivated(e)
     end
 end
 
+local function uniqueItemsCallback(res)
+    if res ~= nil then
+        timer.start{duration = 3, callback = function()
+            randomizer.config.getConfig().item.unique = res
+        end}
+    end
+end
+
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -321,6 +329,7 @@ local function randomizeBaseItemsCallback(e)
         randomizer.config.getConfig().item.changeMesh = true
         randomizer.randomizeBaseItems()
     end
+    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function randomizeBaseItemsMessage()
@@ -328,13 +337,6 @@ local function randomizeBaseItemsMessage()
         buttons = {i18n("modConfig.label.randBaseItemToPreset"), i18n("modConfig.label.randBaseItemOnlyStats"),
             i18n("modConfig.label.randBaseItemOnlyModels"), i18n("modConfig.label.randBaseItemAll"), i18n("messageBox.enableRandomizer.button.no")},
         callback = randomizeBaseItemsCallback, showInDialog = false})
-end
-
-local function uniqueItemsCallback(res)
-    if res ~= nil then
-        randomizer.config.getConfig().item.unique = res
-    end
-    randomizeBaseItemsMessage()
 end
 
 local function landscapeRandOptionCallback(e)
@@ -346,7 +348,7 @@ local function landscapeRandOptionCallback(e)
         end
         loadRandomizedLandscapeTextures()
     end
-    menus.uniqueItemOptions(uniqueItemsCallback)
+    randomizeBaseItemsMessage()
 end
 
 local function showLandscapeRandOptionMessage()
@@ -355,7 +357,7 @@ local function showLandscapeRandOptionMessage()
             buttons = {i18n("messageBox.enableRandomizer.button.yes"), i18n("messageBox.enableRandomizer.button.no")},
             callback = landscapeRandOptionCallback, showInDialog = false})
     else
-        menus.uniqueItemOptions(uniqueItemsCallback)
+        randomizeBaseItemsMessage()
     end
 end
 
@@ -502,11 +504,10 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.activate, activate)
     event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
     event.register(tes3.event.filterInventory, filterInventory)
-    -- event.register(tes3.event.filterBarterMenu, filterInventory)
     event.register(tes3.event.menuEnter, menuEnterExit)
     event.register(tes3.event.menuExit, menuEnterExit)
     log("Morrowind World Randomizer is ready")
-end)
+end, {priority = -255})
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
     randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures,
