@@ -229,8 +229,8 @@ return {
 
     ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
     ["modConfig.label.itemStats"] = "Item stats",
-    ["modConfig.label.randomizeItemStats"] = "Randomize item attributes",
-    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage attributes",
+    ["modConfig.label.randomizeItemStats"] = "Randomize item stats",
+    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage stats",
     ["modConfig.label.itemEnchantment"] = "Item enchantments",
     ["modConfig.label.randomizeItemEnch"] = "Randomize the enchantment on an item of equipment",
     ["modConfig.label.numberOfEnchCasts"] = "The number of times you can cast an enchantment",
@@ -255,9 +255,9 @@ return {
     ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
     ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
 
-    ["modConfig.message.randItemStats"] = "Do you want to randomize item attributes (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.message.randItemStats"] = "Do you want to randomize the stats of almost all items (e.g. weight, price, enchantment, etc.) and item models?",
     ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
-    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only attributes",
+    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
     ["modConfig.label.randBaseItemAll"] = "Randomize all",
 
@@ -299,7 +299,7 @@ return {
     ["modConfig.label.flora"] = "Other static flora",
     ["modConfig.label.randomizeFlora"] = "Randomize flora",
     ["modConfig.label.speciesPerCell"] = "Species per cell %%s",
-    ["modConfig.label.linkMeshToParts"] = "Use the same model with a wearable and a world object",
+    ["modConfig.label.linkMeshToParts"] = "Use the same model with the wearable part and the world object",
     ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
 
     ["modConfig.label.makeItemsUnique"] = "Make all wearable items unique",
