@@ -311,4 +311,6 @@ return {
     ["modConfig.text.warningAboutRandomization"] = "Most of the settings from the following tabs will only be applied during the next randomization.\nMost of the settings are stored in the game session and will be lost if you don't save the game before.",
 
     ["modConfig.message.uniqueItems"] = "Do you want to make each wearable item unique with random stats and enchantments?\n\nOnce enabled, it cannot be disabled.\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf you want items to be less random, try using DRIP instead.",
+
+    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%"
 }

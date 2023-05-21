@@ -139,6 +139,7 @@ function this.randomizeEffects(effects, effData, config)
     local isConstant = effData.isConstant
     local enchPower = effData.power
     local strongThreshold = effData.strongThreshold or true
+    local preferValue = effData.preferValue or false
     local mulForConst = config.enchantment.effects.durationForConstant
     --clear old data
     for i = 1, 8 do
@@ -229,6 +230,7 @@ function this.randomizeEffects(effects, effData, config)
             break
         end
     end
+    local minmaxThreshold = preferValue and 0.9 or 0.6
     local iterations = 2 * config.enchantment.effects.tuneStepsCount
     local stepPow = (enchPower - enchVal) / config.enchantment.effects.tuneStepsCount
     while enchVal < enchPower and iterations > 0 do
@@ -241,7 +243,7 @@ function this.randomizeEffects(effects, effData, config)
         if magicEffect == nil then goto continue end
         local baseCost = magicEffect.baseMagickaCost
         local rnd = isConstant and 0 or math.random()
-        if rnd < 0.6 and not magicEffect.hasNoMagnitude then
+        if rnd < minmaxThreshold and not magicEffect.hasNoMagnitude then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
             local magnitude
             local min, max
@@ -260,7 +262,7 @@ function this.randomizeEffects(effects, effData, config)
             effectData.min = math.min(effectData.min + min, config.enchantment.effects.maxMagnitude)
             effectData.max = math.min(effectData.max + max, config.enchantment.effects.maxMagnitude)
 
-        elseif rnd < 0.95 and not magicEffect.hasNoDuration and not isConstant then
+        elseif rnd < 0.97 and not magicEffect.hasNoDuration and not isConstant then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
             local magnitude = ((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / (effectData.min + effectData.max) -
                 (effectData.duration)
@@ -300,7 +302,7 @@ end
 local enchantLastRand = {}
 
 --cannot randomise more than once every 2 seconds for an enchantment
-function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, effectCount, config)
+function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, effectCount, preferValue, config)
     if enchantment then
         local time = enchantLastRand[enchantment.id]
         if not time then
@@ -350,6 +352,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         isConstant = isConstant,
         power = enchPower,
         strongThreshold = true,
+        preferValue = preferValue,
     }, config)
 
     return newEnch
@@ -461,6 +464,9 @@ function this.randomizeBaseItem(object, params)
         local baseData = this.storage.getItemData(object.id, true)
 
         local newBase = createNewItem and object:createCopy{id = itemPrefix..tostring(this.getUniqueId())} or object
+        if createNewItem and newBase.enchantment then
+            newBase.enchantment = nil
+        end
 
         if this.config.item.stats.randomize then
             this.randomizeStats(newBase, nil, nil, nil, nil, baseData)
@@ -474,6 +480,7 @@ function this.randomizeBaseItem(object, params)
 
         this.randomizeBaseItemVisuals(newBase, itemsData)
 
+        local preferValue = false
         local addEnch = this.config.item.enchantment.add.chance > math.random()
         local removeEnch = this.config.item.enchantment.remove.chance > math.random() and
             not (this.config.item.enchantment.remove.exceptScrolls and object.objectType == tes3.objectType.book)
@@ -549,14 +556,14 @@ function this.randomizeBaseItem(object, params)
                     if object.objectType == tes3.objectType.weapon or object.objectType == tes3.objectType.ammunition then
                         if object.isProjectile or object.isAmmo then
                             enchType = tes3.enchantmentType.onStrike
+                            enchPower = enchPower * this.config.item.enchantment.arrowPower
                             usedOnce = true
-                        elseif object.enchantment then
-                            enchType = object.enchantment.castType
                         elseif object.isRanged then
                             enchType = math.random(2, 3)
                         else
                             enchType = math.random(1, 3)
                         end
+                        if enchType == tes3.enchantmentType.onStrike then preferValue = true end
                     elseif object.objectType == tes3.objectType.book then
                         enchType = tes3.enchantmentType.castOnce
                     else
@@ -582,7 +589,7 @@ function this.randomizeBaseItem(object, params)
                             end
                         end
                     else
-                        newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, this.config.item)
+                        newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, preferValue, this.config.item)
                     end
                     -- if newEnch then newEnch.modified = modifiedFlag end
                 end

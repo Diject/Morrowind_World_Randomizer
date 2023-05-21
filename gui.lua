@@ -675,6 +675,7 @@ function this.registerModConfig()
                                 components = {
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment, "arrowPower", 100, 1, 300, 1, {label = this.i18n("modConfig.label.arrowPower")}),
                                 },
                             },
                             {

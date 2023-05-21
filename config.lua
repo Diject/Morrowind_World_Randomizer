@@ -444,8 +444,9 @@ this.default = {
             },
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
-            numberOfCasts = {min = 2, max = 10},
-            cost = {min = 20, max = 800},
+            numberOfCasts = {min = 4, max = 15},
+            cost = {min = 15, max = 800},
+            arrowPower = 0.25,
             minMaximumGroupCost = 100,
             effects = {
                 tuneStepsCount = 30,
