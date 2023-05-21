@@ -502,11 +502,12 @@ function this.createObject(object)
             local objData = dataSaver.getObjectData(reference)
             if objData then objData.isCreated = true end
             if object.itemData ~= nil then
+                local count = object.itemData.count
                 if object.itemData.owner ~= nil or object.itemData.requirement ~= nil then
                     tes3.setOwner({ reference = reference, owner = object.itemData.owner, requiredRank = object.itemData.requirement })
                 end
-                reference.itemData.count = object.itemData.count
-                log("New object count %s", tostring(reference.itemData.count))
+                reference.itemData.count = count
+                log("New object count %s", tostring(count))
             end
             if object.stopRand and objData then
                 this.StopRandomization(reference)
@@ -797,7 +798,7 @@ function this.randomizeCell(cell)
         elseif object ~= nil and config.items.randomize and object.baseObject.objectType == tes3.objectType.ammunition then
 
             local objectId = object.id:lower()
-            if object.sourceMod then
+            if object.sourceMod and not object.disabled then
                 local itemAdvData = itemsData.Items[objectId]
 
                 if itemAdvData ~= nil then
@@ -807,16 +808,14 @@ function this.randomizeCell(cell)
                         this.config.data.items.region.min, this.config.data.items.region.max)]
                     table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = object.position, rot = object.orientation,
                         scale = object.scale, itemData = object.itemData, objectType = object.object.objectType, cell = cell})
-                    object:disable()
+                    object:delete()
 
                 elseif config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType] then
 
                     table.insert(newObjects, {id = this.getNewItem(object.id).id, pos = object.position, rot = object.orientation,
                         scale = object.scale, itemData = object.itemData, objectType = object.object.objectType, cell = cell})
-                    object:disable()
+                    object:delete()
                 end
-            else
-                object:delete()
             end
 
         end
