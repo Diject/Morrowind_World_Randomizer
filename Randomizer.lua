@@ -206,10 +206,18 @@ local function getMinGroundPosInCircle(vector, radius, offset)
     return nil
 end
 
+---@param vector1 tes3vector3
+---@param vector2 tes3vector3
+---@return number
+local function get2DDistance(vector1, vector2)
+    if not vector1 or not vector2 then return 0 end
+    return math.sqrt((vector2.x - vector1.x) ^ 2 + (vector2.y - vector1.y) ^ 2)
+end
+
 local function minDistanceBetweenVectors(vector, vectorArray)
     local distance = math.huge
     for i, vector2 in pairs(vectorArray) do
-        distance = math.min(distance, vector:distance(vector2))
+        distance = math.min(distance, get2DDistance(vector, vector2))
     end
     return distance
 end
@@ -302,11 +310,12 @@ function this.getNewItem(id)
             this.storage.saveItem(it, nil, true)
             local origItData = this.storage.getItemData(id)
             if not origItData then
-                it.value = 0
                 it.weight = 0
                 it.enchantment = tes3.getObject(itemLib.dummyEnchantmentId)
                 this.storage.saveItem(it)
             else
+                it.weight = 0
+                it.enchantment = tes3.getObject(itemLib.dummyEnchantmentId)
                 origItData.weight = 0
                 origItData.enchantment = {id = itemLib.dummyEnchantmentId, effects = {}, castType = tes3.enchantmentType.constant,
                     chargeCost = 1, maxCharge = 1}
@@ -414,7 +423,6 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             local itemId = item.id:lower()
             local itemAdvData = itemsData.Items[itemId]
             if itemAdvData ~= nil then
-
                 if artifacts[itemId] == nil then
                     local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
                     local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, #newItemGroup.Items, regionMin, regionMax)]
@@ -475,7 +483,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
                 if item.count < 0 then
                     negativeStock[it.id] = item.count
                 end
-                log("Item added %s %s", tostring(it.id), tostring(item.count))
+                log("Item added %s (%s) %s", tostring(it.id), tostring(item.id), tostring(item.count))
             end
         end
 
@@ -686,12 +694,17 @@ function this.randomizeCell(cell)
                         object:enable()
                     end
 
-                elseif object.baseObject.script == nil then
-                    this.randomizeContainerItems(object, this.config.data.containers.items.region.min, this.config.data.containers.items.region.max)
-                    this.randomizeLockTrap(object)
+                else
+                    if config.containers.items.randomize or config.item.unique then
+                        this.randomizeContainerItems(object, this.config.data.containers.items.region.min, this.config.data.containers.items.region.max)
+                    end
+                    if not object.baseObject.script then
+                        this.randomizeLockTrap(object)
+                    end
                 end
 
-            elseif config.items.randomize and (object.baseObject.objectType == tes3.objectType.weapon or
+            elseif (config.items.randomize or (config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType])) and
+                    (object.baseObject.objectType == tes3.objectType.weapon or
                     object.baseObject.objectType == tes3.objectType.alchemy or
                     object.baseObject.objectType == tes3.objectType.apparatus or
                     object.baseObject.objectType == tes3.objectType.armor or
