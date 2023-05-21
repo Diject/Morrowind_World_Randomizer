@@ -143,6 +143,13 @@ local function isLandscapeTexturesValid()
     return true
 end
 
+local function clearRandomizedCellList()
+    local playerData = dataSaver.getObjectData(tes3.player)
+    if playerData then
+        playerData.cellTimestamps = {}
+    end
+end
+
 local function itemDropped(e)
     if randomizer.config.getConfig().enabled then
         if e.reference ~= nil and e.reference.data ~= nil then
@@ -246,7 +253,8 @@ end
 local goldToAdd = 0
 local function leveledItemPicked(e)
     if randomizer.config.getConfig().enabled then
-        if randomizer.config.data.containers.items.randomize and e.pick ~= nil and e.pick.id ~= nil and
+        if e.pick ~= nil and e.pick.id ~= nil and (randomizer.config.data.containers.items.randomize or (randomizer.config.data.item.unique and
+                itemLib.itemTypeForUnique[e.pick.objectType])) and
                 not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
 
             if e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
@@ -299,14 +307,6 @@ local function mobileActivated(e)
     end
 end
 
-local function uniqueItemsCallback(res)
-    if res ~= nil then
-        timer.start{duration = 3, callback = function()
-            randomizer.config.getConfig().item.unique = res
-        end}
-    end
-end
-
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -329,7 +329,6 @@ local function randomizeBaseItemsCallback(e)
         randomizer.config.getConfig().item.changeMesh = true
         randomizer.randomizeBaseItems()
     end
-    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function randomizeBaseItemsMessage()
@@ -337,6 +336,13 @@ local function randomizeBaseItemsMessage()
         buttons = {i18n("modConfig.label.randBaseItemToPreset"), i18n("modConfig.label.randBaseItemOnlyStats"),
             i18n("modConfig.label.randBaseItemOnlyModels"), i18n("modConfig.label.randBaseItemAll"), i18n("messageBox.enableRandomizer.button.no")},
         callback = randomizeBaseItemsCallback, showInDialog = false})
+end
+
+local function uniqueItemsCallback(res)
+    if res ~= nil then
+        randomizer.config.getConfig().item.unique = res
+    end
+    randomizeBaseItemsMessage()
 end
 
 local function landscapeRandOptionCallback(e)
@@ -348,7 +354,7 @@ local function landscapeRandOptionCallback(e)
         end
         loadRandomizedLandscapeTextures()
     end
-    randomizeBaseItemsMessage()
+    menus.uniqueItemOptions(uniqueItemsCallback)
 end
 
 local function showLandscapeRandOptionMessage()
@@ -357,7 +363,7 @@ local function showLandscapeRandOptionMessage()
             buttons = {i18n("messageBox.enableRandomizer.button.yes"), i18n("messageBox.enableRandomizer.button.no")},
             callback = landscapeRandOptionCallback, showInDialog = false})
     else
-        randomizeBaseItemsMessage()
+        menus.uniqueItemOptions(uniqueItemsCallback)
     end
 end
 
@@ -469,16 +475,6 @@ local function filterPlayerInventory(e)
     end
 end
 
-local function filterBarterInventory(e)
-    if randomizer.config.data.item.unique then
-        local wasCreated = itemLib.isItemWasCreated(e.item.id)
-        if e.item.sourceMod and not wasCreated and (e.item.objectType == tes3.objectType.weapon or e.item.objectType == tes3.objectType.armor or
-                e.item.objectType == tes3.objectType.clothing) then
-            e.filter = false
-        end
-    end
-end
-
 local function menuEnterExit(e)
     currentMenu = e.menu and tostring(e.menu) or nil
     log("Current menu %s", tostring(currentMenu))
@@ -513,7 +509,7 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.activate, activate)
     event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
     event.register(tes3.event.filterInventory, filterPlayerInventory)
-    event.register(tes3.event.filterBarterMenu, filterBarterInventory)
+    event.register(tes3.event.filterBarterMenu, filterPlayerInventory)
     event.register(tes3.event.filterContentsMenu, filterPlayerInventory)
     event.register(tes3.event.menuEnter, menuEnterExit)
     event.register(tes3.event.menuExit, menuEnterExit)
@@ -522,5 +518,5 @@ end, {priority = -255})
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
     randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures,
-    randomizeBaseItems = randomizer.randomizeBaseItems})
+    randomizeBaseItems = randomizer.randomizeBaseItems, clearCellList = clearRandomizedCellList})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)
