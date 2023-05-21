@@ -14,12 +14,21 @@ this.storage = include("Morrowind_World_Randomizer.storage")
 local enchPrefix = "_mwrand_new_ench_"
 local itemPrefix = "_mwrand_new_item_"
 
+this.dummyEnchantmentId = "_mwrand_dummy_ench_01"
+
 ---@type mwr.itemStatsData
 this.data = nil
 
 this.itemTypeForEnchantment = {
     [tes3.objectType.armor] = true,
     [tes3.objectType.book] = true,
+    [tes3.objectType.clothing] = true,
+    [tes3.objectType.weapon] = true,
+    [tes3.objectType.ammunition] = true,
+}
+
+this.itemTypeForUnique = {
+    [tes3.objectType.armor] = true,
     [tes3.objectType.clothing] = true,
     [tes3.objectType.weapon] = true,
     [tes3.objectType.ammunition] = true,
@@ -73,7 +82,7 @@ function this.iterItems(inventory)
             ---@cast stack tes3itemStack
             local item = stack.object
 
-            local count = stack.count
+            local count = math.abs(stack.count)
 
             -- first yield stacks with custom data
             if stack.variables then
@@ -85,7 +94,7 @@ function this.iterItems(inventory)
                 end
             end
             -- then yield all the remaining copies
-            if count > 0 then
+            if count ~= 0 then
                 coroutine.yield(stack, item, count)
             end
         end
@@ -359,8 +368,9 @@ function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax, baseD
     log("Item stats id %s", tostring(object))
     if object.value then
         local value = baseData.value or object.value
-        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))) or
-            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))))
+        local minValue = math.min(1, value)
+        object.value = math.max(minValue, object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))) or
+            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul)))))
         log("value %s", tostring(object.value))
     end
     for _, var in pairs(intVars) do
@@ -448,14 +458,16 @@ function this.randomizeBaseItem(object, params)
 
         this.storage.saveItem(object, nil, true)
 
+        local baseData = this.storage.getItemData(object.id, true)
+
         local newBase = createNewItem and object:createCopy{id = itemPrefix..tostring(this.getUniqueId())} or object
 
         if this.config.item.stats.randomize then
-            this.randomizeStats(newBase, nil, nil, nil, nil, this.storage.getItemData(object.id, true))
+            this.randomizeStats(newBase, nil, nil, nil, nil, baseData)
         end
 
         if not newEnchValue then
-            newEnchValue = object.enchantCapacity
+            newEnchValue = baseData.enchantCapacity or object.enchantCapacity
         else
             newEnchValue = math.max(this.config.item.enchantment.cost.min, newEnchValue)
         end
@@ -781,7 +793,7 @@ function this.randomizeItems(itemsData)
                     not this.config.item.enchantment.exceptIngredient then
                 this.randomizeIngredients(data)
             end
-        elseif not (this.config.item.unique and (itType == tes3.objectType.armor or itType == tes3.objectType.clothing or itType == tes3.objectType.weapon)) then
+        elseif not (this.config.item.unique and (this.itemTypeForUnique[itType])) then
             local count = #data.items
             for i, item in pairs(data.items) do
                 local enchVal = data.enchantValues[item.id]
@@ -864,7 +876,9 @@ end
 function this.fixInventory(inventory)
     if not inventory then return end
     for stack, item, count, itemData in this.iterItems(inventory) do
-        this.fixItemData(itemData, item)
+        if stack.count > 0 then
+            this.fixItemData(itemData, item)
+        end
     end
 end
 

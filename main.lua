@@ -268,10 +268,10 @@ local function leveledItemPicked(e)
 
             end
             local newId = randomizer.getNewRandomItemId(e.pick.id)
-            if newId then
-                log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(newId))
-                local item = randomizer.getNewItem(newId)
+            if newId or randomizer.config.data.item.unique then
+                local item = randomizer.getNewItem(newId or e.pick.id)
                 if item then
+                    log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(item))
                     e.pick = item
                 end
             end
@@ -460,7 +460,16 @@ local function calcRestInterrupt(e)
     end
 end
 
-local function filterInventory(e)
+local function filterPlayerInventory(e)
+    if randomizer.config.data.item.unique then
+        local wasCreated = itemLib.isItemWasCreated(e.item.id)
+        if e.item.sourceMod and not wasCreated and (itemLib.itemTypeForUnique[e.item.objectType]) then
+            e.filter = false
+        end
+    end
+end
+
+local function filterBarterInventory(e)
     if randomizer.config.data.item.unique then
         local wasCreated = itemLib.isItemWasCreated(e.item.id)
         if e.item.sourceMod and not wasCreated and (e.item.objectType == tes3.objectType.weapon or e.item.objectType == tes3.objectType.armor or
@@ -503,7 +512,9 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.mobileActivated, mobileActivated)
     event.register(tes3.event.activate, activate)
     event.register(tes3.event.calcRestInterrupt, calcRestInterrupt)
-    event.register(tes3.event.filterInventory, filterInventory)
+    event.register(tes3.event.filterInventory, filterPlayerInventory)
+    event.register(tes3.event.filterBarterMenu, filterBarterInventory)
+    event.register(tes3.event.filterContentsMenu, filterPlayerInventory)
     event.register(tes3.event.menuEnter, menuEnterExit)
     event.register(tes3.event.menuExit, menuEnterExit)
     log("Morrowind World Randomizer is ready")

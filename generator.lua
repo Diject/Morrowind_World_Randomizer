@@ -62,6 +62,7 @@ function this.fillItems()
     items.data[tes3.objectType.probe] = {}
     items.data[tes3.objectType.repairItem] = {}
     items.data[tes3.objectType.weapon] = {}
+    items.data[tes3.objectType.ammunition] = {}
 
     log("Item list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
