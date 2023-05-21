@@ -446,6 +446,7 @@ this.default = {
             powMul = 0.65,
             numberOfCasts = {min = 4, max = 15},
             cost = {min = 15, max = 800},
+            scrollBase = 50,
             arrowPower = 0.25,
             minMaximumGroupCost = 100,
             effects = {

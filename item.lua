@@ -474,6 +474,9 @@ function this.randomizeBaseItem(object, params)
 
         if not newEnchValue then
             newEnchValue = baseData.enchantCapacity or object.enchantCapacity
+            if newEnchValue == 0 and object.objectType == tes3.objectType.book then
+                newEnchValue = this.config.item.enchantment.scrollBase
+            end
         else
             newEnchValue = math.max(this.config.item.enchantment.cost.min, newEnchValue)
         end

@@ -614,7 +614,8 @@ function this.registerModConfig()
                             set = function(self, val)
                                 local newVal = true
                                 if not this.config.data.item.unique then
-                                    newVal = val
+                                    newVal = true
+                                    this.funcs.clearCellList()
                                 end
                                 this.config.data.item.unique = newVal
                             end,
@@ -694,6 +695,7 @@ function this.registerModConfig()
                                 components = {
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "min", 1, 1, 100, 1, {label = this.i18n("modConfig.label.minVal"),}),
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "max", 1, 1, 5000, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment, "scrollBase", 1, 1, 400, 1, {label = this.i18n("modConfig.label.scrollEnchCapacity")}),
                                 },
                             },
                             {

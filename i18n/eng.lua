@@ -255,7 +255,7 @@ return {
     ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
     ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
 
-    ["modConfig.message.randItemStats"] = "Do you want to randomize the stats of almost all items (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.message.randItemStats"] = "Do you want to randomize almost all items stats (e.g. weight, price, enchantment, etc.) and models? This applies to wearable items as well.",
     ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
     ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
@@ -303,7 +303,7 @@ return {
     ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
 
     ["modConfig.label.makeItemsUnique"] = "Make all wearable items unique",
-    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf the option is enabled after the start of the game, the current inventory items will change.",
+    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf the option is enabled after the start of the game, the current inventory items will change and previously randomized cells will be randomized again.",
 
     ["modConfig.label.durationForConstant"] = "The duration component in the constant enchantment formula",
     ["modConfig.description.durationForConstant"] = "Default id 100.\nMorrowind effect cost formula is\n(Min Magnitude + Max Magnitude) * (Duration + Area) * (Base Cost / 40)\n\nThe lower the value, the more powerful the constant enchantments.",
@@ -312,5 +312,7 @@ return {
 
     ["modConfig.message.uniqueItems"] = "Do you want to make each wearable item unique with random stats and enchantments?\n\nOnce enabled, it cannot be disabled.\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf you want items to be less random, try using DRIP instead.",
 
-    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%"
+    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%",
+
+    ["modConfig.label.scrollEnchCapacity"] = "Base enchantment capacity for a scroll",
 }
