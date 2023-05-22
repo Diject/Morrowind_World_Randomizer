@@ -127,7 +127,7 @@ this.default = {
             randomize = true,
             region = {min = 1, max = 1},
             add = {
-                chance = 0.1,
+                chance = 0.3,
                 levelMultiplier = 5,
                 onlyDestructionSchool = false,
             },
@@ -527,7 +527,7 @@ if true then
     end
     setMinMax(preset)
     preset.herbs.herbSpeciesPerCell = 20
-    preset.containers.lock.add.chance = 0.5
+    preset.containers.lock.add.chance = 0.3
     preset.containers.trap.add.chance = 1
     preset.creatures.attack.region.min = 0.25
     preset.creatures.attack.region.min = 1.75
@@ -552,7 +552,7 @@ if true then
     preset.transport.toDoorsCount = 1
 
     preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.4
+    preset.doors.chance = 0.3
     preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.useExisting = false
