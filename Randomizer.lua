@@ -654,7 +654,7 @@ function this.randomizeCell(cell)
                         local scale = objectScale
                         local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
                         local radiusScaled = radius * scale
-                        if distanceToObj < radiusScaled then
+                        if distanceToObj < radiusScaled * 1.2 then
                             scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.6)
                         end
 
@@ -751,8 +751,9 @@ function this.randomizeCell(cell)
                             end
                             local idInList = math.random(1, #data.unfoundArtifacts)
                             local newItemId = data.unfoundArtifacts[idInList]
+                            local itemData = object.itemData and {count = object.itemData.count, owner = object.itemData.owner, requirement = object.itemData.requirement} or nil
                             local newRef = this.createObject({id = this.getNewItem(newItemId).id, pos = objectPos, rot = objectRot, scale = objectScale,
-                                itemData = object.itemData, objectType = object.object.objectType, cell = cell})
+                                itemData = itemData, objectType = object.object.objectType, cell = cell})
                             if newRef then
                                 table.remove(data.unfoundArtifacts, idInList)
                                 this.StopRandomization(object)
@@ -821,20 +822,20 @@ function this.randomizeCell(cell)
             local objectId = object.id:lower()
             if object.sourceMod and not object.disabled then
                 local itemAdvData = itemsData.Items[objectId]
-
+                local itemData = object.itemData and {count = object.itemData.count, owner = object.itemData.owner, requirement = object.itemData.requirement} or nil
                 if itemAdvData ~= nil then
 
                     local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
                     local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count,
                         this.config.data.items.region.min, this.config.data.items.region.max)]
                     table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = object.position, rot = object.orientation,
-                        scale = object.scale, itemData = object.itemData, objectType = object.object.objectType, cell = cell})
+                        scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
                     object:delete()
 
                 elseif config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType] then
 
                     table.insert(newObjects, {id = this.getNewItem(object.id).id, pos = object.position, rot = object.orientation,
-                        scale = object.scale, itemData = object.itemData, objectType = object.object.objectType, cell = cell})
+                        scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
                     object:delete()
                 end
             end
