@@ -182,6 +182,14 @@ local function createOnOffIngameNegativeButton(label, varTable, varId, descripti
     return data
 end
 
+local function createText(label, description)
+    return {
+        class = "Info",
+        label = label,
+        text = description
+    }
+end
+
 function this.registerModConfig()
     local data = {
         name = this.name,
@@ -329,11 +337,7 @@ function this.registerModConfig()
                             },
                         },
                     },
-                    {
-                        class = "Info",
-                        label = "",
-                        text = this.i18n("modConfig.text.warningAboutRandomization")
-                    },
+                    createText(nil, this.i18n("modConfig.text.warningAboutRandomization"))
                 },
             },
             {
@@ -633,6 +637,7 @@ function this.registerModConfig()
                             end,
                         },
                     },
+                    createText(nil, this.i18n("modConfig.description.itemStatsGeneration")),
                     {
                         buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
                         class = "Button",
