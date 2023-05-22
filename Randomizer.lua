@@ -509,12 +509,20 @@ function this.createObject(object)
         if reference ~= nil then
             local objData = dataSaver.getObjectData(reference)
             if objData then objData.isCreated = true end
-            if object.itemData ~= nil then
-                local count = object.itemData.count
-                if object.itemData.owner ~= nil or object.itemData.requirement ~= nil then
-                    tes3.setOwner({ reference = reference, owner = object.itemData.owner, requiredRank = object.itemData.requirement })
+            local itemData = object.itemData
+            if itemData ~= nil then
+                local count = itemData.count
+                local owner = itemData.owner
+                local requirement = itemData.requirement
+                if owner ~= nil or requirement ~= nil then
+                    tes3.setOwner({ reference = reference, owner = owner, requiredRank = requirement })
                 end
-                reference.itemData.count = count
+                if reference.itemData then
+                    reference.itemData.count = count
+                else
+                    local createdData = tes3.addItemData({ to = reference, item = reference.object, updateGUI = false })
+                    if createdData then createdData.count = count end
+                end
                 log("New object count %s", tostring(count))
             end
             if object.stopRand and objData then

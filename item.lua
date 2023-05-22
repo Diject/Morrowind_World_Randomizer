@@ -127,6 +127,7 @@ end
 
 local fortifyEffectIds = {79, 80, 81, 82, 83, 84}
 local damageEffectIds = {14, 15, 16, 23,}
+local restoreStatsEffectIds = {75, 76, 77}
 
 function this.randomizeEffects(effects, effData, config)
     local effCount = effData.effectCount
@@ -140,6 +141,7 @@ function this.randomizeEffects(effects, effData, config)
     local enchPower = effData.power
     local strongThreshold = effData.strongThreshold or true
     local preferValue = effData.preferValue or false
+    local isAlchemy = effData.isAlchemy or false
     local mulForConst = config.enchantment.effects.durationForConstant
     --clear old data
     for i = 1, 8 do
@@ -166,7 +168,9 @@ function this.randomizeEffects(effects, effData, config)
             local isNegative = math.random() < configChance
             local group = isNegative and effGroup_n or effGroup_p
             local effectId
-            if not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
+            if not isNegative and isAlchemy and rangeType == tes3.effectRange.self and config.enchantment.effects.restoreForAlchemyChance > math.random() then
+                effectId = restoreStatsEffectIds[math.random(1, #restoreStatsEffectIds)]
+            elseif not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
                 effectId = fortifyEffectIds[math.random(1, #fortifyEffectIds)]
             elseif isNegative and rangeType ~= tes3.effectRange.self and config.enchantment.effects.damageForTargetChance > math.random() then
                 effectId = damageEffectIds[math.random(1, #damageEffectIds)]
@@ -351,7 +355,7 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         enchantmentType = enchType,
         isConstant = isConstant,
         power = enchPower,
-        strongThreshold = true,
+        strongThreshold = false,
         preferValue = preferValue,
     }, config)
 
@@ -549,6 +553,7 @@ function this.randomizeBaseItem(object, params)
                             isConstant = false,
                             power = enchPower,
                             strongThreshold = false,
+                            isAlchemy = true,
                         }, this.config.item)
                     end
                 else
@@ -806,6 +811,7 @@ function this.randomizeItems(itemsData)
         elseif not (this.config.item.unique and (this.itemTypeForUnique[itType])) then
             local count = #data.items
             for i, item in pairs(data.items) do
+                if item.objectType == tes3.objectType.book and item.enchantment == nil then goto continue end
                 local enchVal = data.enchantValues[item.id]
                 local mul = (i / count) ^ this.config.item.enchantment.powMul
                 local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
@@ -820,6 +826,7 @@ function this.randomizeItems(itemsData)
 
                 this.randomizeBaseItem(item, {itemsData = itemsData, createNewItem = false, modifiedFlag = false, effectCount = encCount, enchCost = enchVal,
                     newEnchValue = mul * math.min(this.config.item.enchantment.minMaximumGroupCost, data.enchant95)})
+                ::continue::
             end
         end
     end

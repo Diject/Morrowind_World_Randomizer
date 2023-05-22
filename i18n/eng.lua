@@ -315,4 +315,5 @@ return {
     ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%",
 
     ["modConfig.label.scrollEnchCapacity"] = "Base enchantment capacity for a scroll",
+    ["modConfig.label.restoreForAlchemyChance"] = "Chance to add a restore health/fatigue/magicka effect for a potion %%s%%%%",
 }

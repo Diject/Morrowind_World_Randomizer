@@ -472,6 +472,7 @@ this.default = {
                 maxMagnitude = 100,
                 fortifyForSelfChance = 0.4,
                 damageForTargetChance = 0.25,
+                restoreForAlchemyChance = 0.1,
             },
             add = {
                 chance = 0.5,

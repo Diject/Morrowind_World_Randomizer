@@ -518,6 +518,26 @@ function this.registerModConfig()
                 class = "FilterPage",
                 components = {
                     {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.makeItemsUnique"),
+                        description = this.i18n("modConfig.description.makeItemsUnique"),
+                        inGameOnly = true,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.item.unique
+                            end,
+                            set = function(self, val)
+                                local newVal = true
+                                if not this.config.data.item.unique then
+                                    newVal = true
+                                    this.funcs.clearCellList()
+                                end
+                                this.config.data.item.unique = newVal
+                            end,
+                        },
+                    },
+                    {
                         label = this.i18n("modConfig.label.artifactsAsSeparate"),
                         class = "OnOffButton",
                         inGameOnly = true,
@@ -594,14 +614,6 @@ function this.registerModConfig()
                 class = "FilterPage",
                 components = {
                     {
-                        buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
-                        class = "Button",
-                        inGameOnly = true,
-                        callback = function()
-                            this.funcs.randomizeBaseItems()
-                        end,
-                    },
-                    {
                         class = "OnOffButton",
                         label = this.i18n("modConfig.label.makeItemsUnique"),
                         description = this.i18n("modConfig.description.makeItemsUnique"),
@@ -620,6 +632,14 @@ function this.registerModConfig()
                                 this.config.data.item.unique = newVal
                             end,
                         },
+                    },
+                    {
+                        buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
+                        class = "Button",
+                        inGameOnly = true,
+                        callback = function()
+                            this.funcs.randomizeBaseItems()
+                        end,
                     },
                     {
                         class = "Category",
@@ -709,6 +729,7 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "durationForConstant", 1, 10, 500, 1, {label = this.i18n("modConfig.label.durationForConstant"), description = this.i18n("modConfig.description.durationForConstant")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "restoreForAlchemyChance", 100, 0, 50, 1, {label = this.i18n("modConfig.label.restoreForAlchemyChance")}),
                                     {
                                         class = "Category",
                                         label = this.i18n("modConfig.label.itemEnchantment"),
