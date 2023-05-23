@@ -11,10 +11,13 @@ this.config = include("Morrowind_World_Randomizer.config").data
 
 this.storage = include("Morrowind_World_Randomizer.storage")
 
+this.getUniqueId = include("Morrowind_World_Randomizer.uniqueId").getUniqueId
+
 local enchPrefix = "_mwrand_new_ench_"
 local itemPrefix = "_mwrand_new_item_"
 
-this.dummyEnchantmentId = "_mwrand_dummy_ench_01"
+this.dummyConstEnchId = "_mwrand_dummy_ench_01"
+this.dummyStrikeEnchId = "_mwrand_dummy_ench_02"
 
 ---@type mwr.itemStatsData
 this.data = nil
@@ -100,12 +103,6 @@ function this.iterItems(inventory)
         end
     end
     return coroutine.wrap(iterator)
-end
-
-function this.getUniqueId()
-    if not globalConfig.uniqueId then globalConfig.uniqueId = -1 end
-    globalConfig.uniqueId = globalConfig.uniqueId + 1
-    return globalConfig.uniqueId
 end
 
 function this.isEnchantContainsForbiddenEffect(enchant)
@@ -727,16 +724,16 @@ function this.randomizeIngredients(data)
                 local pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
                     this.config.item.enchantment.effects.ingredient.region.max)
                 local iteration = 0
-                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < 30 do
+                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < 40 do
                     pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
                         this.config.item.enchantment.effects.ingredient.region.max)
                     iteration = iteration + 1
                 end
-                if iteration < 20 then
+                if iteration < 40 then
                     itemArr[pos].count = itemArr[pos].count - 1
                     itemArr[pos].effects[effAltId] = {id = effId, attr = attrId, skill = skillId}
                 else
-                    log("Cannot foud an item for %s", effAltId)
+                    log("Cannot found an item for %s", effAltId)
                 end
             end
         end
@@ -840,6 +837,9 @@ function this.restoreItems()
             -- local object = tes3.getObject(id)
             -- this.storage.saveItem(object)
             this.storage.addItemData(id, data)
+            if data.enchantment then
+                this.storage.restoreEnchantment(data.enchantment.id)
+            end
             this.storage.restoreItem(id, false)
         end
         plData.newObjects.items = nil
@@ -1016,6 +1016,22 @@ function this.fixPlayerWeight()
         tes3.mobilePlayer.encumbrance.current = weight
 		-- tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight}
 	end
+end
+
+---@return string|nil, tes3.enchantmentType|nil #enchant Id and cast type
+function this.setDummyEnchantment(item)
+    if not item then return nil, nil end
+    local id
+    local castType
+    if item.objectType == tes3.objectType.weapon and not item.isRanged then
+        id = this.dummyStrikeEnchId
+        castType = tes3.enchantmentType.onStrike
+    else
+        id = this.dummyConstEnchId
+        castType = tes3.enchantmentType.constant
+    end
+    item.enchantment = tes3.getObject(id)
+    return id, castType
 end
 
 return this
