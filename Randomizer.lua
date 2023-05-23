@@ -311,14 +311,13 @@ function this.getNewItem(id)
             local origItData = this.storage.getItemData(id)
             if not origItData then
                 it.weight = 0
-                it.enchantment = tes3.getObject(itemLib.dummyEnchantmentId)
+                itemLib.setDummyEnchantment(it)
                 this.storage.saveItem(it)
             else
                 it.weight = 0
-                it.enchantment = tes3.getObject(itemLib.dummyEnchantmentId)
+                local enchId, castType = itemLib.setDummyEnchantment(it)
                 origItData.weight = 0
-                origItData.enchantment = {id = itemLib.dummyEnchantmentId, effects = {}, castType = tes3.enchantmentType.constant,
-                    chargeCost = 1, maxCharge = 1}
+                origItData.enchantment = {id = enchId, effects = {}, castType = castType, chargeCost = 1, maxCharge = 1}
             end
             it = itemLib.randomizeBaseItem(it, {createNewItem = true})
             log("New item %s to %s", id, tostring(it and it.id))
@@ -357,7 +356,7 @@ function this.updatePlayerInventory()
                                 local origItem = tes3.getObject(id)
                                 if origItem then
                                     origItem.weight = 0
-                                    origItem.enchantment = tes3.getObject(itemLib.dummyEnchantmentId)
+                                    itemLib.setDummyEnchantment(origItem)
                                 end
                                 for i = 1, data.count do
                                     local equipped = tes3.getEquippedItem{actor = player, objectType = item.objectType, slot = item.slot,
@@ -479,7 +478,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             local it = this.getNewItem(item.id)
             local count = math.abs(item.count)
             if it then
-                tes3.addItem({ reference = reference, item = it, count = item.count, updateGUI = false })
+                tes3.addItem({ reference = reference, item = it, count = count, updateGUI = false })
                 if item.count < 0 then
                     negativeStock[it.id] = item.count
                 end
@@ -654,7 +653,7 @@ function this.randomizeCell(cell)
                         local scale = objectScale
                         local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
                         local radiusScaled = radius * scale
-                        if distanceToObj < radiusScaled * 1.2 then
+                        if distanceToObj < radiusScaled * 1.3 then
                             scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.6)
                         end
 
@@ -830,13 +829,13 @@ function this.randomizeCell(cell)
                         this.config.data.items.region.min, this.config.data.items.region.max)]
                     table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = object.position, rot = object.orientation,
                         scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
-                    object:delete()
+                    object:disable()
 
                 elseif config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType] then
 
                     table.insert(newObjects, {id = this.getNewItem(object.id).id, pos = object.position, rot = object.orientation,
                         scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
-                    object:delete()
+                    object:disable()
                 end
             end
 
@@ -1427,8 +1426,24 @@ function this.randomizeLockTrap(reference, toLock, toTrap)
                 local trapData = trapEffData[math.random(1, #trapEffData)]
                 local trapGroup = spellsData.SpellGroups[tostring(trapData.SubType)]
                 if trapGroup ~= nil then
-                    local newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
-                    local newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
+                    local newTrapSpellId
+                    local newTrapSpell
+                    local limit = 20
+                    while not newTrapSpell and limit > 0 do
+                        limit = limit - 1
+                        newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
+                        newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
+                        if newTrapSpell.effects then
+                            for _, effect in pairs(newTrapSpell.effects) do
+                                if effect.object and effect.object.casterLinked then
+                                    newTrapSpell = nil
+                                    break
+                                end
+                            end
+                            break
+                        end
+                        newTrapSpell = nil
+                    end
                     if newTrapSpell ~= nil then
                         log("Trap %s %s to %s", tostring(reference), tostring(reference.lockNode.trap), tostring(newTrapSpell))
                         reference.lockNode.trap = newTrapSpell
@@ -1443,12 +1458,29 @@ function this.randomizeLockTrap(reference, toLock, toTrap)
             else
                 newGroup = spellsData.SpellGroups[tostring(math.random(110, 115))]
             end
-            local newTrapSpellPos = math.random(1, math.floor(math.min(newGroup.Count,
+            local newTrapSpellId
+            local newTrapSpell
+            local limit = 20
+            while not newTrapSpell and limit > 0 do
+                limit = limit - 1
+                newTrapSpellId = math.random(1, math.floor(math.min(newGroup.Count,
                 newGroup.Count * configTable.trap.add.levelMultiplier * tes3.player.object.level * 0.01)))
-            local spellId = newGroup.Items[newTrapSpellPos]
-            local newSpell = tes3.getObject(spellId)
-            log("Trap new %s %s", tostring(reference), tostring(spellId))
-            tes3.setTrap({ reference = reference, spell = newSpell })
+                newTrapSpell = tes3.getObject(newGroup.Items[newTrapSpellId])
+                if newTrapSpell.effects then
+                    for _, effect in pairs(newTrapSpell.effects) do
+                        if effect.object and effect.object.casterLinked then
+                            newTrapSpell = nil
+                            break
+                        end
+                    end
+                    break
+                end
+                newTrapSpell = nil
+            end
+            if newTrapSpell then
+                log("Trap new %s %s", tostring(reference), tostring(newTrapSpell.id))
+                tes3.setTrap({ reference = reference, spell = newTrapSpell })
+            end
         end
     end
 end
