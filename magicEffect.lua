@@ -40,6 +40,12 @@ this.effectsData = {
     },
 }
 
+local forbidden = {
+    [126] = true,
+    [141] = true,
+    [142] = true,
+}
+
 function this.init()
     local fillEffGroup = function(effect, group)
         if effect.canCastSelf then
@@ -52,6 +58,7 @@ function this.init()
         if not effect.hasNoMagnitude then table.insert(group.hasMagnitude, effect.id) end
     end
     for id, effect in pairs(tes3.dataHandler.nonDynamicData.magicEffects) do
+        if forbidden[effect.id] then goto continue end
         this.effectsData.effect[effect.id] = effect
         this.effectsData.skill[effect.id] = effect.skill
         this.effectsData.cost[effect.id] = effect.baseMagickaCost
@@ -88,7 +95,7 @@ function this.init()
                 fillEffGroup(effect, this.effectsData.forEnchant.positive)
             end
         end
-
+        ::continue::
     end
 end
 
