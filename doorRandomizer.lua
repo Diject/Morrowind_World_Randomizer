@@ -501,6 +501,7 @@ function this.randomizeDoor(reference)
             local backDoor = getBackDoorFromReference(reference)
             if backDoor then
                 this.setCDTime(backDoor)
+                dataSaver.getObjectData(backDoor).lockTrapCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.lockTrapCooldown
             end
             this.setCDTime(reference)
         end
@@ -519,6 +520,8 @@ function this.randomizeDoor(reference)
 
                     if backDoor and newBackDoor then
                         replaceDoorDestinations(backDoor, newBackDoor)
+                        dataSaver.getObjectData(backDoor).lockTrapCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.lockTrapCooldown
+                        dataSaver.getObjectData(newBackDoor).lockTrapCDTimestamp = tes3.getSimulationTimestamp() + this.config.data.doors.lockTrapCooldown
                     end
                 end
 
