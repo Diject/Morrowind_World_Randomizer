@@ -54,7 +54,7 @@ local function forcedActorRandomization(reference)
         else
             randomizer.StopRandomizationTemp(reference)
         end
-        reference:updateEquipment()
+        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
     end
 end
 
@@ -62,7 +62,7 @@ local function randomizeActor(reference)
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
         forcedActorRandomization(reference)
     else
-        reference:updateEquipment()
+        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
     end
 end
 
@@ -191,8 +191,10 @@ local function load(e)
         inventoryEvents.reset()
         storage.restoreAllActors(true)
         storage.restoreAllItems(true, true)
+        storage.restoreAllEnchantments(true)
         randomizer.config.resetConfig()
         if not e.newGame and storage.loadFromFile(e.filename) then
+            storage.restoreAllEnchantments()
             storage.restoreAllItems()
             storage.restoreAllActors()
             isDummyLoad = false

@@ -7,15 +7,16 @@ local extension = ".mwrdata"
 ---@class mwrStorage
 local this = {}
 
-this.data = {items = {}, actors = {}}
-this.initial = {items = {}, actors = {}}
+this.data = {items = {}, actors = {}, enchantments = {}}
+this.initial = {items = {}, actors = {}, enchantments = {}}
 
 ---@param fileName string
 function this.saveToFile(fileName)
     log("Saving data to %s", fileName)
     local itemsJson = json.encode(this.data.items, nil)
     local actorsJson = json.encode(this.data.actors, nil)
-    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson}
+    local enchantmentsJson = json.encode(this.data.enchantments, nil)
+    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson, enchantmentsJson = enchantmentsJson}
     file.save.toSaveDirectory(fileName..extension, fileTable)
 end
 
@@ -27,14 +28,53 @@ function this.loadFromFile(fileName)
     if fileTable then
         local items = json.decode(fileTable.itemsJson)
         local actors = json.decode(fileTable.actorsJson)
+        local enchantments = json.decode(fileTable.enchantmentsJson)
         if items then this.data.items = items else this.data.items = {} end
         if actors then this.data.actors = actors else this.data.actors = {} end
+        if enchantments then this.data.enchantments = enchantments else this.data.enchantments = {} end
         return true
     else
         this.data.items = {}
         this.data.actors = {}
+        this.data.enchantments = {}
         return false
     end
+end
+
+---@param enchantment tes3enchantment
+---@param toInitial boolean|nil
+function this.saveEnchantment(enchantment, toInitial)
+    if not enchantment then return end
+    if not toInitial then
+        this.data.enchantments[enchantment.id] = saveRestore.serializeItemEnchantment(enchantment)
+    elseif not this.initial.items[enchantment.id] then
+        this.initial.enchantments[enchantment.id] = saveRestore.serializeItemEnchantment(enchantment)
+    end
+end
+
+---@param id string
+---@param restoreToInitial boolean|nil
+---@return boolean
+function this.restoreEnchantment(id, restoreToInitial)
+    local data
+    if restoreToInitial then
+        data = this.initial.enchantments[id]
+    else
+        data = this.data.enchantments[id]
+    end
+    if data then
+        local object = tes3.getObject(id)
+        if object then
+            if not this.initial.enchantments[id] then
+                this.initial.enchantments[id] = saveRestore.serializeItemEnchantment(object)
+            end
+            saveRestore.restoreEnchantment(object, data)
+            return true
+        else
+            object = saveRestore.createEnchantment(id, data)
+        end
+    end
+    return false
 end
 
 ---@param originalId string|nil
@@ -42,8 +82,14 @@ end
 function this.saveItem(object, originalId, toInitial)
     if not object then return end
     if not toInitial then
+        if object.enchantment then
+            this.data.enchantments[object.enchantment.id] = saveRestore.serializeItemEnchantment(object.enchantment)
+        end
         this.data.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
     elseif not this.initial.items[object.id] then
+        if object.enchantment then
+            this.initial.enchantments[object.enchantment.id] = saveRestore.serializeItemEnchantment(object.enchantment)
+        end
         this.initial.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
     end
 end
@@ -69,7 +115,8 @@ function this.restoreItem(id, restoreToInitial)
                 else
                     object = newObj
                 end
-            elseif not this.initial.items[origId] then
+            end
+            if not this.initial.items[origId] then
                 this.initial.items[origId] = saveRestore.serializeItemBaseObject(object)
             end
             saveRestore.restoreItemBaseObject(object, data, false)
@@ -84,8 +131,16 @@ end
 ---@param isInitial boolean|nil
 function this.addItemData(id, data, isInitial)
     if isInitial then
+        if data.enchantment and data.enchantment.castType then
+            this.initial.enchantments[data.enchantment.id] = data.enchantment
+            data.enchantment = {id = data.enchantment.id}
+        end
         this.initial.items[id] = data
     else
+        if data.enchantment and data.enchantment.castType then
+            this.data.enchantments[data.enchantment.id] = data.enchantment
+            data.enchantment = {id = data.enchantment.id}
+        end
         this.data.items[id] = data
     end
 end
@@ -103,6 +158,14 @@ end
 ---@param id string
 function this.deleteItemData(id)
     this.data.items[id] = nil
+end
+
+---@param restoreToInitial boolean|nil
+function this.restoreAllEnchantments(restoreToInitial)
+    local arr = restoreToInitial and this.initial.enchantments or this.data.enchantments
+    for id, data in pairs(arr) do
+        this.restoreEnchantment(id, restoreToInitial)
+    end
 end
 
 ---@param restoreToInitial boolean|nil

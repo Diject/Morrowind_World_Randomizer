@@ -59,11 +59,11 @@ function this.serializeItemBaseObject(object, originalId)
 
     if object.enchantment then
         out.enchantment = {}
-        out.enchantment.castType = object.enchantment.castType
-        out.enchantment.chargeCost = object.enchantment.chargeCost
+        -- out.enchantment.castType = object.enchantment.castType
+        -- out.enchantment.chargeCost = object.enchantment.chargeCost
         out.enchantment.id = object.enchantment.id
-        out.enchantment.maxCharge = object.enchantment.maxCharge
-        out.enchantment.effects = serializeEffects(object.enchantment.effects)
+        -- out.enchantment.maxCharge = object.enchantment.maxCharge
+        -- out.enchantment.effects = serializeEffects(object.enchantment.effects)
     end
 
     if object.parts then
@@ -87,6 +87,19 @@ function this.serializeItemBaseObject(object, originalId)
         out.color = {object.color[1], object.color[2], object.color[3]}
     end
 
+    return out
+end
+
+---@param enchantment tes3enchantment
+---@return table|nil
+function this.serializeItemEnchantment(enchantment)
+    if not enchantment then return nil end
+    local out = {}
+    out.castType = enchantment.castType
+    out.chargeCost = enchantment.chargeCost
+    out.id = enchantment.id
+    out.maxCharge = enchantment.maxCharge
+    out.effects = serializeEffects(enchantment.effects)
     return out
 end
 
@@ -161,26 +174,27 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
             end
 
         elseif varName == "enchantment" then
-            local enchantment
-            local enchObj = tes3.getObject(val.id)
-            if not createNewEnchantment and enchObj then
-                enchantment = enchObj
-                enchantment.castType = val.castType
-                enchantment.chargeCost = val.chargeCost
-                enchantment.maxCharge = val.maxCharge
-            else
-                local id = createNewEnchantment and nil or val.id
-                local castType = val.castType
-                local chargeCost = val.chargeCost < 1 and 1 or val.chargeCost
-                local maxCharge = val.maxCharge < 1 and 1 or val.maxCharge
-                enchantment = tes3.createObject{id = id, objectType = tes3.objectType.enchantment, castType = castType,
-                    chargeCost = chargeCost, maxCharge = maxCharge}
-            end
-            if enchantment then
-                enchantmentFound = true
-                restoreEffects(enchantment, val.effects)
-                tes3.setSourceless(enchantment, true)
-            end
+            local enchantment = tes3.getObject(val.id)
+            enchantmentFound = true
+            -- local enchObj = tes3.getObject(val.id)
+            -- if not createNewEnchantment and enchObj then
+            --     enchantment = enchObj
+            --     enchantment.castType = val.castType
+            --     enchantment.chargeCost = val.chargeCost
+            --     enchantment.maxCharge = val.maxCharge
+            -- else
+            --     local id = createNewEnchantment and nil or val.id
+            --     local castType = val.castType
+            --     local chargeCost = val.chargeCost < 1 and 1 or val.chargeCost
+            --     local maxCharge = val.maxCharge < 1 and 1 or val.maxCharge
+            --     enchantment = tes3.createObject{id = id, objectType = tes3.objectType.enchantment, castType = castType,
+            --         chargeCost = chargeCost, maxCharge = maxCharge}
+            -- end
+            -- if enchantment then
+            --     enchantmentFound = true
+            --     restoreEffects(enchantment, val.effects)
+            --     tes3.setSourceless(enchantment, true)
+            -- end
             object.enchantment = enchantment
 
         elseif varName == "color" then
@@ -193,6 +207,35 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
     end
     if object.enchantment and not enchantmentFound then object.enchantment = nil end
     tes3.setSourceless(object, true)
+end
+
+---@param enchantment tes3enchantment
+---@param data table
+function this.restoreEnchantment(enchantment, data)
+    if not enchantment or not data then return end
+    log("Restoring enchantment %s", tostring(enchantment))
+    enchantment.castType = data.castType
+    enchantment.chargeCost = data.chargeCost
+    enchantment.maxCharge = data.maxCharge
+    restoreEffects(enchantment, data.effects)
+    tes3.setSourceless(enchantment, true)
+end
+
+---@param id string
+---@param data table
+---@return tes3enchantment|nil
+function this.createEnchantment(id, data)
+    if not id or not data then return end
+    local castType = data.castType
+    local chargeCost = data.chargeCost < 1 and 1 or data.chargeCost
+    local maxCharge = data.maxCharge < 1 and 1 or data.maxCharge
+    local enchantment = tes3.createObject{id = id, objectType = tes3.objectType.enchantment, castType = castType,
+        chargeCost = chargeCost, maxCharge = maxCharge}
+
+    restoreEffects(enchantment, data.effects)
+    tes3.setSourceless(enchantment, true)
+    log("%s enchantment created", tostring(enchantment))
+    return enchantment
 end
 
 
