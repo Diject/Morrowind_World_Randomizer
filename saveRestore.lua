@@ -176,25 +176,6 @@ function this.restoreItemBaseObject(object, data, createNewEnchantment)
         elseif varName == "enchantment" then
             local enchantment = tes3.getObject(val.id)
             enchantmentFound = true
-            -- local enchObj = tes3.getObject(val.id)
-            -- if not createNewEnchantment and enchObj then
-            --     enchantment = enchObj
-            --     enchantment.castType = val.castType
-            --     enchantment.chargeCost = val.chargeCost
-            --     enchantment.maxCharge = val.maxCharge
-            -- else
-            --     local id = createNewEnchantment and nil or val.id
-            --     local castType = val.castType
-            --     local chargeCost = val.chargeCost < 1 and 1 or val.chargeCost
-            --     local maxCharge = val.maxCharge < 1 and 1 or val.maxCharge
-            --     enchantment = tes3.createObject{id = id, objectType = tes3.objectType.enchantment, castType = castType,
-            --         chargeCost = chargeCost, maxCharge = maxCharge}
-            -- end
-            -- if enchantment then
-            --     enchantmentFound = true
-            --     restoreEffects(enchantment, val.effects)
-            --     tes3.setSourceless(enchantment, true)
-            -- end
             object.enchantment = enchantment
 
         elseif varName == "color" then
