@@ -560,8 +560,9 @@ function this.randomizeDoor(reference)
             end
             findBackDoorData(cellData)
 
+            local doorPatternFound = false
             for i = 1, this.config.data.doors.smartInToInRandomization.iterations do
-                log("Searching for a doors pattern "..tostring(i))
+                log("Searching for a pattern for doors "..tostring(i))
                 local randData = randomizeSmart_InToIn(cellData)
                 if randData then
                     for cellEditorName, cellDoorData in pairs(randData) do
@@ -569,7 +570,8 @@ function this.randomizeDoor(reference)
                             this.setCDTime(doorData.door)
                         end
                     end
-                    log("The doors pattern found "..tostring(i))
+                    doorPatternFound = true
+                    log("The pattern for doors is found "..tostring(i))
                     for cellEditorName, cellDoorData in pairs(randData) do
                         for _, doorData in pairs(cellDoorData.doors) do
                             setDoorDestination(doorData.door, doorData.cell, doorData.marker)
@@ -577,6 +579,9 @@ function this.randomizeDoor(reference)
                     end
                     break
                 end
+            end
+            if not doorPatternFound then
+                log("The pattern for doors is not found")
             end
         end
     end
