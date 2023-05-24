@@ -234,14 +234,14 @@ local function loaded(e)
 
     if randomizer.config.getConfig().enabled then
         if mge.enabled() then
-            if randomizer.config.getConfig().other.disableMGEDistantStatics == true and mge.render.distantStatics then
+            if randomizer.config.getConfig().other.disableMGEDistantStatics == true and (mge.render.distantStatics or mge.render.reflectiveWater) then
                 mge.render.distantStatics = false
-                mge.render.distantWater = false
+                mge.render.reflectiveWater = false
             end
-            if randomizer.config.getConfig().other.disableMGEDistantLand == true and (mge.render.distantLand or mge.render.distantWater) then
+            if randomizer.config.getConfig().other.disableMGEDistantLand == true and (mge.render.distantLand) then
                 mge.render.distantStatics = false
                 mge.render.distantLand = false
-                mge.render.distantWater = false
+                mge.render.reflectiveWater = false
             end
         end
 
@@ -377,10 +377,10 @@ local function distantLandOptionsCallback(e)
         randomizer.config.getConfig().other.disableMGEDistantLand = true
         mge.render.distantStatics = false
         mge.render.distantLand = false
-        mge.render.distantWater = false
     elseif e.button == 1 then
         randomizer.config.getConfig().other.disableMGEDistantStatics = true
         mge.render.distantStatics = false
+        mge.render.reflectiveWater = false
     elseif e.button == 2 then
         randomizer.config.getConfig().trees.randomize = false
         randomizer.config.getConfig().stones.randomize = false
