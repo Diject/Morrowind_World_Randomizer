@@ -47,10 +47,10 @@ function this.serializeItemBaseObject(object, originalId)
     if object.objectType ~= tes3.objectType.ingredient then
         if object.effects then out.effects = serializeEffects(object.effects) end
     else
-        for varName, _ in ipairs(ingrVarNames) do
+        for varName, _ in pairs(ingrVarNames) do
             if object[varName] then
                 out[varName] = {}
-                for _, val in pairs(object[varName]) do
+                for _, val in ipairs(object[varName]) do
                     table.insert(out[varName], val)
                 end
             end
