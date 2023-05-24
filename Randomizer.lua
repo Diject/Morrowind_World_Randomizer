@@ -459,7 +459,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
                     randomizeSoulgemItemData(itemData)
                 end
 
-            elseif this.config.data.item.unique and itemLib.itemTypeForUnique[item.objectType] then
+            elseif this.config.data.item.unique and item.sourceMod and itemLib.itemTypeForUnique[item.objectType] then
 
                 table.insert(newItems, {id = item.id, count = stack.count})
                 table.insert(oldItems, {id = item.id, count = count})
@@ -792,9 +792,15 @@ function this.randomizeCell(cell)
                     table.insert(newObjects, {id = newCreaId, cell = cell, pos = objectPos, rot = objectRot, scale = objectScale})
                 end
 
-            -- elseif object.baseObject.objectType == tes3.objectType.npc then
+            elseif object.baseObject.objectType == tes3.objectType.npc and object.isDead then
 
-            --     this.randomizeContainerItems(object, this.config.data.NPCs.items.region.min, this.config.data.NPCs.items.region.max)
+                this.randomizeContainerItems(object, this.config.data.NPCs.items.region.min, this.config.data.NPCs.items.region.max)
+                this.StopRandomization(object)
+
+            elseif object.baseObject.objectType == tes3.objectType.creature and object.isDead then
+
+                this.randomizeContainerItems(object, this.config.data.creatures.items.region.min, this.config.data.creatures.items.region.max)
+                this.StopRandomization(object)
 
             elseif object.baseObject.objectType == tes3.objectType.door then
 
@@ -857,7 +863,7 @@ local aiBlackList = {["chargen boat guard 1"]=true,["chargen boat guard 2"]=true
 
 local positiveAttrs = { "chameleon", "waterBreathing", "waterWalking", "swiftSwim", "shield"}
 local negativeAttrs = { "sound", "silence" } -- "blind", "paralyze" banned
-local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistCommonDisease", "resistBlightDisease", "resistCorprus", "resistPoison", "resistParalysis" }
+local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistPoison", "resistParalysis" } -- "resistCommonDisease", "resistBlightDisease", "resistCorprus" banned
 local combatSkillIds = {tes3.skill.block, tes3.skill.armorer,  tes3.skill.mediumArmor, tes3.skill.heavyArmor, tes3.skill.bluntWeapon, tes3.skill.longBlade, tes3.skill.axe, tes3.skill.spear, tes3.skill.athletics,}
 local magicSkillIds = {tes3.skill.enchant, tes3.skill.destruction,  tes3.skill.alteration, tes3.skill.illusion, tes3.skill.conjuration, tes3.skill.mysticism, tes3.skill.restoration, tes3.skill.alchemy, tes3.skill.unarmored,}
 local stealthSkillIds = {tes3.skill.security, tes3.skill.sneak,  tes3.skill.acrobatics, tes3.skill.lightArmor, tes3.skill.shortBlade, tes3.skill.marksman, tes3.skill.mercantile, tes3.skill.speechcraft, tes3.skill.handToHand,}

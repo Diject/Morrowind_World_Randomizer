@@ -61,6 +61,9 @@ end
 local function randomizeActor(reference)
     if not randomizer.isRandomizationStopped(reference) and not randomizer.isRandomizationStoppedTemp(reference) then
         forcedActorRandomization(reference)
+        if reference.isDead == true then
+            randomizer.StopRandomization(reference)
+        end
     else
         if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
     end
@@ -437,9 +440,7 @@ end
 
 local function activate(e)
     if randomizer.config.getConfig().enabled then
-        if e.target  ~= nil and e.target.data ~= nil and (e.target.baseObject.objectType == tes3.objectType.container or
-                (e.target.isDead == true and (e.target.baseObject.objectType == tes3.objectType.creature or
-                e.target.baseObject.objectType == tes3.objectType.npc))) then
+        if e.target  ~= nil and e.target.data ~= nil and (e.target.baseObject.objectType == tes3.objectType.container) then
 
             randomizer.StopRandomization(e.target)
 
