@@ -373,10 +373,11 @@ this.default = {
         randomize = true,
         onlyOnCellRandomization = true,
         doNotRandomizeInToIn = false,
+        doNotLockBackdoor = true,
         smartInToInRandomization = {
             enabled = true,
             backDoorMode = true,
-            iterations = 1000,
+            iterations = 200,
             cellDepth = 50,
         },
         onlyNearest = true,
@@ -457,8 +458,8 @@ this.default = {
                 alchemyCount = {min = 1, max = 3},
                 ingredient = {
                     smartRandomization = true,
-                    minimumIngrForOneEffect = 3,
-                    count = {min = 3, max = 4},
+                    minimumIngrForOneEffect = 4,
+                    count = {min = 4, max = 4},
                     region = {min = 0.4, max = 0.4},
                 },
                 countPowMul = 2,
