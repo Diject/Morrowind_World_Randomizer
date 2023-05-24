@@ -7,8 +7,10 @@ local extension = ".mwrdata"
 ---@class mwrStorage
 local this = {}
 
-this.data = {items = {}, actors = {}, enchantments = {}}
-this.initial = {items = {}, actors = {}, enchantments = {}}
+this.version = 5
+
+this.data = {items = {}, actors = {}, enchantments = {}, version = this.version}
+this.initial = {items = {}, actors = {}, enchantments = {}, version = this.version}
 
 ---@param fileName string
 function this.saveToFile(fileName)
@@ -16,7 +18,7 @@ function this.saveToFile(fileName)
     local itemsJson = json.encode(this.data.items, nil)
     local actorsJson = json.encode(this.data.actors, nil)
     local enchantmentsJson = json.encode(this.data.enchantments, nil)
-    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson, enchantmentsJson = enchantmentsJson}
+    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson, enchantmentsJson = enchantmentsJson, version = this.version}
     file.save.toSaveDirectory(fileName..extension, fileTable)
 end
 
@@ -26,6 +28,7 @@ function this.loadFromFile(fileName)
     log("Loading data from %s", fileName)
     local fileTable = file.load.fromSaveDirectory(fileName..extension)
     if fileTable then
+        this.data.version = fileTable.version
         local items = json.decode(fileTable.itemsJson)
         local actors = json.decode(fileTable.actorsJson)
         local enchantments = json.decode(fileTable.enchantmentsJson)
@@ -45,10 +48,12 @@ end
 ---@param toInitial boolean|nil
 function this.saveEnchantment(enchantment, toInitial)
     if not enchantment then return end
+    local data = saveRestore.serializeItemEnchantment(enchantment)
     if not toInitial then
-        this.data.enchantments[enchantment.id] = saveRestore.serializeItemEnchantment(enchantment)
-    elseif not this.initial.items[enchantment.id] then
-        this.initial.enchantments[enchantment.id] = saveRestore.serializeItemEnchantment(enchantment)
+        this.data.enchantments[enchantment.id] = data
+    end
+    if toInitial or not this.initial.enchantments[enchantment.id] then
+        this.initial.enchantments[enchantment.id] = data
     end
 end
 
@@ -82,15 +87,12 @@ end
 function this.saveItem(object, originalId, toInitial)
     if not object then return end
     if not toInitial then
-        if object.enchantment then
-            this.data.enchantments[object.enchantment.id] = saveRestore.serializeItemEnchantment(object.enchantment)
-        end
         this.data.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
     elseif not this.initial.items[object.id] then
-        if object.enchantment then
-            this.initial.enchantments[object.enchantment.id] = saveRestore.serializeItemEnchantment(object.enchantment)
-        end
         this.initial.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
+    end
+    if object.enchantment then
+        this.saveEnchantment(object.enchantment)
     end
 end
 
@@ -115,8 +117,7 @@ function this.restoreItem(id, restoreToInitial)
                 else
                     object = newObj
                 end
-            end
-            if not this.initial.items[origId] then
+            elseif not this.initial.items[origId] then
                 this.initial.items[origId] = saveRestore.serializeItemBaseObject(object)
             end
             saveRestore.restoreItemBaseObject(object, data, false)
