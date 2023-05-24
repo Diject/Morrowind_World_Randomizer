@@ -177,7 +177,7 @@ function this.randomizeEffects(effects, effData, config)
             end
 
             local iteration = 0
-            while ((((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal) and strongThreshold) or effectUniqueness[effectId]) and iteration < 20 do
+            while ((((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal) and strongThreshold) or effectUniqueness[effectId]) and iteration < 40 do
                 iteration = iteration + 1
                 effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
                     effectLib.effectsData.forbiddenForConstantType or {}) or -1
@@ -686,12 +686,17 @@ end
 
 function this.randomizeIngredients(data)
     if not data then return end
+    log("Randomization of effects for ingredients")
+    local forbidden = {}
+    for i = 120, 133 do forbidden[i] = true end
     local itemArr = {}
     local itCount = #data.items
     local effGroup = {}
     local effGroupDummy = {}
     for i, val in pairs(effectLib.effectsData.forEnchant[tes3.effectRange.self]) do
-        table.insert(effGroupDummy, {id = val, value = effectLib.effectsData.cost[val]})
+        if not forbidden[val] then
+            table.insert(effGroupDummy, {id = val, value = effectLib.effectsData.cost[val]})
+        end
     end
     table.sort(effGroupDummy, function(a, b) return a.value < b.value end)
     for _, val in pairs(effGroupDummy) do
@@ -712,7 +717,8 @@ function this.randomizeIngredients(data)
         local normalizedPos = math.floor(i * itNormalizedMul)
         local count = 1
         if magicEffect.targetsSkills then
-            count = 27
+            goto continue
+            -- count = 27
         elseif magicEffect.targetsAttributes then
             count = 8
         end
@@ -724,19 +730,20 @@ function this.randomizeIngredients(data)
                 local pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
                     this.config.item.enchantment.effects.ingredient.region.max)
                 local iteration = 0
-                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < 40 do
-                    pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
-                        this.config.item.enchantment.effects.ingredient.region.max)
+                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < itCount do
+                    pos = pos + 1
+                    if pos > itCount then pos = 1 end
                     iteration = iteration + 1
                 end
                 if iteration < 40 then
                     itemArr[pos].count = itemArr[pos].count - 1
                     itemArr[pos].effects[effAltId] = {id = effId, attr = attrId, skill = skillId}
                 else
-                    log("Cannot found an item for %s", effAltId)
+                    log("Cannot find an item for %s", effAltId)
                 end
             end
         end
+        ::continue::
     end
 
     local effNormalizedMul = effCount / itCount
@@ -790,6 +797,7 @@ function this.randomizeIngredients(data)
             this.storage.saveItem(object)
         end
     end
+    log("Done effects %s items %s", tostring(effCount), tostring(itCount))
 end
 
 function this.randomizeItems(itemsData)
