@@ -308,17 +308,9 @@ function this.getNewItem(id)
     if it then
         if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) then
             this.storage.saveItem(it, nil, true)
-            local origItData = this.storage.getItemData(id)
-            if not origItData then
-                it.weight = 0
-                itemLib.setDummyEnchantment(it)
-                this.storage.saveItem(it)
-            else
-                it.weight = 0
-                local enchId, castType = itemLib.setDummyEnchantment(it)
-                origItData.weight = 0
-                origItData.enchantment = {id = enchId, effects = {}, castType = castType, chargeCost = 1, maxCharge = 1}
-            end
+            it.weight = 0
+            itemLib.setDummyEnchantment(it)
+            this.storage.saveItem(it)
             it = itemLib.randomizeBaseItem(it, {createNewItem = true})
             log("New item %s to %s", id, tostring(it and it.id))
         end
