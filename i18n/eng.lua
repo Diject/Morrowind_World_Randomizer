@@ -19,7 +19,7 @@ return {
     ["modConfig.description.region"] = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, "..
         "then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
         "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with "..
-        "a range of 30 to 50.",
+        "a range of 30 to 50.\n\nMost of the lists are sorted by object level.",
 
     ["modConfig.label.regionSize"] = "Region size %%s%%%%",
     ["modConfig.label.regionOffset"] = "Offset %%s%%%%",
@@ -303,7 +303,7 @@ return {
     ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
 
     ["modConfig.label.makeItemsUnique"] = "Make all wearable items unique",
-    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf the option is enabled after the start of the game, the current inventory items will change and previously randomized cells will be randomized again.",
+    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nDON'T ENABLE THIS OPTION AFTER THE SHIP SECTION, BECAUSE MANY ITEMS THAT ARE OUTSIDE THE PLAYER'S INVENTORY CAN BE LOST.",
 
     ["modConfig.label.durationForConstant"] = "The duration component in the constant enchantment formula",
     ["modConfig.description.durationForConstant"] = "Default id 100.\nMorrowind effect cost formula is\n(Min Magnitude + Max Magnitude) * (Duration + Area) * (Base Cost / 40)\n\nThe lower the value, the more powerful the constant enchantments.",
