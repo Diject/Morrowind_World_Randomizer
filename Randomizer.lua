@@ -134,9 +134,7 @@ function this.randomizeBaseItems()
     this.storage.restoreAllItems(true)
     this.storage.deleteUncreatedItems()
     itemLib.randomizeItems(itemLibData)
-    if itemLib.hasRandomizedMeshes or itemLib.hasRandomizedItems() then
-        itemLib.clearFixedCellList()
-    end
+    itemLib.clearFixedCellList()
     this.fixLoaded()
 end
 
