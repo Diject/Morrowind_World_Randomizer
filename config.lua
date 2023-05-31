@@ -76,6 +76,7 @@ this.globalDefault = {
     cellRandomizationCooldown = 300,
     cellRandomizationCooldown_gametime = 24,
     allowDoubleLoading = true,
+    uniqueId = 0,
     landscape = {
         randomize = false,
         randomizeOnlyOnce = false,
@@ -98,6 +99,10 @@ this.default = {
     stones = {
         randomize = true,
         exceptScale = 2.5,
+    },
+    flora = {
+        typesPerCell = 3,
+        randomize = true,
     },
     herbs = {
         randomize = true,
@@ -122,7 +127,7 @@ this.default = {
             randomize = true,
             region = {min = 1, max = 1},
             add = {
-                chance = 0.1,
+                chance = 0.3,
                 levelMultiplier = 5,
                 onlyDestructionSchool = false,
             },
@@ -368,10 +373,11 @@ this.default = {
         randomize = true,
         onlyOnCellRandomization = true,
         doNotRandomizeInToIn = false,
+        doNotLockBackdoor = true,
         smartInToInRandomization = {
             enabled = true,
             backDoorMode = true,
-            iterations = 1000,
+            iterations = 200,
             cellDepth = 50,
         },
         onlyNearest = true,
@@ -433,14 +439,16 @@ this.default = {
             exceptScrolls = true,
             exceptAlchemy = true,
             exceptIngredient = true,
-            useExisting = true,
+            useExisting = false,
             existing = {
                 region = {min = 0.2, max = 0.2},
             },
             region = {min = 0.5, max = 1.5},
             powMul = 0.65,
-            numberOfCasts = {min = 2, max = 10},
-            cost = {min = 5, max = 800},
+            numberOfCasts = {min = 4, max = 15},
+            cost = {min = 15, max = 800},
+            scrollBase = 50,
+            arrowPower = 0.25,
             minMaximumGroupCost = 100,
             effects = {
                 tuneStepsCount = 30,
@@ -450,8 +458,8 @@ this.default = {
                 alchemyCount = {min = 1, max = 3},
                 ingredient = {
                     smartRandomization = true,
-                    minimumIngrForOneEffect = 3,
-                    count = {min = 3, max = 4},
+                    minimumIngrForOneEffect = 4,
+                    count = {min = 4, max = 4},
                     region = {min = 0.4, max = 0.4},
                 },
                 countPowMul = 2,
@@ -459,10 +467,13 @@ this.default = {
                 chanceToNegative = 0.2,
                 chanceToNegativeForTarget = 0.8,
                 maxDuration = 60,
+                minAppOnceDuration = 5,
+                durationForConstant = 100,
                 maxRadius = 30,
                 maxMagnitude = 100,
                 fortifyForSelfChance = 0.4,
                 damageForTargetChance = 0.25,
+                restoreForAlchemyChance = 0.1,
             },
             add = {
                 chance = 0.5,
@@ -477,6 +488,7 @@ this.default = {
         unique = false,
         changeParts = true,
         changeMesh = false,
+        linkMeshToParts = true,
         tryToFixZCoordinate = true,
     },
 }
@@ -516,7 +528,7 @@ if true then
     end
     setMinMax(preset)
     preset.herbs.herbSpeciesPerCell = 20
-    preset.containers.lock.add.chance = 0.5
+    preset.containers.lock.add.chance = 0.3
     preset.containers.trap.add.chance = 1
     preset.creatures.attack.region.min = 0.25
     preset.creatures.attack.region.min = 1.75
@@ -541,7 +553,7 @@ if true then
     preset.transport.toDoorsCount = 1
 
     preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.4
+    preset.doors.chance = 0.3
     preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.useExisting = false
@@ -555,6 +567,7 @@ if true then
     preset.item.enchantment.exceptIngredient = false
 
     preset.item.changeMesh = true
+    preset.item.linkMeshToParts = false
     preset.item.stats.region.min = 0.5
     preset.item.stats.region.max = 2
 
@@ -619,6 +632,10 @@ function this.save()
             tes3.player.modified = true
         end
     end
+end
+
+function this.saveOnlyGlobal()
+    mwse.saveConfig(globalConfigName, this.global)
 end
 
 function this.load()

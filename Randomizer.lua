@@ -3,9 +3,12 @@ local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 local random = include("Morrowind_World_Randomizer.Random")
 local light = include("Morrowind_World_Randomizer.light")
 local itemLib = include("Morrowind_World_Randomizer.item")
+local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
+local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
 
-local treesData = require("Morrowind_World_Randomizer.Data.TreesData")
-local rocksData = require("Morrowind_World_Randomizer.Data.RocksData")
+local treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
+local rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
+local floraData
 
 local generator = include("Morrowind_World_Randomizer.generator")
 
@@ -20,6 +23,7 @@ local itemLibData = nil
 local this = {}
 
 this.config = include("Morrowind_World_Randomizer.config")
+this.storage = include("Morrowind_World_Randomizer.storage")
 this.doors = include("Morrowind_World_Randomizer.doorRandomizer")
 this.doors.initConfig(this.config)
 
@@ -35,11 +39,15 @@ function this.genStaticData()
         end
     end
 
-    if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
-        treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
-        rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
-    end
-
+    -- if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
+    --     -- treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
+    --     -- rocksData = require("Morrowind_World_Randomizer.Data.RocksData_TR")
+    --     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
+    --     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
+    -- end
+    generator.correctStaticsData(treesData)
+    generator.correctStaticsData(rocksData)
+    floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
     --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
     --         itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items_TR")
@@ -92,7 +100,11 @@ function this.genStaticData()
 
     travelDestinationsData = generator.findTravelDestinations()
     itemLibData = itemLib.generateData()
-    this.saveBaseInitialItemData()
+
+    -- local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
+    -- local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", newRocksData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -118,54 +130,18 @@ function this.fixLoaded()
     end}
 end
 
-local baseInitialItemData = {}
-function this.saveBaseInitialItemData()
-    baseInitialItemData = {}
-    if not itemLibData then return end
-
-    for itType, data in pairs(itemLibData.itemGroup) do
-        for i, item in pairs(data.items) do
-            baseInitialItemData[item.id] = itemLib.serializeBaseObject(item)
-        end
-    end
-end
-
-local needToRestoreInitialItems = false
-function this.restoreBaseInitialItemData()
-    if baseInitialItemData and needToRestoreInitialItems then
-        for id, data in pairs(baseInitialItemData) do
-            local item = tes3.getObject(id)
-            if item then
-                itemLib.restoreBaseObject(item, data, false)
-            end
-        end
-        needToRestoreInitialItems = false
-    end
-end
-
 function this.randomizeBaseItems()
-    this.restoreBaseInitialItemData()
-    itemLib.resetItemStorage()
-    needToRestoreInitialItems = true
+    this.storage.restoreAllItems(true)
+    this.storage.deleteUncreatedItems()
     itemLib.randomizeItems(itemLibData)
-    if itemLib.hasRandomizedMeshes then
-        itemLib.clearFixedCellList()
-    end
+    itemLib.clearFixedCellList()
     this.fixLoaded()
 end
 
-local isDummyLoad = true
+---@deprecated
 function this.restoreItems()
     if itemLib.hasRandomizedItems() then
-        needToRestoreInitialItems = true
         itemLib.restoreItems()
-        if isDummyLoad and tes3.dataHandler.nonDynamicData.lastLoadedFile and itemLib.hasRandomizedMeshes()
-                and this.config.global.allowDoubleLoading then
-            isDummyLoad = false
-            tes3.loadGame(tes3.dataHandler.nonDynamicData.lastLoadedFile.filename)
-        else
-            isDummyLoad = true
-        end
         this.fixLoaded()
     end
 end
@@ -228,10 +204,18 @@ local function getMinGroundPosInCircle(vector, radius, offset)
     return nil
 end
 
+---@param vector1 tes3vector3
+---@param vector2 tes3vector3
+---@return number
+local function get2DDistance(vector1, vector2)
+    if not vector1 or not vector2 then return 0 end
+    return math.sqrt((vector2.x - vector1.x) ^ 2 + (vector2.y - vector1.y) ^ 2)
+end
+
 local function minDistanceBetweenVectors(vector, vectorArray)
     local distance = math.huge
     for i, vector2 in pairs(vectorArray) do
-        distance = math.min(distance, vector:distance(vector2))
+        distance = math.min(distance, get2DDistance(vector, vector2))
     end
     return distance
 end
@@ -316,6 +300,89 @@ function this.getRandomCreatureId(oldCreatureId)
     return nil
 end
 
+---@param id string
+function this.getNewItem(id)
+    local it = tes3.getObject(id)
+    if it then
+        if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) then
+            this.storage.saveItem(it, nil, true)
+            it.weight = 0
+            itemLib.setDummyEnchantment(it)
+            this.storage.saveItem(it)
+            it = itemLib.randomizeBaseItem(it, {createNewItem = true})
+            log("New item %s to %s", id, tostring(it and it.id))
+        end
+    end
+    return it
+end
+
+function this.updatePlayerInventory()
+    if this.config.data.item.unique then
+        local player = tes3.mobilePlayer
+        if not player then return end
+        local updated = false
+        local changed = inventoryEvents.getInventoryChanges()
+        if changed then
+            for id, data in pairs(changed) do
+                if (itemLib.itemTypeForUnique[data.object.objectType]) then
+                    local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
+                    if wasCreated then
+                        if data.count > 0 then
+                            tes3.addItem{reference = player, item = origId, count = data.count,}
+                            updated = true
+                            log("Added original item %s", tostring(origId))
+                        elseif data.count < 0 then
+                            tes3.removeItem{reference = player, item = origId, count = -data.count,}
+                            updated = true
+                            log("Removed original item %s", tostring(origId))
+                        end
+                    else
+                        if data.count > 0 then
+                            local item = this.getNewItem(id)
+                            if item then
+                                tes3.addItem{reference = player, item = item, count = data.count,}
+                                updated = true
+                                log("Added unoriginal item %s", tostring(item))
+                                local origItem = tes3.getObject(id)
+                                if origItem then
+                                    origItem.weight = 0
+                                    itemLib.setDummyEnchantment(origItem)
+                                end
+                                for i = 1, data.count do
+                                    local equipped = tes3.getEquippedItem{actor = player, objectType = item.objectType, slot = item.slot,
+                                        type = item.objectType == tes3.objectType.weapon and item.type or nil}
+                                    if equipped then
+                                        player:unequip{item = data.object}
+                                        player:equip{item = item}
+                                    else
+                                        break
+                                    end
+                                end
+                            end
+                        elseif data.count < 0 then
+                            local count = -data.count
+                            for _, stack in pairs(player.inventory) do
+                                local _, itOrigId = itemLib.isItemWasCreated(stack.object.id)
+                                if data.id == itOrigId then
+                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count}
+                                    updated = true
+                                    log("Removed unoriginal item %s", tostring(stack.object))
+                                end
+                                if count <= 0 then break end
+                            end
+                        end
+                    end
+                end
+            end
+            if updated then
+                itemLib.fixPlayerWeight()
+                inventoryEvents.saveInventoryChanges()
+                tes3.updateInventoryGUI{ reference = player }
+            end
+        end
+    end
+end
+
 function this.randomizeContainerItems(reference, regionMin, regionMax)
 
     if reference and not this.isRandomizationStopped(reference) and not this.isRandomizationStoppedTemp(reference) then
@@ -324,85 +391,99 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
         local config = this.config.data
         local newItems = {}
         local oldItems = {}
-        local itemCountByType = {}
+        local artifacts = {}
 
-        for stack, item, count, itemData in itemLib.iterItems(reference.baseObject.inventory) do
-
-            if item.id ~= nil then
+        for _, stack in pairs(reference.baseObject.inventory.items) do
+            local item = stack.object
+            if item ~= nil then
                 local itemId = item.id:lower()
                 local itemAdvData = itemsData.Items[itemId]
                 if itemAdvData ~= nil then
-
-                    local itemCountByTypeId = itemAdvData.Type..itemAdvData.SubType
-                    itemCountByType[itemCountByTypeId] = (itemCountByType[itemCountByTypeId] or 0) + 1
-                    local newItemId
-
-                    if config.other.randomizeArtifactsAsSeparateCategory ~= true or itemAdvData.IsArtifact ~= true then
-                        local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
-                        newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count, regionMin, regionMax)]
-                    else
-                        local data = dataSaver.getObjectData(tes3.player)
-                        if data then
-                            if data.unfoundArtifacts == nil or #data.unfoundArtifacts == 0 then
-                                data.unfoundArtifacts = {}
-                                for _, id in pairs(itemsData.ItemGroups["ARTF"]["0"].Items) do
-                                    table.insert(data.unfoundArtifacts, id)
-                                end
-                            end
-                            local idInList = math.random(1, #data.unfoundArtifacts)
-                            newItemId = data.unfoundArtifacts[idInList]
-                            table.remove(data.unfoundArtifacts, idInList)
-                        end
-                        this.StopRandomization(reference)
+                    if config.other.randomizeArtifactsAsSeparateCategory == true and itemAdvData.IsArtifact == true then
+                        artifacts[itemId] = true
                     end
-
-                    table.insert(newItems, {id = newItemId, count = count, itemData = itemData})
-
                 end
             end
         end
 
-        for stack, item, count, itemData in itemLib.iterItems(reference.object.inventory) do
-
-            if item.id ~= nil then
-                local itemId = item.id:lower()
-                local itemAdvData = itemsData.Items[itemId]
-                if itemAdvData ~= nil then
-
-                    local itemCountByTypeId = itemAdvData.Type..itemAdvData.SubType
-                    if itemCountByType[itemCountByTypeId] == nil or itemCountByType[itemCountByTypeId] == 0 then
-                        local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
-                        local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count, regionMin, regionMax)]
-                        table.insert(newItems, {id = newItemId, count = count, itemData = itemData})
+        for _, stack in pairs(reference.object.inventory.items) do
+            local item = stack.object
+            local count = math.abs(stack.count)
+            local itemId = item.id:lower()
+            local itemAdvData = itemsData.Items[itemId]
+            if itemAdvData ~= nil then
+                if artifacts[itemId] == nil then
+                    local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
+                    local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, #newItemGroup.Items, regionMin, regionMax)]
+                    table.insert(newItems, {id = newItemId, count = stack.count})
+                    table.insert(oldItems, {id = item.id, count = count})
+                    if stack.count < 0 then stack.count = -stack.count end
+                else
+                    local data = dataSaver.getObjectData(tes3.player)
+                    if data then
+                        if data.unfoundArtifacts == nil or #data.unfoundArtifacts == 0 then
+                            data.unfoundArtifacts = {}
+                            for _, id in pairs(itemsData.ItemGroups["ARTF"]["0"].Items) do
+                                table.insert(data.unfoundArtifacts, id)
+                            end
+                        end
+                        local idInList = math.random(1, #data.unfoundArtifacts)
+                        local newItemId = data.unfoundArtifacts[idInList]
+                        table.remove(data.unfoundArtifacts, idInList)
+                        table.insert(newItems, {id = newItemId, count = stack.count})
                         table.insert(oldItems, {id = item.id, count = count})
-                    else
-                        itemCountByType[itemCountByTypeId] = itemCountByType[itemCountByTypeId] - 1
-                        table.insert(oldItems, {id = item.id, count = count})
+                        if stack.count < 0 then stack.count = -stack.count end
                     end
-
-                elseif stack.object.isGold and config.gold.randomize then
-
-                    local newCount = math.floor(math.max(count * (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
-                    log("Gold count %s to %s", tostring(stack.count), tostring(newCount))
-                    stack.count = newCount
-
-                elseif stack.object.isSoulGem and config.soulGems.soul.randomize then
-
-                    randomizeSoulgemItemData(stack.itemData)
-
+                    this.StopRandomization(reference)
                 end
+
+            elseif stack.object.isGold and config.gold.randomize then
+
+                local newCount = math.floor(math.max(count * (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+                log("Gold count %s to %s", tostring(stack.count), tostring(newCount))
+                stack.count = newCount
+
+            elseif stack.object.isSoulGem and config.soulGems.soul.randomize then
+
+                for _, itemData in pairs(stack.variables or {}) do
+                    randomizeSoulgemItemData(itemData)
+                end
+
+            elseif this.config.data.item.unique and item.sourceMod and itemLib.itemTypeForUnique[item.objectType] then
+
+                table.insert(newItems, {id = item.id, count = stack.count})
+                table.insert(oldItems, {id = item.id, count = count})
+                if stack.count < 0 then stack.count = -stack.count end
+
             end
         end
 
         for i, item in pairs(oldItems) do
             tes3.removeItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
-            log("Item %s removed", tostring(item.id))
+            log("Item removed %s %s", tostring(item.id), tostring(item.count))
         end
 
+        local negativeStock = {}
         for i, item in pairs(newItems) do
-            tes3.addItem({ reference = reference, item = item.id, count = item.count, updateGUI = false })
-            log("Item %s added", tostring(item.id))
+            local it = this.getNewItem(item.id)
+            local count = math.abs(item.count)
+            if it then
+                tes3.addItem({ reference = reference, item = it, count = count, updateGUI = false })
+                if item.count < 0 then
+                    negativeStock[it.id] = item.count
+                end
+                log("Item added %s (%s) %s", tostring(it.id), tostring(item.id), tostring(item.count))
+            end
         end
+
+        for _, stack in pairs(reference.object.inventory.items) do
+            if negativeStock[stack.object.id] and stack.count > 0 then
+                stack.count = -stack.count
+            end
+        end
+        tes3.setSourceless(reference.baseObject, false)
+        tes3.setSourceless(reference.object, false)
+        tes3.setSourceless(reference, false)
     end
 end
 
@@ -410,17 +491,30 @@ function this.createObject(object)
     local newObject = tes3.getObject(object.id)
     if newObject ~= nil then
         log("New object %s", tostring(newObject))
+        if this.config.data.item.unique and itemLib.itemTypeForUnique[newObject.objectType] then
+            newObject = this.getNewItem(newObject.id)
+        end
         local reference = tes3.createReference{ object = newObject, position = object.pos, orientation = object.rot, cell = object.cell, scale = object.scale or 1 }
         if reference ~= nil then
-            dataSaver.getObjectData(reference).isCreated = true
-            if object.itemData ~= nil then
-                if object.itemData.owner ~= nil or object.itemData.requirement ~= nil then
-                    tes3.setOwner({ reference = reference, owner = object.itemData.owner, requiredRank = object.itemData.requirement })
+            local objData = dataSaver.getObjectData(reference)
+            if objData then objData.isCreated = true end
+            local itemData = object.itemData
+            if itemData ~= nil then
+                local count = itemData.count
+                local owner = itemData.owner
+                local requirement = itemData.requirement
+                if owner ~= nil or requirement ~= nil then
+                    tes3.setOwner({ reference = reference, owner = owner, requiredRank = requirement })
                 end
-                reference.itemData.count = object.itemData.count
-                log("New object count %s", tostring(reference.itemData.count))
+                if reference.itemData then
+                    reference.itemData.count = count
+                else
+                    local createdData = tes3.addItemData({ to = reference, item = reference.object, updateGUI = false })
+                    if createdData then createdData.count = count end
+                end
+                log("New object count %s", tostring(count))
             end
-            if object.stopRand then
+            if object.stopRand and objData then
                 this.StopRandomization(reference)
             end
         end
@@ -434,12 +528,17 @@ function this.randomizeCell(cell)
     local newObjects = {}
     local config = this.config.data
 
-    local newTreeGroupId = math.random(1, #treesData.TreesGroups)
-    -- if newTreeGroupId == 2 then newTreeGroupId = treesData.GroupsCount - 2 end
-    -- if newTreeGroupId == 3 then newTreeGroupId = treesData.GroupsCount - 1 end
-    local newRockGroupId = math.random(1, #rocksData.RocksGroups)
-    local newTreeGroup = treesData.TreesGroups[newTreeGroupId]
-    local newRockGroup = rocksData.RocksGroups[newRockGroupId]
+    local newTreeGroupId = math.random(1, #treesData.Groups)
+    local newRockGroupId = math.random(1, #rocksData.Groups)
+    local newTreeGroup = treesData.Groups[newTreeGroupId]
+    local newRockGroup = rocksData.Groups[newRockGroupId]
+    local newFloraGroup = {}
+    for i = 1, this.config.data.flora.typesPerCell do
+        local groupId = math.random(1, #floraData.Groups)
+        for _, val in pairs(floraData.Groups[groupId] or {}) do
+            table.insert(newFloraGroup, val)
+        end
+    end
 
     local herbsList = {}
     local herbsToListCount = config.herbs.herbSpeciesPerCell
@@ -469,7 +568,7 @@ function this.randomizeCell(cell)
             for j = cell.gridY - 1, cell.gridY + 1 do
                 local objCell = tes3.getCell{ x = i, y = j}
                 if objCell then
-                    for obj in objCell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+                    for obj in objCell:iterateReferences({tes3.objectType.door, tes3.objectType.npc, tes3.objectType.activator}) do
                         if obj ~= nil and obj.disabled ~= true then
                             table.insert(importantObjPositions, obj.position)
                         end
@@ -478,7 +577,7 @@ function this.randomizeCell(cell)
             end
         end
     elseif cell.isOrBehavesAsExterior then
-        for obj in cell:iterateReferences({tes3.objectType.door, tes3.objectType.npc}) do
+        for obj in cell:iterateReferences({tes3.objectType.door, tes3.objectType.npc, tes3.objectType.activator}) do
             if obj ~= nil and obj.disabled ~= true then
                 table.insert(importantObjPositions, obj.position)
             end
@@ -504,30 +603,53 @@ function this.randomizeCell(cell)
 
             elseif object.baseObject.objectType == tes3.objectType.static and cell.isOrBehavesAsExterior then
 
-                local treeAdvData = treesData.TreesOffset[objectId]
-                local rockAdvData = rocksData.RocksOffset[objectId]
-                if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
-                    if config.trees.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newTreeGroup.Items[math.random(1, newTreeGroup.Count)]
-                        local newAdvData = treesData.TreesOffset[newId:lower()]
+                local treeAdvData = treesData.Data[objectId]
+                local rockAdvData = rocksData.Data[objectId]
+                local floraAdvData = floraData.Data[objectId]
+                local objAdvData = treeAdvData or rockAdvData or floraAdvData
+                if objAdvData then
+                    local success = false
+                    local configLink
+                    local grp
+                    local arr
+                    if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
+                        configLink = config.trees
+                        grp = newTreeGroup
+                        arr = treesData
+                        success = true
+                    elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
+                        configLink = config.stones
+                        grp = newRockGroup
+                        arr = rocksData
+                        success = true
+                    elseif floraAdvData ~= nil then
+                        configLink = config.flora
+                        grp = newFloraGroup
+                        arr = floraData
+                        success = true
+                    end
+                    if success and configLink.randomize and (this.isOrigin(object) or not object.disabled) then
+                        local newId = grp[math.random(1, #grp)]
+                        local newAdvData = arr.Data[newId:lower()]
                         local newOffset
+                        local radius = 300
                         if newAdvData == nil then
                             newOffset = 0
                         else
                             newOffset = newAdvData.Offset
+                            radius = newAdvData.Radius
                         end
 
                         local scale = objectScale
                         local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
-                        if distanceToObj < 300 then
-                            scale = math.min(scale, 0.25)
-                        elseif distanceToObj < 1000 then
-                            scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
+                        local radiusScaled = radius * scale
+                        if distanceToObj < radiusScaled * 1.3 then
+                            scale = math.min(scale, scale * distanceToObj / radiusScaled * 0.6)
                         end
 
-                        local posVector = getMinGroundPosInCircle(objectPos, 200, (newOffset - math.random(0, 100)) * scale)
+                        local posVector = getMinGroundPosInCircle(objectPos, radius * scale, newOffset * scale)
                         if posVector == nil then
-                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - treeAdvData.Offset - math.random(0, 100)) * scale)
+                            posVector = tes3vector3.new(objectPos.x, objectPos.y, (newOffset - objAdvData.Offset - math.random(0, 50)) * scale)
                         end
                         table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
                         putOriginMark(object)
@@ -537,62 +659,6 @@ function this.randomizeCell(cell)
                         this.deleteOriginMark(object)
                         object:enable()
                     end
-
-                elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
-                    if config.stones.randomize and (this.isOrigin(object) or not object.disabled) then
-                        local newId = newRockGroup.Items[math.random(1, #newRockGroup.Items)]
-                        if newId then
-                            local newAdvData = rocksData.RocksOffset[newId:lower()]
-                            local newRockOffset
-                            if newAdvData == nil then
-                                newRockOffset = 0
-                            else
-                                newRockOffset = newAdvData.Offset
-                            end
-                            local scale = objectScale
-
-                            if newRockOffset >= 450 then
-                                scale = math.min(objectScale, 1.0)
-                            elseif newRockOffset >= 250 then
-                                scale = math.min(objectScale, 2.0)
-                            end
-
-                            scale = (0.5 + math.random() * 0.5) * scale
-
-                            if objectScale <= 0.4 and scale > 0.4 then
-                                scale = objectScale
-                            end
-
-                            local distanceToObj =  minDistanceBetweenVectors(objectPos, importantObjPositions)
-                            if distanceToObj < 300 then
-                                scale = math.min(scale, 0.25)
-                            elseif distanceToObj < 1000 then
-                                scale = math.min(scale, 0.25 + 0.75 * distanceToObj / 1000)
-                            end
-
-                            local offset = newRockOffset
-                            if newRockOffset >= 600 then
-                                offset = offset + math.random(100, 200)
-                            elseif newRockOffset >= 150 then
-                                offset = offset + math.random(0, 100)
-                            end
-
-                            local posVector = getMinGroundPosInCircle(objectPos, 500, offset * scale)
-
-                            if posVector == nil then
-                                posVector = tes3vector3.new(objectPos.x, objectPos.y, (newRockOffset - rockAdvData.Offset) * scale)
-                            end
-
-                            table.insert(newObjects, {id = newId, pos = posVector, rot = objectRot, scale = scale, cell = cell})
-                            putOriginMark(object)
-                            object:disable()
-                        end
-
-                    elseif this.isOrigin(object) and object.disabled then
-                        this.deleteOriginMark(object)
-                        object:enable()
-                    end
-
                 end
 
             elseif object.baseObject.objectType == tes3.objectType.container then
@@ -625,12 +691,17 @@ function this.randomizeCell(cell)
                         object:enable()
                     end
 
-                elseif object.baseObject.script == nil then
-                    this.randomizeContainerItems(object, this.config.data.containers.items.region.min, this.config.data.containers.items.region.max)
-                    this.randomizeLockTrap(object)
+                else
+                    if config.containers.items.randomize or config.item.unique then
+                        this.randomizeContainerItems(object, this.config.data.containers.items.region.min, this.config.data.containers.items.region.max)
+                    end
+                    if not object.baseObject.script then
+                        this.randomizeLockTrap(object)
+                    end
                 end
 
-            elseif (object.baseObject.objectType == tes3.objectType.weapon or
+            elseif (config.items.randomize or (config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType])) and
+                    (object.baseObject.objectType == tes3.objectType.weapon or
                     object.baseObject.objectType == tes3.objectType.alchemy or
                     object.baseObject.objectType == tes3.objectType.apparatus or
                     object.baseObject.objectType == tes3.objectType.armor or
@@ -641,16 +712,22 @@ function this.randomizeCell(cell)
                     object.baseObject.objectType == tes3.objectType.probe or
                     object.baseObject.objectType == tes3.objectType.repairItem) then
 
+                local uniqBehavior = false
+                if config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType] then
+                    uniqBehavior = true
+                end
                 local itemAdvData = itemsData.Items[objectId]
                 if itemAdvData ~= nil then
-
                     if itemAdvData.IsArtifact ~= true then
                         local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
                         local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count,
                             this.config.data.items.region.min, this.config.data.items.region.max)]
-                        table.insert(newObjects, {id = newItemId, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
-                            objectType = object.object.objectType, cell = cell})
+                        table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
+                            objectType = object.object.objectType, stopRand = uniqBehavior, cell = cell})
                         object:disable()
+                        if uniqBehavior then
+                            this.StopRandomization(object)
+                        end
 
                     else
                         local data = dataSaver.getObjectData(tes3.player)
@@ -663,8 +740,9 @@ function this.randomizeCell(cell)
                             end
                             local idInList = math.random(1, #data.unfoundArtifacts)
                             local newItemId = data.unfoundArtifacts[idInList]
-                            local newRef = this.createObject({id = newItemId, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
-                                objectType = object.object.objectType, cell = cell})
+                            local itemData = object.itemData and {count = object.itemData.count, owner = object.itemData.owner, requirement = object.itemData.requirement} or nil
+                            local newRef = this.createObject({id = this.getNewItem(newItemId).id, pos = objectPos, rot = objectRot, scale = objectScale,
+                                itemData = itemData, objectType = object.object.objectType, cell = cell})
                             if newRef then
                                 table.remove(data.unfoundArtifacts, idInList)
                                 this.StopRandomization(object)
@@ -673,6 +751,13 @@ function this.randomizeCell(cell)
                             end
                         end
                     end
+
+                elseif uniqBehavior then
+
+                    table.insert(newObjects, {id = this.getNewItem(objectId).id, pos = objectPos, rot = objectRot, scale = objectScale, itemData = object.itemData,
+                        objectType = object.object.objectType, stopRand = true, cell = cell})
+                    this.StopRandomization(object)
+                    object:disable()
 
                 end
 
@@ -697,9 +782,15 @@ function this.randomizeCell(cell)
                     table.insert(newObjects, {id = newCreaId, cell = cell, pos = objectPos, rot = objectRot, scale = objectScale})
                 end
 
-            -- elseif object.baseObject.objectType == tes3.objectType.npc then
+            elseif object.baseObject.objectType == tes3.objectType.npc and object.isDead then
 
-            --     this.randomizeContainerItems(object, this.config.data.NPCs.items.region.min, this.config.data.NPCs.items.region.max)
+                this.randomizeContainerItems(object, this.config.data.NPCs.items.region.min, this.config.data.NPCs.items.region.max)
+                this.StopRandomization(object)
+
+            elseif object.baseObject.objectType == tes3.objectType.creature and object.isDead then
+
+                this.randomizeContainerItems(object, this.config.data.creatures.items.region.min, this.config.data.creatures.items.region.max)
+                this.StopRandomization(object)
 
             elseif object.baseObject.objectType == tes3.objectType.door then
 
@@ -721,6 +812,29 @@ function this.randomizeCell(cell)
                 (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
             object.itemData.count = newCount
 
+        elseif object ~= nil and config.items.randomize and object.baseObject.objectType == tes3.objectType.ammunition then
+
+            local objectId = object.id:lower()
+            if object.sourceMod and not object.disabled then
+                local itemAdvData = itemsData.Items[objectId]
+                local itemData = object.itemData and {count = object.itemData.count, owner = object.itemData.owner, requirement = object.itemData.requirement} or nil
+                if itemAdvData ~= nil then
+
+                    local newItemGroup = itemsData.ItemGroups[itemAdvData.Type][itemAdvData.SubType]
+                    local newItemId = newItemGroup.Items[random.GetRandom(itemAdvData.Position, newItemGroup.Count,
+                        this.config.data.items.region.min, this.config.data.items.region.max)]
+                    table.insert(newObjects, {id = this.getNewItem(newItemId).id, pos = object.position, rot = object.orientation,
+                        scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
+                    object:disable()
+
+                elseif config.item.unique and itemLib.itemTypeForUnique[object.baseObject.objectType] then
+
+                    table.insert(newObjects, {id = this.getNewItem(object.id).id, pos = object.position, rot = object.orientation,
+                        scale = object.scale, itemData = itemData, objectType = object.object.objectType, cell = cell})
+                    object:disable()
+                end
+            end
+
         end
     end
 
@@ -730,13 +844,16 @@ function this.randomizeCell(cell)
         --     this.StopRandomizationTemp(newRef)
         -- end
     end
+    if itemLib.isObjectFixRequired() then
+        timer.delayOneFrame(function() itemLib.fixCell(cell, false, true) end)
+    end
 end
 
 local aiBlackList = {["chargen boat guard 1"]=true,["chargen boat guard 2"]=true,["chargen boat guard 3"]=true,["chargen captain"]=true,["chargen class"]=true,["chargen dock guard"]=true,["chargen door guard"]=true,["chargen name"]=true,}
 
 local positiveAttrs = { "chameleon", "waterBreathing", "waterWalking", "swiftSwim", "shield"}
-local negativeAttrs = { "sound", "silence", "paralyze" } -- "blind" banned
-local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistCommonDisease", "resistBlightDisease", "resistCorprus", "resistPoison", "resistParalysis" }
+local negativeAttrs = { "sound", "silence" } -- "blind", "paralyze" banned
+local bothAttrs = { "resistNormalWeapons", "sanctuary", "attackBonus", "resistMagicka", "resistFire", "resistFrost", "resistShock", "resistPoison", "resistParalysis" } -- "resistCommonDisease", "resistBlightDisease", "resistCorprus" banned
 local combatSkillIds = {tes3.skill.block, tes3.skill.armorer,  tes3.skill.mediumArmor, tes3.skill.heavyArmor, tes3.skill.bluntWeapon, tes3.skill.longBlade, tes3.skill.axe, tes3.skill.spear, tes3.skill.athletics,}
 local magicSkillIds = {tes3.skill.enchant, tes3.skill.destruction,  tes3.skill.alteration, tes3.skill.illusion, tes3.skill.conjuration, tes3.skill.mysticism, tes3.skill.restoration, tes3.skill.alchemy, tes3.skill.unarmored,}
 local stealthSkillIds = {tes3.skill.security, tes3.skill.sneak,  tes3.skill.acrobatics, tes3.skill.lightArmor, tes3.skill.shortBlade, tes3.skill.marksman, tes3.skill.mercantile, tes3.skill.speechcraft, tes3.skill.handToHand,}
@@ -949,122 +1066,43 @@ function this.randomizeMobileActor(mobile)
     mobile:updateOpacity()
 end
 
-local actorObjectsInitialData = {}
-
-function this.addBaseInitialData(data)
-    if not data then return end
-    for id, dt in pairs(data) do
-        actorObjectsInitialData[id] = dt
-    end
-end
-
-function this.getBaseObjectData(object)
-    local data = {spells = {}}
-
-    for i, spell in pairs(object.spells) do
-        table.insert(data.spells, spell.id)
-    end
-    data.barterGold = object.barterGold
-
-    if object.aiConfig.travelDestinations ~= nil then
-        data.travelDestinations = {}
-        for i, destination in pairs(object.aiConfig.travelDestinations) do
-            data.travelDestinations[i] = {cell = {id = destination.cell.id, gridX = destination.cell.gridX, gridY = destination.cell.gridY},
-                marker = {x = destination.marker.position.x, y = destination.marker.position.y, z = destination.marker.position.z,
-                rotX = destination.marker.orientation.x, rotY = destination.marker.orientation.y, rotZ = destination.marker.orientation.z,}}
-        end
-    end
-
-    if object.attacks ~= nil then
-        data.attacks = {}
-        for i, val in ipairs(object.attacks) do
-            table.insert(data.attacks, {val.min, val.max})
-        end
-    end
-
-    if object.hair then
-        data.hair = object.hair.id
-    end
-    if object.head then
-        data.head = object.head.id
-    end
-
-    return data
-end
-
-function this.setBaseObjectData(object, data)
-    if data == nil or object == nil then return nil end
-
-    if not actorObjectsInitialData[object.id] then
-        actorObjectsInitialData[object.id] = this.getBaseObjectData(object)
-    end
-
-    if data.spells then
-        for i, spell in pairs(object.spells) do
-            object.spells:remove(spell)
-        end
-        for i, spellId in ipairs(data.spells) do
-            object.spells:add(spellId)
-        end
-    end
-
-    object.barterGold = data.barterGold ~= nil and data.barterGold or object.barterGold
-
-    if object.aiConfig.travelDestinations ~= nil and data.travelDestinations ~= nil then
-        for i, destination in pairs(object.aiConfig.travelDestinations) do
-            if data.travelDestinations[i] ~= nil then
-                destination.cell = tes3.getCell(data.travelDestinations[i].cell)
-                destination.marker.position = tes3vector3.new(data.travelDestinations[i].marker.x, data.travelDestinations[i].marker.y,
-                    data.travelDestinations[i].marker.z)
-                destination.marker.orientation = tes3vector3.new(data.travelDestinations[i].marker.rotX, data.travelDestinations[i].marker.rotY,
-                    data.travelDestinations[i].marker.rotZ)
+---@deprecated
+function this.restoreAllBaseActorData()
+    local playerData = dataSaver.getObjectData(tes3.player)
+    if not playerData then return end
+    if playerData.randomizedBaseObjects ~= nil then
+        local foundData = false
+        local dt = playerData.randomizedBaseObjects
+        for id, objData in pairs(dt) do
+            local object = tes3.getObject(id)
+            if object then
+                foundData = true
+                this.storage.addActorData(id, objData, false)
+                this.storage.restoreActor(object, false)
             end
         end
-    end
-
-    if object.attacks ~= nil and data.attacks ~= nil then
-        for i, val in ipairs(object.attacks) do
-            if data.attacks[i] ~= nil then
-                val.min = data.attacks[i][1]
-                val.max = data.attacks[i][2]
+        local cells = tes3.getActiveCells()
+        if foundData and cells ~= nil then
+            for _, cell in pairs(cells) do
+                for ref in cell:iterateReferences({ tes3.objectType.npc }) do
+                    ref:updateEquipment()
+                end
             end
         end
-    end
-
-    if object.hair and data.hair then
-        object.hair = tes3.getObject(data.hair)
-    end
-    if object.head and data.head then
-        object.head = tes3.getObject(data.head)
+        playerData.randomizedBaseObjects = nil
     end
 end
 
-function this.saveAndRestoreBaseObjectInitialData(object, data)
-    if object then
-        if data[object.id] == nil then data[object.id] = {} end
-        local objectData = data[object.id]
-
-        if objectData == nil then
-            local objData = this.getBaseObjectData(object)
-            data[object.id] = objData
-        else
-            this.setBaseObjectData(object, objectData)
-        end
-    end
-end
-
-function this.restoreAllBaseInitialData(data, clear)
-    local dt = data ~= nil and data or actorObjectsInitialData
-    for id, objData in pairs(dt) do
-        local object = tes3.getObject(id)
-        if object then
-            this.setBaseObjectData(object, objData)
-        end
-        if clear then dt[id] = nil end
-    end
-end
-
+local lastBaseRandTimestamp = {}
 function this.randomizeActorBaseObject(object, actorType)
+    if not object then return end
+    -- to prevent multiple randomization
+    if lastBaseRandTimestamp[object.id] and lastBaseRandTimestamp[object.id] > os.time() then
+        return
+    else
+        lastBaseRandTimestamp[object.id] = os.time() + 2
+    end
+
     local configData = this.config.data
     local configTable
     if object.actorType == tes3.actorType.npc or actorType == tes3.actorType.npc then
@@ -1076,6 +1114,8 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable == nil then
         return
     end
+
+    this.storage.saveOrRestoreInitialActor(object)
 
     -- object.modified = true
 
@@ -1223,6 +1263,10 @@ function this.randomizeActorBaseObject(object, actorType)
         log("Barter gold %s %s to %s", tostring(object), tostring(object.barterGold), tostring(newVal))
         object.barterGold = newVal
     end
+
+    this.randomizeBody(object)
+
+    this.storage.saveActor(object)
 end
 
 local races = {}
@@ -1230,12 +1274,11 @@ for race, val in pairs(headPartsData.Parts) do
     table.insert(races, race)
 end
 
-function this.randomizeBody(reference)
-    local object = reference.object
+function this.randomizeBody(object)
     local configData = this.config.data
     if object.objectType == tes3.objectType.npc then
         local race = object.race.id:lower()
-        if configData.NPCs.hair.randomize and headPartsData.List["1"][object.baseObject.hair.id:lower()] and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.hair.randomize and headPartsData.List["1"][object.hair.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.hair.raceLimit then
@@ -1248,10 +1291,10 @@ function this.randomizeBody(reference)
 
             local hairList = headPartsData.Parts[newRace]["1"][tostring(genderId)]
             local hairId = hairList[math.random(1, #hairList)]
-            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.hair.id), tostring(hairId))
-            object.baseObject.hair = tes3.getObject(hairId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.hair.id), tostring(hairId))
+            object.hair = tes3.getObject(hairId)
         end
-        if configData.NPCs.head.randomize and headPartsData.List["0"][object.baseObject.head.id:lower()] and headPartsData.Parts[race] ~= nil then
+        if configData.NPCs.head.randomize and headPartsData.List["0"][object.head.id:lower()] and headPartsData.Parts[race] ~= nil then
             local newRace = race
             local genderId = object.female and 1 or 0
             if not configData.NPCs.head.raceLimit then
@@ -1264,10 +1307,9 @@ function this.randomizeBody(reference)
 
             local headList = headPartsData.Parts[newRace]["0"][tostring(genderId)]
             local headId = headList[math.random(1, #headList)]
-            log("Hair %s %s to %s", tostring(object), tostring(object.baseObject.head.id), tostring(headId))
-            object.baseObject.head = tes3.getObject(headId)
+            log("Hair %s %s to %s", tostring(object), tostring(object.head.id), tostring(headId))
+            object.head = tes3.getObject(headId)
         end
-        reference:updateEquipment()
     end
 end
 
@@ -1380,8 +1422,24 @@ function this.randomizeLockTrap(reference, toLock, toTrap)
                 local trapData = trapEffData[math.random(1, #trapEffData)]
                 local trapGroup = spellsData.SpellGroups[tostring(trapData.SubType)]
                 if trapGroup ~= nil then
-                    local newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
-                    local newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
+                    local newTrapSpellId
+                    local newTrapSpell
+                    local limit = 20
+                    while not newTrapSpell and limit > 0 do
+                        limit = limit - 1
+                        newTrapSpellId = random.GetRandom(trapData.Position, trapGroup.Count, configTable.trap.region.min, configTable.trap.region.max)
+                        newTrapSpell = tes3.getObject(trapGroup.Items[newTrapSpellId])
+                        if newTrapSpell.effects then
+                            for _, effect in pairs(newTrapSpell.effects) do
+                                if effect.object and effect.object.casterLinked then
+                                    newTrapSpell = nil
+                                    break
+                                end
+                            end
+                            break
+                        end
+                        newTrapSpell = nil
+                    end
                     if newTrapSpell ~= nil then
                         log("Trap %s %s to %s", tostring(reference), tostring(reference.lockNode.trap), tostring(newTrapSpell))
                         reference.lockNode.trap = newTrapSpell
@@ -1396,12 +1454,29 @@ function this.randomizeLockTrap(reference, toLock, toTrap)
             else
                 newGroup = spellsData.SpellGroups[tostring(math.random(110, 115))]
             end
-            local newTrapSpellPos = math.random(1, math.floor(math.min(newGroup.Count,
+            local newTrapSpellId
+            local newTrapSpell
+            local limit = 20
+            while not newTrapSpell and limit > 0 do
+                limit = limit - 1
+                newTrapSpellId = math.random(1, math.floor(math.min(newGroup.Count,
                 newGroup.Count * configTable.trap.add.levelMultiplier * tes3.player.object.level * 0.01)))
-            local spellId = newGroup.Items[newTrapSpellPos]
-            local newSpell = tes3.getObject(spellId)
-            log("Trap new %s %s", tostring(reference), tostring(spellId))
-            tes3.setTrap({ reference = reference, spell = newSpell })
+                newTrapSpell = tes3.getObject(newGroup.Items[newTrapSpellId])
+                if newTrapSpell.effects then
+                    for _, effect in pairs(newTrapSpell.effects) do
+                        if effect.object and effect.object.casterLinked then
+                            newTrapSpell = nil
+                            break
+                        end
+                    end
+                    break
+                end
+                newTrapSpell = nil
+            end
+            if newTrapSpell then
+                log("Trap new %s %s", tostring(reference), tostring(newTrapSpell.id))
+                tes3.setTrap({ reference = reference, spell = newTrapSpell })
+            end
         end
     end
 end

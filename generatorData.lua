@@ -150,7 +150,8 @@ this.herbsOffsets = {["flora_bittergreen_07"]=70,["flora_bittergreen_06"]=40,["f
 
 function this.checkRequirementsForItem(item)
     if item ~= nil and not item.deleted and item.name ~= nil and item.name ~= "" and
-            not this.forbiddenIds[item.id] and item.name ~= "<Deprecated>" and (item.icon == nil or item.icon ~= "default icon.dds") and
+            not this.forbiddenIds[item.id] and item.name ~= "<Deprecated>" and
+            not (item.icon == nil or item.icon == "" or item.icon == "default icon.dds") and
             item.mesh and tes3.getFileSource("Meshes\\"..item.mesh) and not this.forbiddenModels[item.mesh:lower()] then
         return true
     end

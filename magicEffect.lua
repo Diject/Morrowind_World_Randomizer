@@ -40,6 +40,12 @@ this.effectsData = {
     },
 }
 
+local forbidden = {
+    [126] = true,
+    [141] = true,
+    [142] = true,
+}
+
 function this.init()
     local fillEffGroup = function(effect, group)
         if effect.canCastSelf then
@@ -52,6 +58,7 @@ function this.init()
         if not effect.hasNoMagnitude then table.insert(group.hasMagnitude, effect.id) end
     end
     for id, effect in pairs(tes3.dataHandler.nonDynamicData.magicEffects) do
+        if forbidden[effect.id] then goto continue end
         this.effectsData.effect[effect.id] = effect
         this.effectsData.skill[effect.id] = effect.skill
         this.effectsData.cost[effect.id] = effect.baseMagickaCost
@@ -88,7 +95,7 @@ function this.init()
                 fillEffGroup(effect, this.effectsData.forEnchant.positive)
             end
         end
-
+        ::continue::
     end
 end
 
@@ -97,8 +104,36 @@ function this.calculateEffectCost(effect)
     return mul * ((effect.min + effect.max) * (effect.duration + 1) + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
 end
 
-function this.calculateEffectCostForConstant(effect)
+function this.calculateEffectCostForConstant(effect, customDuration)
+    local mul = customDuration and customDuration or 100
     return ((effect.min + effect.max) * 100 + effect.radius) * (this.effectsData.cost[effect.id] or 1) / 40
+end
+
+function this.getEffectsPower(effects)
+    local enchVal = 0
+    if effects then
+        for _, effect in pairs(effects) do
+            if effect.id >= 0 then
+                enchVal = enchVal + this.calculateEffectCost(effect)
+            end
+        end
+    end
+    return enchVal
+end
+
+function this.getEnchantPower(enchantment)
+    local enchVal = 0
+    if enchantment then
+        local calcFunc = enchantment.castType == tes3.enchantmentType.constant and this.calculateEffectCostForConstant or
+            this.calculateEffectCost
+        for _, effect in pairs(enchantment.effects) do
+            if effect.id >= 0 then
+                enchVal = enchVal + calcFunc(effect)
+            end
+        end
+        enchVal = enchVal
+    end
+    return enchVal
 end
 
 return this

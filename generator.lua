@@ -1,6 +1,5 @@
 local log = include("Morrowind_World_Randomizer.log")
 local magicEffectLib = include("Morrowind_World_Randomizer.magicEffect")
-local itemLib = include("Morrowind_World_Randomizer.item")
 local genData = include("Morrowind_World_Randomizer.generatorData")
 
 local this = {}
@@ -33,7 +32,7 @@ local function addItemToTable(out, object, objectTypeId, objectSubTypeId, isArti
     addItemTable(out, objectTypeStr, objectSubTypeStr)
     local gr = out.ItemGroups[objectTypeStr][objectSubTypeStr]
     gr.Count = gr.Count + 1
-    local enchCost = itemLib.getEnchantPower(object.enchantment)
+    local enchCost = magicEffectLib.getEnchantPower(object.enchantment)
     gr.MaxEnchCost = math.max(gr.MaxEnchCost, enchCost)
     local cost = object.value or 0
     gr.MaxCost = math.max(gr.MaxCost, cost)
@@ -63,6 +62,7 @@ function this.fillItems()
     items.data[tes3.objectType.probe] = {}
     items.data[tes3.objectType.repairItem] = {}
     items.data[tes3.objectType.weapon] = {}
+    items.data[tes3.objectType.ammunition] = {}
 
     log("Item list generation...")
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
@@ -381,6 +381,314 @@ function this.generateRandomizedLandscapeTextureIndices()
         table.remove(textures1.Groups[val.Type], id)
     end
     return textures
+end
+
+this.itemTypeWhiteList = {
+    [tes3.objectType.alchemy] = true,
+    [tes3.objectType.ingredient] = true,
+    [tes3.objectType.apparatus] = true,
+    [tes3.objectType.armor] = true,
+    [tes3.objectType.book] = true,
+    [tes3.objectType.clothing] = true,
+    [tes3.objectType.lockpick] = true,
+    [tes3.objectType.probe] = true,
+    [tes3.objectType.repairItem] = true,
+    [tes3.objectType.weapon] = true,
+    [tes3.objectType.miscItem] = true,
+    [tes3.objectType.ammunition] = true,
+    [tes3.objectType.light] = true,
+}
+
+---@class mwr.generator.partsDataStruct
+---@field [1] integer
+---@field [2] string
+---@field [3] string
+
+---@class mwr.generator.partsStruct
+---@field mesh string
+---@field parts mwr.generator.partsDataStruct[]
+
+---@class mwr.generator.enchantment.group
+---@field Items string[] enchantment ids
+---@field Max95 number 95% median value of an enchantment cost in this group
+---@field Max number the max value of an enchantment cost in this group
+
+---@class mwr.generator.itemGroup
+---@field items table
+---@field meshes table
+---@field arrowMeshes table|nil
+---@field boltMeshes table|nil
+---@field enchantValues table<string, number> index - item id
+---@field maxValue number
+---@field medianValue number
+---@field medianEnchant number
+---@field enchant90 number
+---@field enchant95 number
+---@field values number[10]
+---@field maxEnchant number
+---@field bowMeshes table
+---@field crossbowMeshes table
+
+---@class mwr.generator.enchantmentGroup
+---@field Items table<string, integer> index - lower enchantment id, value - position in Groups[enchantmentType].Items
+---@field Groups table<tes3.enchantmentType, mwr.generator.enchantment.group>
+
+---@class mwr.itemStatsData
+---@field parts table<tes3.objectType, table<integer, table< integer, mwr.generator.partsStruct>>>
+---@field itemGroup table<tes3.objectType, mwr.generator.itemGroup>
+---@field enchantments mwr.generator.enchantmentGroup
+
+---@return mwr.itemStatsData
+function this.generateItemData()
+    local items = {}
+    local enchantments = {[tes3.enchantmentType.castOnce] = {}, [tes3.enchantmentType.onStrike] = {}, [tes3.enchantmentType.onUse] = {},
+        [tes3.enchantmentType.constant] = {},}
+    local out = {parts = {}, itemGroup = {}, enchantments = {Items = {}, Groups = {}}}
+    for itType, val in pairs(this.itemTypeWhiteList) do
+        if val then
+            items[itType] = {}
+        end
+    end
+
+    log("Item data generation...")
+    for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
+        if object.objectType == tes3.objectType.enchantment then
+            table.insert(enchantments[object.castType], {id = object.id, value = magicEffectLib.getEffectsPower(object.effects)})
+        end
+        if genData.checkRequirementsForItem(object) and items[object.objectType] ~= nil then
+
+            table.insert(items[object.objectType], object)
+
+            if object.parts then
+                local data = {}
+                for _, part in pairs(object.parts) do
+                    if part.type ~= 255 then
+                        local female
+                        local male
+                        if part.female ~= nil and not part.female.deleted and not part.female.disabled and
+                                tes3.getFileSource("meshes\\"..part.female.mesh) then
+                            female = part.female.id
+                        end
+                        if part.male ~= nil and not part.male.deleted and not part.male.disabled and
+                                tes3.getFileSource("meshes\\"..part.male.mesh) then
+                            male = part.male.id
+                        end
+                        if female or male then table.insert(data, {part.type, female, male}) end
+                    end
+                end
+                local objSubType = 0
+                if object.type then
+                    objSubType = object.type
+                elseif object.slot then
+                    objSubType = object.slot
+                end
+                if not out.parts[object.objectType] then out.parts[object.objectType] = {} end
+                if not out.parts[object.objectType][objSubType] then out.parts[object.objectType][objSubType] = {} end
+                if #data > 0 then table.insert(out.parts[object.objectType][objSubType], {mesh = object.mesh, parts = data}) end
+            end
+        end
+    end
+
+    for enchType, data in pairs(enchantments) do
+        table.sort(data, function(a, b) return a.value < b.value end)
+        out.enchantments.Groups[enchType] = {Items = {}, Max95 = data[math.floor(#data * 0.95)].value, Max = data[#data].value}
+        local enchTable = out.enchantments.Groups[enchType].Items
+        local pos = 1
+        for i, ench in ipairs(data) do
+            table.insert(enchTable, ench.id)
+            out.enchantments.Items[ench.id:lower()] = pos
+            pos = pos + 1
+        end
+    end
+
+    for objType, data in pairs(items) do
+        table.sort(data, function(a, b) return a.value < b.value end)
+        local meshes = {}
+        local bowMeshes = {}
+        local crossbowMeshes = {}
+        local enchantVals = {0,}
+        local enchValData = {}
+        for i, item in pairs(data) do
+            local enchVal = 0
+            if item.enchantment then
+                enchVal = magicEffectLib.getEffectsPower(item.enchantment.effects)
+            elseif objType == tes3.objectType.alchemy then
+                enchVal = magicEffectLib.getEffectsPower(item.effects)
+            end
+            if enchVal > 0 then
+                table.insert(enchantVals, enchVal)
+                enchValData[item.id] = enchVal
+            end
+
+            if item.mesh then
+                if objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanBow then
+                    bowMeshes[item.mesh] = true
+                elseif objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanCrossbow then
+                    crossbowMeshes[item.mesh] = true
+                else
+                    meshes[item.mesh] = true
+                end
+            end
+        end
+        local meshList = {}
+        for mesh, _ in pairs(meshes) do
+            table.insert(meshList, mesh)
+        end
+        local bowMeshList = {}
+        for mesh, _ in pairs(bowMeshes) do
+            table.insert(bowMeshList, mesh)
+        end
+        local crossbowMeshList = {}
+        for mesh, _ in pairs(crossbowMeshes) do
+            table.insert(crossbowMeshList, mesh)
+        end
+        local arrowMeshes = nil
+        local boltMeshes = nil
+        if objType == tes3.objectType.ammunition then
+            arrowMeshes = {}
+            boltMeshes = {}
+            local addMesh = function(mesh)
+                if mesh and tes3.getFileSource("meshes\\"..mesh) then
+                    local ms = tes3.loadMesh(mesh)
+                    local boundingBox = ms:createBoundingBox()
+                    if boundingBox.min.y <= -55 then
+                        table.insert(arrowMeshes, mesh)
+                    elseif boundingBox.min.y >= -35 and boundingBox.min.y <= -17 then
+                        table.insert(boltMeshes, mesh)
+                    end
+                end
+            end
+            for i, item in pairs(items[tes3.objectType.weapon]) do
+                addMesh(item.mesh)
+            end
+            for i, mesh in pairs(meshList) do
+                addMesh(mesh)
+            end
+        end
+        table.sort(enchantVals)
+        local values = {}
+        for i = 1, 10 do
+            table.insert(values, data[math.max(math.min(math.floor(#data * i * 0.1), #data), 1)].value or 0)
+        end
+        out.itemGroup[objType] = {
+            items = data, meshes = meshList, enchantValues = enchValData, maxValue = data[#data].value,
+            medianValue = data[math.floor(#data / 2)].value,
+            maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
+            enchant90 = enchantVals[math.floor(#enchantVals * 0.9)] or 0,
+            enchant95 = enchantVals[math.floor(#enchantVals * 0.95)] or 0,
+            values = values,
+            bowMeshes = #bowMeshList > 0 and bowMeshList or nil, crossbowMeshes = #crossbowMeshList > 0 and crossbowMeshList or nil,
+            arrowMeshes = arrowMeshes, boltMeshes = boltMeshes,
+        }
+    end
+
+    log("Item data generation comleted")
+    return out
+end
+
+function this.fillFlora()
+    local data = {}
+    local out = {Data = {}, Groups = {}}
+    for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
+        if object then
+            local id = object.id:lower()
+            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
+                    not forbiddenModels[object.mesh:lower()] and (id:find("grass") or id:find("bush") or id:find("flora")) and
+                    not (id:find("tree") or id:find("log") or id:find("menhir") or id:find("root") or id:find("parasol") or id:find("rock") or
+                    id:find("plane")) then
+                local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
+                if str then
+                    if not data[str] then data[str] = {} end
+                    table.insert(data[str], object)
+                end
+            end
+        end
+    end
+    for _, gr in pairs(data) do
+        local ids = {}
+        for _, object in pairs(gr) do
+            local id = object.id:lower()
+            if object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
+                local ms = tes3.loadMesh(object.mesh)
+                if ms then
+                    local boundingBox = ms:createBoundingBox()
+                    local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
+                    if l < 250 then
+                        out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.05, Radius = l / 2}
+                        table.insert(ids, id)
+                    end
+                end
+            end
+        end
+        if #ids > 0 then
+            table.insert(out.Groups, ids)
+        end
+    end
+    return out
+end
+
+function this.rebuildRocksTreesData(data)
+    if not data then return end
+    local out = {Data = {}, Groups = {}}
+    local arr
+    if data.RocksOffset then
+        arr = data.RocksOffset
+    elseif data.TreesOffset then
+        arr = data.TreesOffset
+    else
+        arr = {}
+    end
+    for id, dt in pairs(arr) do
+        local object = tes3.getObject(id)
+        if object and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
+            local ms = tes3.loadMesh(object.mesh)
+            if ms then
+                local boundingBox = ms:createBoundingBox()
+                local r = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y)) / 2
+                local offset = dt.Offset
+                if offset == 0 or not offset then
+                    offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.05
+                end
+                out.Data[id] = {Offset = offset, Radius = r}
+            end
+        end
+    end
+    local grpArr
+    if data.RocksGroups then
+        grpArr = data.RocksGroups
+    elseif data.TreesGroups then
+        grpArr = data.TreesGroups
+    else
+        grpArr = {}
+    end
+    for i, dt in pairs(grpArr) do
+        if dt.Items and #dt.Items > 0 then
+            table.insert(out.Groups, dt.Items)
+        end
+    end
+    return out
+end
+
+function this.correctStaticsData(data)
+    for id, _ in pairs(data.Data) do
+        local object = tes3.getObject(id)
+        if not object then
+            data.Data[id] = nil
+        end
+    end
+    local newGroups = {}
+    for _, grp in pairs(data.Groups) do
+        local newGrp = {}
+        for _, id in pairs(grp) do
+            if data.Data[id:lower()] then
+                table.insert(newGrp, id)
+            end
+        end
+        if #newGrp > 0 then
+            table.insert(newGroups, newGrp)
+        end
+    end
+    data.Groups = newGroups
 end
 
 return this

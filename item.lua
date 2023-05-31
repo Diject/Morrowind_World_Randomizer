@@ -3,29 +3,35 @@ local this = {}
 local log = include("Morrowind_World_Randomizer.log")
 local random = include("Morrowind_World_Randomizer.Random")
 local effectLib = include("Morrowind_World_Randomizer.magicEffect")
-local genData = include("Morrowind_World_Randomizer.generatorData")
+local generator = include("Morrowind_World_Randomizer.generator")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
+local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
+local globalConfig = include("Morrowind_World_Randomizer.config").global
 this.config = include("Morrowind_World_Randomizer.config").data
 
-this.itemTypeWhiteList = {
-    [tes3.objectType.alchemy] = true,
-    [tes3.objectType.ingredient] = true,
-    [tes3.objectType.apparatus] = true,
-    [tes3.objectType.armor] = true,
-    [tes3.objectType.book] = true,
-    [tes3.objectType.clothing] = true,
-    [tes3.objectType.lockpick] = true,
-    [tes3.objectType.probe] = true,
-    [tes3.objectType.repairItem] = true,
-    [tes3.objectType.weapon] = true,
-    [tes3.objectType.miscItem] = true,
-    [tes3.objectType.ammunition] = true,
-    [tes3.objectType.light] = true,
-}
+this.storage = include("Morrowind_World_Randomizer.storage")
+
+this.getUniqueId = include("Morrowind_World_Randomizer.uniqueId").getUniqueId
+
+local enchPrefix = "_mwrand_new_ench_"
+local itemPrefix = "_mwrand_new_item_"
+
+this.dummyConstEnchId = "_mwrand_dummy_ench_01"
+this.dummyStrikeEnchId = "_mwrand_dummy_ench_02"
+
+---@type mwr.itemStatsData
+this.data = nil
 
 this.itemTypeForEnchantment = {
     [tes3.objectType.armor] = true,
     [tes3.objectType.book] = true,
+    [tes3.objectType.clothing] = true,
+    [tes3.objectType.weapon] = true,
+    [tes3.objectType.ammunition] = true,
+}
+
+this.itemTypeForUnique = {
+    [tes3.objectType.armor] = true,
     [tes3.objectType.clothing] = true,
     [tes3.objectType.weapon] = true,
     [tes3.objectType.ammunition] = true,
@@ -36,13 +42,50 @@ this.itemTypeForEffects = {
     [tes3.objectType.ingredient] = true,
 }
 
+this.enchCostMul = {
+    [tes3.objectType.weapon] = {
+        [0] = 0.6,
+    },
+    [tes3.objectType.armor] = {
+        [tes3.armorSlot.helmet] = 0.6,
+        [tes3.armorSlot.cuirass] = 0.6,
+        [tes3.armorSlot.leftPauldron] = 0.3,
+        [tes3.armorSlot.rightPauldron] = 0.3,
+        [tes3.armorSlot.greaves] = 0.6,
+        [tes3.armorSlot.boots] = 0.5,
+        [tes3.armorSlot.leftGauntlet] = 0.4,
+        [tes3.armorSlot.rightGauntlet] = 0.4,
+        [tes3.armorSlot.shield] = 1,
+        [tes3.armorSlot.leftBracer] = 0.3,
+        [tes3.armorSlot.rightBracer] = 0.3,
+    },
+    [tes3.objectType.clothing] = {
+        [tes3.clothingSlot.pants] = 0.3,
+        [tes3.clothingSlot.shoes] = 0.2,
+        [tes3.clothingSlot.shirt] = 0.3,
+        [tes3.clothingSlot.belt] = 0.2,
+        [tes3.clothingSlot.robe] = 0.4,
+        [tes3.clothingSlot.rightGlove] = 0.2,
+        [tes3.clothingSlot.leftGlove] = 0.2,
+        [tes3.clothingSlot.skirt] = 0.3,
+        [tes3.clothingSlot.ring] = 0.8,
+        [tes3.clothingSlot.amulet] = 1,
+    },
+    [tes3.objectType.ammunition] = {
+        [0] = 0.2,
+    },
+    [tes3.objectType.book] = {
+        [1] = 0.5,
+    },
+}
+
 function this.iterItems(inventory)
     local function iterator()
         for _, stack in pairs(inventory) do
             ---@cast stack tes3itemStack
             local item = stack.object
 
-            local count = stack.count
+            local count = math.abs(stack.count)
 
             -- first yield stacks with custom data
             if stack.variables then
@@ -54,7 +97,7 @@ function this.iterItems(inventory)
                 end
             end
             -- then yield all the remaining copies
-            if count > 0 then
+            if count ~= 0 then
                 coroutine.yield(stack, item, count)
             end
         end
@@ -64,216 +107,10 @@ end
 
 function this.isEnchantContainsForbiddenEffect(enchant)
     if not enchant or not enchant.effects then return end
-    for i, eff in pairs(enchant.effect) do
+    for i, eff in pairs(enchant.effects) do
         if effectLib.effectsData.forbiddenForConstantType[eff.id] then return true end
     end
     return false
-end
-
-function this.getEffectsPower(effects)
-    local enchVal = 0
-    if effects then
-        for _, effect in pairs(effects) do
-            if effect.id >= 0 then
-                enchVal = enchVal + effectLib.calculateEffectCost(effect)
-            end
-        end
-    end
-    return enchVal
-end
-
-function this.getEnchantPower(enchantment)
-    local enchVal = 0
-    if enchantment then
-        local calcFunc = enchantment.castType == tes3.enchantmentType.constant and effectLib.calculateEffectCostForConstant or
-            effectLib.calculateEffectCost
-        for _, effect in pairs(enchantment.effects) do
-            if effect.id >= 0 then
-                enchVal = enchVal + calcFunc(effect)
-            end
-        end
-        enchVal = enchVal
-    end
-    return enchVal
-end
-
-local serializeEffects = function(effects)
-    local effOut = {}
-    if effects then
-        for _, effect in pairs(effects) do
-            local effectData = {}
-            if effect.id == -1 then break end
-            effectData.id = effect.id
-            effectData.skill = effect.skill
-            effectData.attribute = effect.attribute
-            effectData.min = effect.min
-            effectData.max = effect.max
-            effectData.duration = effect.duration
-            effectData.radius = effect.radius
-            effectData.rangeType = effect.rangeType
-            table.insert(effOut, effectData)
-        end
-    end
-    return effOut
-end
-
-local varNames = {"id", "objectType", "enchantCapacity", "armorRating", "maxCondition", "quality", "speed", "weight", "chopMin", "chopMax",
-    "slashMin", "slashMax", "thrustMin", "thrustMax", "mesh", "castType", "chargeCost", "maxCharge", "value", "time"}
-local ingrVarNames = {"effects", "effectAttributeIds", "effectSkillIds",}
-function this.serializeBaseObject(object)
-    if not object then return end
-
-    local out = {}
-
-    for _, varName in pairs(varNames) do
-        if object[varName] then
-            out[varName] = object[varName]
-        end
-    end
-
-    if object.objectType ~= tes3.objectType.ingredient then
-        if object.effects then out.effects = serializeEffects(object.effects) end
-    else
-        for _, varName in ipairs(ingrVarNames) do
-            if object[varName] then
-                out[varName] = {}
-                for _, val in pairs(object[varName]) do
-                    table.insert(out[varName], val)
-                end
-            end
-        end
-    end
-
-    if object.enchantment then
-        out.enchantment = {}
-        out.enchantment.castType = object.enchantment.castType
-        out.enchantment.chargeCost = object.enchantment.chargeCost
-        out.enchantment.id = object.enchantment.id
-        out.enchantment.maxCharge = object.enchantment.maxCharge
-        out.enchantment.effects = serializeEffects(object.enchantment.effects)
-    end
-
-    if object.parts then
-        out.parts = {}
-        for _, part in pairs(object.parts) do
-            if part.type ~= 255 then
-                local female
-                local male
-                if part.female ~= nil then
-                    female = part.female.id
-                end
-                if part.male ~= nil then
-                    male = part.male.id
-                end
-                if female or male then table.insert(out.parts, {part.type, female, male}) end
-            end
-        end
-    end
-
-    if object.color then
-        out.color = {object.color[1], object.color[2], object.color[3]}
-    end
-
-    return out
-end
-
-local function restoreEffects(object, data)
-    for i = 1, 8 do
-        if data[i] then
-            object.effects[i].id = data[i].id
-            object.effects[i].skill = data[i].skill
-            object.effects[i].attribute = data[i].attribute
-            object.effects[i].min = data[i].min
-            object.effects[i].max = data[i].max
-            object.effects[i].duration = data[i].duration
-            object.effects[i].radius = data[i].radius
-            object.effects[i].rangeType = data[i].rangeType
-        else
-            object.effects[i].id = -1
-            object.effects[i].skill = 0
-            object.effects[i].attribute = 0
-            object.effects[i].min = 0
-            object.effects[i].max = 0
-            object.effects[i].duration = 0
-            object.effects[i].radius = 0
-            object.effects[i].rangeType = 0
-        end
-    end
-end
-
-function this.restoreBaseObject(object, data, createNewEnchantment)
-    if not object then return end
-    log("Restoring object data %s", tostring(object))
-    local enchantmentFound = false
-    for varName, val in pairs(data) do
-        if type(val) ~= "table" and varName ~= "id" and varName ~= "objectType" then
-            object[varName] = val
-
-        elseif varName == "effects" then
-            if object.objectType ~= tes3.objectType.ingredient then
-                restoreEffects(object, val)
-            else
-                for i, id in ipairs(val) do
-                    object.effects[i] = id
-                end
-            end
-
-        elseif varName == "effectAttributeIds" then
-            for i, id in ipairs(val) do
-                object.effectAttributeIds[i] = id
-            end
-
-        elseif varName == "effectSkillIds" then
-            for i, id in ipairs(val) do
-                object.effectSkillIds[i] = id
-            end
-
-        elseif varName == "parts" then
-            for pos = 1, #object.parts do
-                local newPartData = val[pos]
-                local part = object.parts[pos]
-                if newPartData then
-                    part.type = newPartData[1]
-                    part.female = newPartData[2] and tes3.getObject(newPartData[2]) or nil
-                    part.male = newPartData[3] and tes3.getObject(newPartData[3]) or nil
-                else
-                    part.type = 255
-                    part.female = nil
-                    part.male = nil
-                end
-            end
-
-        elseif varName == "enchantment" then
-            local enchantment
-            if object.enchantment ~= nil and not createNewEnchantment then
-                enchantment = object.enchantment
-                enchantment.castType = val.castType
-                enchantment.chargeCost = val.chargeCost
-                enchantment.maxCharge = val.maxCharge
-            else
-                local castType = val.castType
-                local chargeCost = val.chargeCost < 1 and 1 or val.chargeCost
-                local maxCharge = val.maxCharge < 1 and 1 or val.maxCharge
-                enchantment = tes3.createObject{objectType = tes3.objectType.enchantment, castType = castType,
-                    chargeCost = chargeCost, maxCharge = maxCharge}
-            end
-            if enchantment then
-                enchantmentFound = true
-                tes3.setSourceless(enchantment, true)
-                restoreEffects(enchantment, val.effects)
-            end
-            object.enchantment = enchantment
-
-        elseif varName == "color" then
-            if object.color then
-                object.color[1] = varName[1]
-                object.color[2] = varName[2]
-                object.color[3] = varName[3]
-            end
-        end
-    end
-    if object.enchantment and not enchantmentFound then object.enchantment = nil end
-    tes3.setSourceless(object, true)
 end
 
 local function chooseGroup(enchType, isConstant)
@@ -287,6 +124,7 @@ end
 
 local fortifyEffectIds = {79, 80, 81, 82, 83, 84}
 local damageEffectIds = {14, 15, 16, 23,}
+local restoreStatsEffectIds = {75, 76, 77}
 
 function this.randomizeEffects(effects, effData, config)
     local effCount = effData.effectCount
@@ -299,6 +137,9 @@ function this.randomizeEffects(effects, effData, config)
     local isConstant = effData.isConstant
     local enchPower = effData.power
     local strongThreshold = effData.strongThreshold or true
+    local preferValue = effData.preferValue or false
+    local isAlchemy = effData.isAlchemy or false
+    local mulForConst = config.enchantment.effects.durationForConstant
     --clear old data
     for i = 1, 8 do
         effects[i].id = -1
@@ -324,7 +165,9 @@ function this.randomizeEffects(effects, effData, config)
             local isNegative = math.random() < configChance
             local group = isNegative and effGroup_n or effGroup_p
             local effectId
-            if not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
+            if not isNegative and isAlchemy and rangeType == tes3.effectRange.self and config.enchantment.effects.restoreForAlchemyChance > math.random() then
+                effectId = restoreStatsEffectIds[math.random(1, #restoreStatsEffectIds)]
+            elseif not isNegative and rangeType == tes3.effectRange.self and config.enchantment.effects.fortifyForSelfChance > math.random() then
                 effectId = fortifyEffectIds[math.random(1, #fortifyEffectIds)]
             elseif isNegative and rangeType ~= tes3.effectRange.self and config.enchantment.effects.damageForTargetChance > math.random() then
                 effectId = damageEffectIds[math.random(1, #damageEffectIds)]
@@ -334,7 +177,7 @@ function this.randomizeEffects(effects, effData, config)
             end
 
             local iteration = 0
-            while ((((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal) and strongThreshold) or effectUniqueness[effectId]) and iteration < 20 do
+            while ((((effectLib.effectsData.cost[effectId] or 0) > thresholdVal - enchVal) and strongThreshold) or effectUniqueness[effectId]) and iteration < 40 do
                 iteration = iteration + 1
                 effectId = random.GetRandomFromGroup(group, (config.enchantment.effects.safeMode and isConstant) and
                     effectLib.effectsData.forbiddenForConstantType or {}) or -1
@@ -343,13 +186,13 @@ function this.randomizeEffects(effects, effData, config)
             effectUniqueness[effectId] = true
             effects[i].id = effectId
             local magicEffect = effects[i].object
-            if not magicEffect.hasNoMagnitude then
+            -- if not magicEffect.hasNoMagnitude then
                 effects[i].min = 1
                 effects[i].max = 1
-            end
-
-            if not magicEffect.hasNoDuration then
-                effects[i].duration = 1
+            -- end
+            effects[i].duration = 1
+            if not isConstant and not magicEffect.hasNoDuration and magicEffect.appliesOnce then
+                effects[i].duration = config.enchantment.effects.minAppOnceDuration
             end
             effects[i].radius = 0
             effects[i].rangeType = rangeType
@@ -364,10 +207,10 @@ function this.randomizeEffects(effects, effData, config)
             end
             if (rangeType == tes3.effectRange.self and magicEffect.isHarmful) or
                     (rangeType ~= tes3.effectRange.self and not magicEffect.isHarmful) then
-                enchVal = enchVal - (isConstant and effectLib.calculateEffectCostForConstant(effects[i]) or
+                enchVal = enchVal - (isConstant and effectLib.calculateEffectCostForConstant(effects[i], mulForConst) or
                     effectLib.calculateEffectCost(effects[i]))
             else
-                enchVal = enchVal + (isConstant and effectLib.calculateEffectCostForConstant(effects[i]) or
+                enchVal = enchVal + (isConstant and effectLib.calculateEffectCostForConstant(effects[i], mulForConst) or
                     effectLib.calculateEffectCost(effects[i]))
             end
             addedCount = addedCount + 1
@@ -388,52 +231,58 @@ function this.randomizeEffects(effects, effData, config)
             break
         end
     end
+    local minmaxThreshold = preferValue and 0.9 or 0.6
     local iterations = 2 * config.enchantment.effects.tuneStepsCount
     local stepPow = (enchPower - enchVal) / config.enchantment.effects.tuneStepsCount
     while enchVal < enchPower and iterations > 0 do
         iterations = iterations - 1
-        local effectPos = math.random(1, addedCount)
+        local effectPos = math.random(1, #effs)
         local effect = effects[effectPos]
         local effectData = effs[effectPos]
-        local effectCost = (isConstant and effectLib.calculateEffectCostForConstant(effectData) or effectLib.calculateEffectCost(effectData))
+        local effectCost = (isConstant and effectLib.calculateEffectCostForConstant(effectData, mulForConst) or effectLib.calculateEffectCost(effectData))
         local magicEffect = effect.object
         if magicEffect == nil then goto continue end
         local baseCost = magicEffect.baseMagickaCost
         local rnd = isConstant and 0 or math.random()
-        if rnd < 0.6 and not magicEffect.hasNoMagnitude then
+        if rnd < minmaxThreshold and not magicEffect.hasNoMagnitude then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
             local magnitude
+            local min, max
             if isConstant then
-                magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration + 1) * 100)) * 0.5
+                magnitude = ((((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / mulForConst) - (effectData.min + effectData.max)) * 0.5
+                local val = random.GetBetween(0, magnitude)
+                min = val
+                max = val
             else
-                magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration + 1)) -
+                magnitude = (((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / ((effectData.duration)) -
                     (effectData.min + effectData.max)) * 0.5
+                min = random.GetBetween(0, 0.75 * magnitude)
+                max = random.GetBetween(0, 1.25 * magnitude)
             end
-            local min = random.GetBetween(0, 0.75 * magnitude)
-            local max = random.GetBetween(0, 1.25 * magnitude)
             if min > max then min = max end
             effectData.min = math.min(effectData.min + min, config.enchantment.effects.maxMagnitude)
             effectData.max = math.min(effectData.max + max, config.enchantment.effects.maxMagnitude)
 
-        elseif rnd < 0.95 and not magicEffect.hasNoDuration and not isConstant then
+        elseif rnd < 0.97 and not magicEffect.hasNoDuration and not isConstant then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
             local magnitude = ((40 * (effectCost + stepPow) / (baseCost * mul)) - effectData.radius) / (effectData.min + effectData.max) -
-                (effectData.duration + 1)
+                (effectData.duration)
             effectData.duration = math.min(effectData.duration + random.GetBetween(0, magnitude), config.enchantment.effects.maxDuration)
 
         elseif not isConstant and effect.rangeType ~= tes3.effectRange.self then
             local mul = effect.rangeType == tes3.effectRange.target and 1.5 or 1
-            local magnitude = (40 * (effectCost + stepPow) / (baseCost * mul)) - (effectData.min + effectData.max) * (effectData.duration + 1) -
+            local magnitude = (40 * (effectCost + stepPow) / (baseCost * mul)) - (effectData.min + effectData.max) * (effectData.duration) -
                 effectData.radius
             effectData.radius = math.min(effectData.radius + random.GetBetween(0, magnitude), config.enchantment.effects.maxRadius)
+
         end
         if (effect.rangeType == tes3.effectRange.self and magicEffect.isHarmful) or
                 (effect.rangeType ~= tes3.effectRange.self and not magicEffect.isHarmful) then
-            enchVal = enchVal - (isConstant and effectLib.calculateEffectCostForConstant(effectData) or
-                effectLib.calculateEffectCost(effectData))
+            enchVal = enchVal - ((isConstant and effectLib.calculateEffectCostForConstant(effectData, mulForConst) or
+                effectLib.calculateEffectCost(effectData)) - effectCost)
         else
-            enchVal = enchVal + (isConstant and effectLib.calculateEffectCostForConstant(effectData) or
-                effectLib.calculateEffectCost(effectData))
+            enchVal = enchVal + ((isConstant and effectLib.calculateEffectCostForConstant(effectData, mulForConst) or
+                effectLib.calculateEffectCost(effectData)) - effectCost)
         end
         ::continue::
     end
@@ -454,7 +303,7 @@ end
 local enchantLastRand = {}
 
 --cannot randomise more than once every 2 seconds for an enchantment
-function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, effectCount, config)
+function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, effectCount, preferValue, config)
     if enchantment then
         local time = enchantLastRand[enchantment.id]
         if not time then
@@ -476,9 +325,11 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         chargeCost = math.floor(enchPower)
         if chargeCost < 1 then chargeCost = 1 end
         maxCharge = math.floor(power)
+        maxCharge = math.max(maxCharge, 1)
     end
     local newEnch = enchantment ~= nil and enchantment or
-        tes3.createObject{objectType = tes3.objectType.enchantment, castType = enchType, chargeCost = chargeCost, maxCharge = maxCharge}
+        tes3.createObject{id = enchPrefix..tostring(this.getUniqueId()), objectType = tes3.objectType.enchantment,
+        castType = enchType, chargeCost = chargeCost, maxCharge = maxCharge}
     log("Enchantment randomization id %s type %i maxCharge %s charge %s", tostring(newEnch), enchType, tostring(power), tostring(enchPower))
     newEnch.maxCharge = power
     local effCount = math.random(1, effectCount or config.enchantment.effects.maxCount)
@@ -502,47 +353,41 @@ function this.randomizeEnchantment(enchantment, enchType, power, canBeUsedOnce, 
         isConstant = isConstant,
         power = enchPower,
         strongThreshold = false,
+        preferValue = preferValue,
     }, config)
 
     return newEnch
 end
 
-local objLastRand = {}
-
---cannot randomise more than once every 2 seconds for an object
-function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
+function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax, baseData)
+    if not baseData then baseData = {} end
     if not minMul then minMul = this.config.item.stats.region.min end
     if not maxMul then maxMul = this.config.item.stats.region.max end
     if not weaponMin then weaponMin = this.config.item.stats.weapon.region.min end
     if not weaponMax then weaponMax = this.config.item.stats.weapon.region.max end
-    if object then
-        local time = objLastRand[object.id]
-        if not time then
-            objLastRand[object.id] = os.time()
-        elseif time > os.time() + 1 then
-            return object
-        else
-            objLastRand[object.id] = os.time()
-        end
-    end
+
     local intVars = {"enchantCapacity", "armorRating", "maxCondition"}
     local floatVars_p = {"quality", "time"}
     local floatVars_n = {"weight"}
     log("Item stats id %s", tostring(object))
     if object.value then
-        object.value = object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))) or
-            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, object.value * random.GetBetweenForMulDiv(minMul, maxMul))))
+        local value = baseData.value or object.value
+        local minValue = math.min(1, value)
+        object.value = math.max(minValue, object.objectType ~= tes3.objectType.clothing and math.floor(math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul))) or
+            tes3.objectType.clothing and math.floor(math.min(65535, math.max(0, value * random.GetBetweenForMulDiv(minMul, maxMul)))))
         log("value %s", tostring(object.value))
     end
     for _, var in pairs(intVars) do
         if object[var] then
-            object[var] = math.floor(math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul)))
+            local val = baseData[var] or object[var]
+            object[var] = math.floor(math.max(0, val * random.GetBetweenForMulDiv(minMul, maxMul)))
             log("%s %s", var, tostring(object[var]))
         end
     end
     for _, var in pairs(floatVars_p) do
         if object[var] then
-            object[var] = math.max(0, object[var] * random.GetBetweenForMulDiv(minMul, maxMul))
+            local val = baseData[var] or object[var]
+            object[var] = math.max(0, val * random.GetBetweenForMulDiv(minMul, maxMul))
             log("%s %s", var, tostring(object[var]))
         end
     end
@@ -550,28 +395,36 @@ function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
         if object[var] then
             local div = random.GetBetweenForMulDiv(minMul, maxMul)
             if div == 0 then div = 0.05 end
-            object[var] = math.max(0, object[var] / div)
+            local val = baseData[var] or object[var]
+            object[var] = math.max(0, val / div)
             log("%s %s", var, tostring(object[var]))
         end
     end
     if object.speed then
-        object.speed = math.max(0, object.speed * random.GetBetweenForMulDiv(weaponMin, weaponMax))
+        local speed = baseData.speed or object.speed
+        object.speed = math.max(0, speed * random.GetBetweenForMulDiv(weaponMin, weaponMax))
     end
     if object.chopMin then
-        object.chopMin = math.min(65535, math.max(0, object.chopMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.chopMax = math.min(65535, math.max(0, object.chopMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local chopMin = baseData.chopMin or object.chopMin
+        local chopMax = baseData.chopMax or object.chopMax
+        object.chopMin = math.min(65535, math.max(0, chopMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.chopMax = math.min(65535, math.max(0, chopMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.chopMax < object.chopMin then object.chopMax = object.chopMin end
         log("chop %s %s", tostring(object.chopMin), tostring(object.chopMax))
     end
     if object.slashMin then
-        object.slashMin = math.min(65535, math.max(0, object.slashMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.slashMax = math.min(65535, math.max(0, object.slashMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local slashMin = baseData.slashMin or object.slashMin
+        local slashMax = baseData.slashMax or object.slashMax
+        object.slashMin = math.min(65535, math.max(0, slashMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.slashMax = math.min(65535, math.max(0, slashMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.slashMax < object.slashMin then object.slashMax = object.slashMin end
         log("slash %s %s", tostring(object.slashMin), tostring(object.slashMax))
     end
     if object.thrustMin then
-        object.thrustMin = math.min(65535, math.max(0, object.thrustMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
-        object.thrustMax = math.min(65535, math.max(0, object.thrustMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        local thrustMin = baseData.thrustMin or object.thrustMin
+        local thrustMax = baseData.thrustMax or object.thrustMax
+        object.thrustMin = math.min(65535, math.max(0, thrustMin * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
+        object.thrustMax = math.min(65535, math.max(0, thrustMax * random.GetBetweenForMulDiv(weaponMin, weaponMax)))
         if object.thrustMax < object.thrustMin then object.thrustMax = object.thrustMin end
         log("thrust %s %s", tostring(object.thrustMin), tostring(object.thrustMax))
     end
@@ -583,19 +436,55 @@ function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax)
     end
 end
 
-function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, effectCount, enchCost, newEnchValue)
-    if object == nil then return end
+---@class mwr.item.randomizeBaseItem.params
+---@field itemsData mwr.itemStatsData
+---@field createNewItem boolean
+---@field modifiedFlag boolean unused
+---@field effectCount integer
+---@field enchCost number|nil
+---@field newEnchValue number
+
+---@param params mwr.item.randomizeBaseItem.params
+function this.randomizeBaseItem(object, params)
+    local itemsData = (params and params.itemsData) or this.data
+
+    if object == nil or itemsData == nil then return end
+
+    local createNewItem = params.createNewItem or false
+    local modifiedFlag = params.modifiedFlag or false
+    local effectCount = params.effectCount or math.random(1, this.config.item.enchantment.effects.maxCount)
+    local enchCost = params.enchCost
+    local newEnchValue = params.newEnchValue
 
     log("Base object randomization %s", tostring(object))
 
-    if this.itemTypeWhiteList[object.objectType] then
+    if generator.itemTypeWhiteList[object.objectType] then
 
-        local newBase = createNewItem and object:createCopy() or object
+        this.storage.saveItem(object, nil, true)
 
-        if this.config.item.stats.randomize then
-            this.randomizeStats(newBase, this.config.item.stats.region.min, this.config.item.stats.region.max)
+        local baseData = this.storage.getItemData(object.id, true)
+
+        local newBase = createNewItem and object:createCopy{id = itemPrefix..tostring(this.getUniqueId())} or object
+        if createNewItem and newBase.enchantment then
+            newBase.enchantment = nil
         end
 
+        if this.config.item.stats.randomize then
+            this.randomizeStats(newBase, nil, nil, nil, nil, baseData)
+        end
+
+        if not newEnchValue then
+            newEnchValue = baseData.enchantCapacity or object.enchantCapacity
+            if newEnchValue == 0 and object.objectType == tes3.objectType.book then
+                newEnchValue = this.config.item.enchantment.scrollBase
+            end
+        else
+            newEnchValue = math.max(this.config.item.enchantment.cost.min, newEnchValue)
+        end
+
+        this.randomizeBaseItemVisuals(newBase, itemsData)
+
+        local preferValue = false
         local addEnch = this.config.item.enchantment.add.chance > math.random()
         local removeEnch = this.config.item.enchantment.remove.chance > math.random() and
             not (this.config.item.enchantment.remove.exceptScrolls and object.objectType == tes3.objectType.book)
@@ -608,13 +497,16 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                 not (this.config.item.enchantment.exceptIngredient and object.objectType == tes3.objectType.ingredient) then
             local newEnch = object.enchantment
             local enchPower = enchCost or 0
+            if this.config.item.unique then
+                newEnch = nil
+            end
             if newEnch ~= nil then
                 if removeEnch then
                     newEnch = nil
                     enchPower = -1
                 else
                     if enchCost == nil then
-                        enchCost = this.getEnchantPower(object.enchantment)
+                        enchCost = effectLib.getEffectsPower(newEnch.effects)
                     end
                 end
 
@@ -623,7 +515,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                     random.GetBetween(this.config.item.enchantment.add.region.min, this.config.item.enchantment.add.region.max)
             end
 
-            if enchPower > this.config.item.enchantment.cost.min or this.itemTypeForEffects[object.objectType] then
+            if enchPower > 0 or this.itemTypeForEffects[object.objectType] then
                 if this.itemTypeForEffects[object.objectType] and object.effects then
                     if object.objectType == tes3.objectType.ingredient then
                         local effGroup = effectLib.effectsData.forEnchant[tes3.effectRange.self]
@@ -658,6 +550,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                             isConstant = false,
                             power = enchPower,
                             strongThreshold = false,
+                            isAlchemy = true,
                         }, this.config.item)
                     end
                 else
@@ -668,21 +561,21 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                     if object.objectType == tes3.objectType.weapon or object.objectType == tes3.objectType.ammunition then
                         if object.isProjectile or object.isAmmo then
                             enchType = tes3.enchantmentType.onStrike
+                            enchPower = enchPower * this.config.item.enchantment.arrowPower
                             usedOnce = true
-                        elseif object.enchantment then
-                            enchType = object.enchantment.castType
                         elseif object.isRanged then
                             enchType = math.random(2, 3)
                         else
                             enchType = math.random(1, 3)
                         end
+                        if enchType == tes3.enchantmentType.onStrike then preferValue = true end
                     elseif object.objectType == tes3.objectType.book then
                         enchType = tes3.enchantmentType.castOnce
                     else
                         enchType = math.random(2, 3)
                     end
 
-                    if this.config.item.enchantment.useExisting then
+                    if this.config.item.enchantment.useExisting and not this.config.item.unique then
                         local group = itemsData.enchantments.Groups[enchType]
                         if group then
                             local itemPos
@@ -701,7 +594,7 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
                             end
                         end
                     else
-                        newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, this.config.item)
+                        newEnch = this.randomizeEnchantment(newEnch, enchType, enchPower, usedOnce, effectCount, preferValue, this.config.item)
                     end
                     -- if newEnch then newEnch.modified = modifiedFlag end
                 end
@@ -710,17 +603,25 @@ function this.randomizeBaseItem(object, itemsData, createNewItem, modifiedFlag, 
             if this.itemTypeForEnchantment[object.objectType] then newBase.enchantment = newEnch end
         end
         tes3.setSourceless(newBase, true)
+        this.storage.saveItem(newBase, object.id)
         -- newBase.modified = modifiedFlag
         return newBase
     end
     return nil
 end
 
-function this.randomizeBaseItemVisuals(item, itemsData, meshesData)
-    if item.mesh and this.config.item.changeMesh then
-        local mesh = meshesData[math.random(1, #meshesData)]
-        item.mesh = mesh
+---@return boolean, string|nil
+function this.isItemWasCreated(id)
+    local data = this.storage.getItemData(id)
+    if data then
+        return data.created, data.originalId
     end
+    return false, nil
+end
+
+---@param itemsData mwr.itemStatsData
+function this.randomizeBaseItemVisuals(item, itemsData)
+    local meshChanged = false
     if item.parts and this.config.item.changeParts then
         local objSubType
         if item.type then
@@ -728,10 +629,10 @@ function this.randomizeBaseItemVisuals(item, itemsData, meshesData)
         elseif item.slot then
             objSubType = item.slot
         end
-        local partArr = itemsData.parts[item.objectType][objSubType][math.random(1, #itemsData.parts[item.objectType][objSubType])]
-        if partArr then
+        local partsData = itemsData.parts[item.objectType][objSubType][math.random(1, #itemsData.parts[item.objectType][objSubType])]
+        if partsData then
             for pos = 1, #item.parts do
-                local newPartData = partArr[pos]
+                local newPartData = partsData.parts[pos]
                 local part = item.parts[pos]
                 if newPartData then
                     log("Item part %s %s %s %s", tostring(item), tostring(newPartData[1]), tostring(newPartData[2]), tostring(newPartData[3]))
@@ -744,146 +645,58 @@ function this.randomizeBaseItemVisuals(item, itemsData, meshesData)
                     part.male = nil
                 end
             end
+            if this.config.item.linkMeshToParts then
+                item.mesh = partsData.mesh
+                log("Item mesh %s %s", tostring(item), tostring(item.mesh))
+                meshChanged = true
+            end
+        end
+    end
+    if item.mesh and this.config.item.changeMesh and not meshChanged then
+        local meshes
+        local dt = itemsData.itemGroup[item.objectType]
+        if item.objectType == tes3.objectType.weapon then
+            if item.type == tes3.weaponType.marksmanBow and dt.bowMeshes then
+                meshes = dt.bowMeshes
+            elseif item.type == tes3.weaponType.marksmanCrossbow and dt.crossbowMeshes then
+                meshes = dt.crossbowMeshes
+            end
+        elseif item.objectType == tes3.objectType.ammunition then
+            if item.type == tes3.weaponType.arrow then
+                meshes = dt.arrowMeshes
+            elseif item.type == tes3.weaponType.bolt then
+                meshes = dt.boltMeshes
+            end
+        else
+            meshes = dt.meshes
+        end
+        if meshes then
+            local mesh = meshes[math.random(1, #meshes)]
+            item.mesh = mesh
+            log("Item mesh %s %s", tostring(item), tostring(mesh))
         end
     end
 end
 
+---@return mwr.itemStatsData
 function this.generateData()
-    local items = {}
-    local enchantments = {[tes3.enchantmentType.castOnce] = {}, [tes3.enchantmentType.onStrike] = {}, [tes3.enchantmentType.onUse] = {},
-        [tes3.enchantmentType.constant] = {},}
-    local out = {parts = {}, itemGroup = {}, enchantments = {Items = {}, Groups = {}}}
-    for itType, val in pairs(this.itemTypeWhiteList) do
-        if val then
-            items[itType] = {}
-        end
-    end
-
-    log("Item data generation...")
-    for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
-        if object.objectType == tes3.objectType.enchantment then
-            table.insert(enchantments[object.castType], {id = object.id, value = this.getEnchantPower(object)})
-        end
-        if genData.checkRequirementsForItem(object) and items[object.objectType] ~= nil then
-
-            table.insert(items[object.objectType], object)
-
-            if object.parts then
-                local data = {}
-                for _, part in pairs(object.parts) do
-                    if part.type ~= 255 then
-                        local female
-                        local male
-                        if part.female ~= nil and not part.female.deleted and not part.female.disabled and
-                                tes3.getFileSource("meshes\\"..part.female.mesh) then
-                            female = part.female.id
-                        end
-                        if part.male ~= nil and not part.male.deleted and not part.male.disabled and
-                                tes3.getFileSource("meshes\\"..part.male.mesh) then
-                            male = part.male.id
-                        end
-                        if female or male then table.insert(data, {part.type, female, male}) end
-                    end
-                end
-                local objSubType
-                if object.type then
-                    objSubType = object.type
-                elseif object.slot then
-                    objSubType = object.slot
-                end
-                if not out.parts[object.objectType] then out.parts[object.objectType] = {} end
-                if not out.parts[object.objectType][objSubType] then out.parts[object.objectType][objSubType] = {} end
-                if #data > 0 then table.insert(out.parts[object.objectType][objSubType], data) end
-            end
-        end
-    end
-
-    for enchType, data in pairs(enchantments) do
-        table.sort(data, function(a, b) return a.value < b.value end)
-        out.enchantments.Groups[enchType] = {Items = {}, Max95 = data[math.floor(#data * 0.95)].value, Max = data[#data].value}
-        local enchTable = out.enchantments.Groups[enchType].Items
-        local pos = 1
-        for i, ench in ipairs(data) do
-            table.insert(enchTable, ench.id)
-            out.enchantments.Items[ench.id:lower()] = pos
-            pos = pos + 1
-        end
-    end
-
-    for objType, data in pairs(items) do
-        table.sort(data, function(a, b) return a.value < b.value end)
-        local meshes = {}
-        local bowMeshes = {}
-        local crossbowMeshes = {}
-        local enchantVals = {0,}
-        local enchValData = {}
-        for i, item in pairs(data) do
-            local enchVal = 0
-            if item.enchantment then
-                enchVal = this.getEnchantPower(item.enchantment)
-            elseif objType == tes3.objectType.alchemy then
-                enchVal = this.getEffectsPower(item.effects)
-            end
-            if enchVal > 0 then
-                table.insert(enchantVals, enchVal)
-                enchValData[item.id] = enchVal
-            end
-
-            if item.mesh and tes3.getFileSource("meshes\\"..item.mesh) then
-                if objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanBow then
-                    bowMeshes[item.mesh] = true
-                elseif objType == tes3.objectType.weapon and item.type == tes3.weaponType.marksmanCrossbow then
-                    crossbowMeshes[item.mesh] = true
-                else
-                    meshes[item.mesh] = true
-                end
-            end
-        end
-        local meshList = {}
-        for mesh, _ in pairs(meshes) do
-            table.insert(meshList, mesh)
-        end
-        local bowMeshList = {}
-        for mesh, _ in pairs(bowMeshes) do
-            table.insert(bowMeshList, mesh)
-        end
-        local crossbowMeshList = {}
-        for mesh, _ in pairs(crossbowMeshes) do
-            table.insert(crossbowMeshList, mesh)
-        end
-        if objType == tes3.objectType.ammunition then
-            local types = {[tes3.weaponType["arrow"]] = true, [tes3.weaponType["axeTwoHand"]] = true, [tes3.weaponType["bluntTwoWide"]] = true,
-                [tes3.weaponType["spearTwoWide"]] = true,}
-            for i, item in pairs(items[tes3.objectType.weapon]) do
-                if item.mesh and types[item.type] and tes3.getFileSource("meshes\\"..item.mesh) then
-                    table.insert(meshList, item.mesh)
-                end
-            end
-        end
-        table.sort(enchantVals)
-        out.itemGroup[objType] = {
-            items = data, meshes = meshList, enchantValues = enchValData, maxValue = data[#data].value,
-            medianValue = data[math.floor(#data / 2)].value,
-            maxEnchant = enchantVals[#enchantVals], medianEnchant = enchantVals[math.floor(#enchantVals / 2)],
-            enchant90 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.9)] or 0),
-            enchant95 = math.max(this.config.item.enchantment.minMaximumGroupCost, enchantVals[math.floor(#enchantVals * 0.95)] or 0),
-            value90 = data[math.floor(#data * 0.9)].value,
-            bowMeshes = #bowMeshList > 0 and bowMeshList or nil, crossbowMeshes = #crossbowMeshList > 0 and crossbowMeshList or nil,
-        }
-    end
-
-    log("Item data generation comleted")
-    return out
+    this.data = generator.generateItemData()
+    return this.data
 end
 
 function this.randomizeIngredients(data)
     if not data then return end
+    log("Randomization of effects for ingredients")
+    local forbidden = {}
+    for i = 120, 133 do forbidden[i] = true end
     local itemArr = {}
     local itCount = #data.items
     local effGroup = {}
     local effGroupDummy = {}
     for i, val in pairs(effectLib.effectsData.forEnchant[tes3.effectRange.self]) do
-        table.insert(effGroupDummy, {id = val, value = effectLib.effectsData.cost[val]})
+        if not forbidden[val] then
+            table.insert(effGroupDummy, {id = val, value = effectLib.effectsData.cost[val]})
+        end
     end
     table.sort(effGroupDummy, function(a, b) return a.value < b.value end)
     for _, val in pairs(effGroupDummy) do
@@ -904,7 +717,8 @@ function this.randomizeIngredients(data)
         local normalizedPos = math.floor(i * itNormalizedMul)
         local count = 1
         if magicEffect.targetsSkills then
-            count = 27
+            goto continue
+            -- count = 27
         elseif magicEffect.targetsAttributes then
             count = 8
         end
@@ -916,19 +730,20 @@ function this.randomizeIngredients(data)
                 local pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
                     this.config.item.enchantment.effects.ingredient.region.max)
                 local iteration = 0
-                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < 30 do
-                    pos = random.GetRandom(normalizedPos, itCount, this.config.item.enchantment.effects.ingredient.region.min,
-                        this.config.item.enchantment.effects.ingredient.region.max)
+                while (itemArr[pos].count <= 0 or itemArr[pos].effects[effAltId]) and iteration < itCount do
+                    pos = pos + 1
+                    if pos > itCount then pos = 1 end
                     iteration = iteration + 1
                 end
-                if iteration < 20 then
+                if iteration < 40 then
                     itemArr[pos].count = itemArr[pos].count - 1
                     itemArr[pos].effects[effAltId] = {id = effId, attr = attrId, skill = skillId}
                 else
-                    log("Cannot foud an item for %s", effAltId)
+                    log("Cannot find an item for %s", effAltId)
                 end
             end
         end
+        ::continue::
     end
 
     local effNormalizedMul = effCount / itCount
@@ -978,15 +793,16 @@ function this.randomizeIngredients(data)
             if this.config.item.stats.randomize then
                 this.randomizeStats(object, this.config.item.stats.region.min, this.config.item.stats.region.max)
             end
+
+            this.storage.saveItem(object)
         end
     end
+    log("Done effects %s items %s", tostring(effCount), tostring(itCount))
 end
 
 function this.randomizeItems(itemsData)
     local plData = dataSaver.getObjectData(tes3.player)
     if plData then
-        if not plData.newObjects then plData.newObjects = {} end
-        if not plData.newObjects.items then plData.newObjects.items = {} end
         plData.hasRandomizedItemStats = true
         if this.config.item.changeMesh then plData.hasRandomizedItemMeshes = true end
     end
@@ -997,9 +813,10 @@ function this.randomizeItems(itemsData)
                     not this.config.item.enchantment.exceptIngredient then
                 this.randomizeIngredients(data)
             end
-        else
+        elseif not (this.config.item.unique and (this.itemTypeForUnique[itType])) then
             local count = #data.items
             for i, item in pairs(data.items) do
+                if item.objectType == tes3.objectType.book and item.enchantment == nil then goto continue end
                 local enchVal = data.enchantValues[item.id]
                 local mul = (i / count) ^ this.config.item.enchantment.powMul
                 local encCount = math.max(1, this.config.item.enchantment.effects.maxCount * (mul ^ this.config.item.enchantment.effects.countPowMul))
@@ -1011,32 +828,40 @@ function this.randomizeItems(itemsData)
                         meshes = data.crossbowMeshes
                     end
                 end
-                this.randomizeBaseItemVisuals(item, itemsData, meshes)
-                this.randomizeBaseItem(item, itemsData, false, true, encCount, enchVal, mul * data.enchant95)
-                local itemData = this.serializeBaseObject(item)
-                if plData and itemData then
-                    plData.newObjects.items[item.id] = itemData
-                end
+
+                this.randomizeBaseItem(item, {itemsData = itemsData, createNewItem = false, modifiedFlag = false, effectCount = encCount, enchCost = enchVal,
+                    newEnchValue = mul * math.min(this.config.item.enchantment.minMaximumGroupCost, data.enchant95)})
+                ::continue::
             end
         end
     end
 end
 
+---@deprecated
 function this.restoreItems()
     local plData = dataSaver.getObjectData(tes3.player)
     if plData and plData.newObjects and plData.newObjects.items then
         for id, data in pairs(plData.newObjects.items) do
-            local item = tes3.getObject(id)
-            if not item then item = tes3.createObject{id = id, objectType = data.objectType} end
-            this.restoreBaseObject(item, data, false)
+            -- local object = tes3.getObject(id)
+            -- this.storage.saveItem(object)
+            this.storage.addItemData(id, data)
+            if data.enchantment then
+                this.storage.restoreEnchantment(data.enchantment.id)
+            end
+            this.storage.restoreItem(id, false)
         end
+        plData.newObjects.items = nil
     end
+    -- this.storage.restoreAllItems()
 end
 
+---@deprecated
 function this.resetItemStorage()
     local plData = dataSaver.getObjectData(tes3.player)
-    if plData and plData.newObjects and plData.newObjects.items then
-        plData.newObjects.items = {}
+    if plData then
+        plData.newObjects = nil
+        plData.hasRandomizedItemStats = false
+        plData.hasRandomizedItemMeshes = false
     end
 end
 
@@ -1076,18 +901,20 @@ end
 function this.fixInventory(inventory)
     if not inventory then return end
     for stack, item, count, itemData in this.iterItems(inventory) do
-        this.fixItemData(itemData, item)
+        if stack.count > 0 then
+            this.fixItemData(itemData, item)
+        end
     end
 end
 
-local function getZ(vector, root, ignore)
+local function getZ(vector, root, ignore, disatance)
     local res = tes3.rayTest {
         position = vector,
         direction = tes3vector3.new(0, 0, -1),
         observeAppCullFlag  = true,
         root = root,
         useBackTriangles = true,
-        maxDistance = 150,
+        maxDistance = disatance or 100,
         ignore = ignore,
     }
     if res then return res.intersection.z end
@@ -1095,14 +922,15 @@ local function getZ(vector, root, ignore)
     return nil
 end
 
-function this.fixCell(cell, updateModels)
+---@param cell tes3cell
+---@param updateModels boolean|nil
+---@param force boolean|nil
+function this.fixCell(cell, updateModels, force)
     local plData = dataSaver.getObjectData(tes3.player)
     if not plData then return end
-    if not plData.newObjects then plData.newObjects = {} end
-    if not plData.newObjects.items then plData.newObjects.items = {} end
     if not plData.fixedCellList then plData.fixedCellList = {} end
 
-    if plData.fixedCellList[cell.editorName] then return end
+    if not force and plData.fixedCellList[cell.editorName] then return end
 
     for ref in cell:iterateReferences() do
         local data = dataSaver.getObjectData(ref)
@@ -1110,36 +938,25 @@ function this.fixCell(cell, updateModels)
             if ref.object and ref.object.inventory then
                 this.fixInventory(ref.object.inventory)
             end
-
-            if plData.newObjects.items[ref.baseObject.id] then
-                -- if updateModels and ref.mesh ~= ref.baseObject.mesh and ref.sceneNode then
-                --     ref.mesh = ref.baseObject.mesh
-                --     local mesh = tes3.loadMesh(ref.baseObject.mesh):clone()
-                --     -- for i, val in pairs(ref.sceneNode.children) do
-                --     --     if val and val:isOfType(ni.type["NiTriShape"]) then
-                --     --         ref.sceneNode:detachChildAt(i)
-                --     --     end
-                --     -- end
-                --     ref.sceneNode:detachAllChildren()
-                --     ref.sceneNode:attachChild(mesh)
-                --     ref.sceneNode:update()
-                -- end
-                if this.config.item.tryToFixZCoordinate and plData.hasRandomizedItemMeshes and ref.baseObject.boundingBox then
-                    local zBox = ref.baseObject.boundingBox.min.z * ref.scale
-                    local height = ref.baseObject.boundingBox.max.z - ref.baseObject.boundingBox.min.z
-                    local vector = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z - zBox + height)
-                    local z = getZ(vector, tes3.game.worldObjectRoot)
-                    local zObj = getZ(vector, tes3.game.worldPickRoot, {ref})
-                    if z and zObj then
-                        z = z > zObj and z or zObj
-                    elseif z or zObj then
-                        z = z or zObj
-                    else
-                        z = getZ(vector, tes3.game.worldLandscapeRoot)
+            if this.storage.getItemData(ref.baseObject.id) then
+                if this.config.item.tryToFixZCoordinate then
+                    local boundingBox = ref.baseObject.boundingBox
+                    if not boundingBox then
+                        local ms = tes3.loadMesh(ref.baseObject.mesh)
+                        boundingBox = ms:createBoundingBox()
                     end
-                    if z then
-                        ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox)
-                        log("Position fixed %s", tostring(ref))
+                    if boundingBox then
+                        local offset = math.max(20, boundingBox.max.z * ref.scale)
+                        local topPos = tes3vector3.new(ref.position.x, ref.position.y, ref.position.z + offset)
+                        local z = getZ(topPos, tes3.game.worldObjectRoot, {ref}, 50 + offset)
+                        local zBox = boundingBox.min.z * ref.scale
+                        if z then
+                            ref.position = tes3vector3.new(ref.position.x, ref.position.y, z - zBox + 0.1)
+                            if ref.orientation.x > 1 or ref.orientation.y > 1 then
+                                ref.orientation = tes3vector3.new(0, 0, ref.orientation.z)
+                            end
+                            log("Position fixed %s", tostring(ref))
+                        end
                     end
                 end
                 this.fixItemData(ref.itemData, ref.baseObject)
@@ -1159,18 +976,70 @@ function this.fixPlayerInventory(updateModels)
         for stack, item, count, itemData in this.iterItems(player.inventory) do
             this.fixItemData(itemData, item)
         end
-        local weapon
-        if player.readiedWeapon and player.readiedWeapon.itemData then
-            weapon = player.readiedWeapon.object
-            player:unequip{type = tes3.objectType["weapon"]}
-        end
         if updateModels then
             tes3.player:updateEquipment()
             tes3.updateInventoryGUI{ reference = tes3.player }
         end
-        player:equip{item = weapon,}
+        local objTypes = {[tes3.objectType.armor] = 10, [tes3.objectType.clothing] = 9, [tes3.objectType.weapon] = 13}
+        for objType, maxId in pairs(objTypes) do
+            for i = 0, maxId do
+                local equipped = tes3.getEquippedItem{actor = player, slot = objType ~= tes3.objectType.weapon and i or nil,
+                    type = objType == tes3.objectType.weapon and i or nil}
+                if equipped and equipped.object and equipped.itemData then
+                    local id = equipped.object.id
+                    local itData = {charge = equipped.itemData.charge, condition = equipped.itemData.condition}
+                    player:unequip{item = equipped.object, itemData = equipped.itemData}
+                    local found = false
+                    for stack, item, count, itemData in this.iterItems(player.inventory) do
+                        if item.id == id and itemData and itemData.charge == itData.charge and itemData.condition == itData.condition then
+                            found = true
+                            player:equip{item = tes3.getObject(id), itemData = itemData}
+                        end
+                    end
+                    if not found then
+                        player:equip{item = tes3.getObject(id)}
+                    end
+                end
+            end
+        end
         log("Player inventory fixed")
     end
+end
+
+function this.isObjectFixRequired()
+    if this.hasRandomizedMeshes() or this.config.item.unique then
+        return true
+    end
+    return false
+end
+
+--thanks Hrnchamd#5205 from https://discord.com/channels/210394599246659585/381219559094616064/1088059018448211979
+function this.fixPlayerWeight()
+	local burden = tes3.getEffectMagnitude{reference = tes3.mobilePlayer, effect = tes3.effect.burden}
+	local feather = tes3.getEffectMagnitude{reference = tes3.mobilePlayer, effect = tes3.effect.feather}
+	local weight = tes3.player.object.inventory:calculateWeight() + burden - feather
+	local oldWeight = tes3.mobilePlayer.encumbrance.currentRaw
+
+	if (math.abs(oldWeight - weight) > 0.01) then
+        tes3.mobilePlayer.encumbrance.current = weight
+		-- tes3.setStatistic{reference = tes3.mobilePlayer, name = "encumbrance", current = weight}
+	end
+end
+
+---@return string|nil, tes3.enchantmentType|nil #enchant Id and cast type
+function this.setDummyEnchantment(item)
+    if not item then return nil, nil end
+    local id
+    local castType
+    if item.objectType == tes3.objectType.weapon and not item.isRanged then
+        id = this.dummyStrikeEnchId
+        castType = tes3.enchantmentType.onStrike
+    else
+        id = this.dummyConstEnchId
+        castType = tes3.enchantmentType.constant
+    end
+    item.enchantment = tes3.getObject(id)
+    return id, castType
 end
 
 return this

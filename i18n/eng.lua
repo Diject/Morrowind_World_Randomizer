@@ -19,7 +19,7 @@ return {
     ["modConfig.description.region"] = "Principle of the randomizer: First, the position of the object (or value) to be randomized is found in the sorted list, "..
         "then the boundary values of the region are calculated relative to it. The object's position is in the center of the region. Offset shifts the center of the region."..
         "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with "..
-        "a range of 30 to 50.",
+        "a range of 30 to 50.\n\nMost of the lists are sorted by object level.",
 
     ["modConfig.label.regionSize"] = "Region size %%s%%%%",
     ["modConfig.label.regionOffset"] = "Offset %%s%%%%",
@@ -228,9 +228,9 @@ return {
     ["modConfig.description.randomizationOfLandTextures"] = "As long as this setting is enabled, the landscape textures of all game characters will be changed. Deactivation requires a restart of the game.",
 
     ["modConfig.label.randomizeBaseItems"] = "Randomize all items according to the settings below",
-    ["modConfig.label.itemStats"] = "Item attributes",
-    ["modConfig.label.randomizeItemStats"] = "Randomize item attributes",
-    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage attributes",
+    ["modConfig.label.itemStats"] = "Item stats",
+    ["modConfig.label.randomizeItemStats"] = "Randomize item stats",
+    ["modConfig.label.weaponDamageStats"] = "Weapon speed and damage stats",
     ["modConfig.label.itemEnchantment"] = "Item enchantments",
     ["modConfig.label.randomizeItemEnch"] = "Randomize the enchantment on an item of equipment",
     ["modConfig.label.numberOfEnchCasts"] = "The number of times you can cast an enchantment",
@@ -255,9 +255,9 @@ return {
     ["modConfig.description.itemStatsRandValue"] = "The higher the value, the better the item",
     ["modConfig.description.itemStatsRandEnch"] = "The higher the value, the better the enchantment",
 
-    ["modConfig.message.randItemStats"] = "Do you want to randomize item attributes (e.g. weight, price, enchantment, etc.) and item models?",
+    ["modConfig.message.randItemStats"] = "Do you want to randomize almost all items stats (e.g. weight, price, enchantment, etc.) and models? This applies to wearable items as well.",
     ["modConfig.label.randBaseItemToPreset"] = "Randomize according to the loaded preset",
-    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only attributes",
+    ["modConfig.label.randBaseItemOnlyStats"] = "Randomize only stats",
     ["modConfig.label.randBaseItemOnlyModels"] = "Randomize only models",
     ["modConfig.label.randBaseItemAll"] = "Randomize all",
 
@@ -295,4 +295,27 @@ return {
 
     ["modConfig.label.fortifyForSelfChance"] = "Chance to add a fortify type effect to an \"on self\" enchantment",
     ["modConfig.label.damageForTargetChance"] = "Chance to add a damage type effect to an \"on target/touch\" enchantment",
+
+    ["modConfig.label.flora"] = "Other static flora",
+    ["modConfig.label.randomizeFlora"] = "Randomize flora",
+    ["modConfig.label.speciesPerCell"] = "Species per cell %%s",
+    ["modConfig.label.linkMeshToParts"] = "Use the same model with the wearable part and the world object",
+    ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
+
+    ["modConfig.label.makeItemsUnique"] = "Make all wearable items unique",
+    ["modConfig.description.makeItemsUnique"] = "Once enabled, it cannot be disabled.\n\nAll wearable items you can find in the game will have unique characteristics.\n\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nDON'T ENABLE THIS OPTION AFTER THE SHIP SECTION, BECAUSE MANY ITEMS THAT ARE OUTSIDE THE PLAYER'S INVENTORY CAN BE LOST.",
+
+    ["modConfig.label.durationForConstant"] = "The duration component in the constant enchantment formula",
+    ["modConfig.description.durationForConstant"] = "Default id 100.\nMorrowind effect cost formula is\n(Min Magnitude + Max Magnitude) * (Duration + Area) * (Base Cost / 40)\n\nThe lower the value, the more powerful the constant enchantments.",
+
+    ["modConfig.text.warningAboutRandomization"] = "Most of the settings from the following tabs will only be applied during the next randomization.\nMost of the settings are stored in the game session and will be lost if you don't save the game before.",
+
+    ["modConfig.message.uniqueItems"] = "Do you want to make each wearable item unique with random stats and enchantments?\n\nOnce enabled, it cannot be disabled.\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf you want items to be less random, try using DRIP instead.",
+
+    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%",
+
+    ["modConfig.label.scrollEnchCapacity"] = "Base enchantment capacity for a scroll",
+    ["modConfig.label.restoreForAlchemyChance"] = "Chance to add a restore health/fatigue/magicka effect for a potion %%s%%%%",
+
+    ["modConfig.description.itemStatsGeneration"] = "The options below will work after item stat randomization, which is triggered by the button below. The exception is unique wearable items. With them, the options will work on the next generated new item.",
 }

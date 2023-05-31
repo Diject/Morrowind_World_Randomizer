@@ -182,6 +182,14 @@ local function createOnOffIngameNegativeButton(label, varTable, varId, descripti
     return data
 end
 
+local function createText(label, description)
+    return {
+        class = "Info",
+        label = label,
+        text = description
+    }
+end
+
 function this.registerModConfig()
     local data = {
         name = this.name,
@@ -329,6 +337,7 @@ function this.registerModConfig()
                             },
                         },
                     },
+                    createText(nil, this.i18n("modConfig.text.warningAboutRandomization"))
                 },
             },
             {
@@ -513,6 +522,26 @@ function this.registerModConfig()
                 class = "FilterPage",
                 components = {
                     {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.makeItemsUnique"),
+                        description = this.i18n("modConfig.description.makeItemsUnique"),
+                        inGameOnly = true,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.item.unique
+                            end,
+                            set = function(self, val)
+                                local newVal = true
+                                if not this.config.data.item.unique then
+                                    newVal = true
+                                    this.funcs.clearCellList()
+                                end
+                                this.config.data.item.unique = newVal
+                            end,
+                        },
+                    },
+                    {
                         label = this.i18n("modConfig.label.artifactsAsSeparate"),
                         class = "OnOffButton",
                         inGameOnly = true,
@@ -589,6 +618,27 @@ function this.registerModConfig()
                 class = "FilterPage",
                 components = {
                     {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.makeItemsUnique"),
+                        description = this.i18n("modConfig.description.makeItemsUnique"),
+                        inGameOnly = true,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.item.unique
+                            end,
+                            set = function(self, val)
+                                local newVal = true
+                                if not this.config.data.item.unique then
+                                    newVal = true
+                                    this.funcs.clearCellList()
+                                end
+                                this.config.data.item.unique = newVal
+                            end,
+                        },
+                    },
+                    createText(nil, this.i18n("modConfig.description.itemStatsGeneration")),
+                    {
                         buttonText = this.i18n("modConfig.label.randomizeBaseItems"),
                         class = "Button",
                         inGameOnly = true,
@@ -603,6 +653,7 @@ function this.registerModConfig()
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randItemMeshes"), this.config.data.item, "changeMesh"),
                             createOnOffIngameButton(this.i18n("modConfig.label.randItemParts"), this.config.data.item, "changeParts"),
+                            createOnOffIngameButton(this.i18n("modConfig.label.linkMeshToParts"), this.config.data.item, "linkMeshToParts", this.i18n("modConfig.description.linkMeshToParts")),
                         },
                     },
                     {
@@ -650,6 +701,7 @@ function this.registerModConfig()
                                 components = {
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment, "arrowPower", 100, 1, 300, 1, {label = this.i18n("modConfig.label.arrowPower")}),
                                 },
                             },
                             {
@@ -668,6 +720,7 @@ function this.registerModConfig()
                                 components = {
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "min", 1, 1, 100, 1, {label = this.i18n("modConfig.label.minVal"),}),
                                     createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "max", 1, 1, 5000, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment, "scrollBase", 1, 1, 400, 1, {label = this.i18n("modConfig.label.scrollEnchCapacity")}),
                                 },
                             },
                             {
@@ -678,8 +731,10 @@ function this.registerModConfig()
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "durationForConstant", 1, 10, 500, 1, {label = this.i18n("modConfig.label.durationForConstant"), description = this.i18n("modConfig.description.durationForConstant")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
                                     createSettingsBlock_slider(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
+                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "restoreForAlchemyChance", 100, 0, 50, 1, {label = this.i18n("modConfig.label.restoreForAlchemyChance")}),
                                     {
                                         class = "Category",
                                         label = this.i18n("modConfig.label.itemEnchantment"),
@@ -1538,6 +1593,15 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeStones"), this.config.data.stones, "randomize"),
+                        },
+                    },
+                    {
+                        class = "Category",
+                        label = this.i18n("modConfig.label.flora"),
+                        description = "",
+                        components = {
+                            createOnOffIngameButton(this.i18n("modConfig.label.randomizeFlora"), this.config.data.flora, "randomize"),
+                            createSettingsBlock_slider(this.config.data.flora, "typesPerCell", 1, 1, 10, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {
