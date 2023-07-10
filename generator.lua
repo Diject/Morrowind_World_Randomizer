@@ -627,6 +627,97 @@ function this.fillFlora()
     return out
 end
 
+function this.fillRocks()
+    local data = {}
+    local out = {Data = {}, Groups = {}}
+    for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
+        if object then
+            local id = object.id:lower()
+            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("Meshes\\"..object.mesh) and
+                    not forbiddenModels[object.mesh:lower()] and (id:find("rock") or id:find("menhir")) and not (id:find("grass") or id:find("bush") or id:find("flora") or
+                    id:find("log") or id:find("root") or id:find("tree") or id:find("parasol") or
+                    id:find("plane")) then
+                local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
+                if str then
+                    if not data[str] then data[str] = {} end
+                    table.insert(data[str], object)
+                end
+            end
+        end
+    end
+    for _, gr in pairs(data) do
+        local ids = {}
+        for _, object in pairs(gr) do
+            local id = object.id:lower()
+            if object.mesh and tes3.getFileSource("meshes\\"..object.mesh) then
+                local ms = tes3.loadMesh(object.mesh)
+                if ms then
+                    local boundingBox = ms:createBoundingBox()
+                    local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
+                    if l < 800 then
+                        local r = 0
+                        local res = tes3.rayTest {
+                            position = tes3vector3.new(0, 0, 0),
+                            direction = tes3vector3.new(0, 0, -1),
+                            useModelCoordinates = true,
+                            root = ms,
+                            useBackTriangles = true,
+                            maxDistance = 0,
+                        }
+                        if not res then
+                            r = r + 3
+                            res = tes3.rayTest {
+                                position = tes3vector3.new(0, 0, 0),
+                                direction = tes3vector3.new(0, 1, 0),
+                                useModelCoordinates = true,
+                                root = ms,
+                                useBackTriangles = true,
+                                maxDistance = 0,
+                            }
+                            if res then r = r + 1 end
+                            res = tes3.rayTest {
+                                position = tes3vector3.new(0, 0, 0),
+                                direction = tes3vector3.new(0, -1, 0),
+                                useModelCoordinates = true,
+                                root = ms,
+                                useBackTriangles = true,
+                                maxDistance = 0,
+                            }
+                            if res then r = r + 1 end
+                            res = tes3.rayTest {
+                                position = tes3vector3.new(0, 0, 0),
+                                direction = tes3vector3.new(-1, 0, 0),
+                                useModelCoordinates = true,
+                                root = ms,
+                                useBackTriangles = true,
+                                maxDistance = 0,
+                            }
+                            if res then r = r + 1 end
+                            res = tes3.rayTest {
+                                position = tes3vector3.new(0, 0, 0),
+                                direction = tes3vector3.new(1, 0, 0),
+                                useModelCoordinates = true,
+                                root = ms,
+                                useBackTriangles = true,
+                                maxDistance = 0,
+                            }
+                            if res then r = r + 1 end
+                        end
+                        if r > 6 then
+                            out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.1, Radius = l / 2}
+                            table.insert(ids, id)
+                        end
+                    end
+                end
+            end
+        end
+        if #ids > 0 then
+            table.insert(out.Groups, ids)
+        end
+    end
+    return out
+end
+
 function this.rebuildRocksTreesData(data)
     if not data then return end
     local out = {Data = {}, Groups = {}}
