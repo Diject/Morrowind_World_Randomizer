@@ -414,6 +414,13 @@ this.default = {
     },
     weather = {
         randomize = true,
+        cooldown = 300,
+        base = {
+            randomize = true,
+            cooldown = 300,
+            color = {min = 0.5, max = 1},
+            transitionValue = 0.01,
+        }
     },
     cells = {
         randomizeOnlyOnce = false,

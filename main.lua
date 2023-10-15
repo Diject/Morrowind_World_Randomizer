@@ -12,6 +12,7 @@ local menus = include("Morrowind_World_Randomizer.menu")(i18n)
 local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
+local weatherLib = include("Morrowind_World_Randomizer.weather")
 
 local currentMenu = nil
 
@@ -223,6 +224,20 @@ local function saved(e)
 end
 
 local function loaded(e)
+    -- for id, weather in pairs(tes3.worldController.weatherController.weathers) do
+    --     weatherLib.setWeatherBase(weather, weatherLib.basePresets[weather.index])
+    -- end
+    -- tes3.worldController.weatherController:updateVisuals()
+    -- -- tes3.worldController.weatherController:switchTransition(math.random(0, 9))
+    -- timer.start{duration = 1, iterations = -1, callback = function()
+    --     for id, weather in pairs(tes3.worldController.weatherController.weathers) do
+    --         weatherLib.transitWeatherColors(weatherLib.baseColors[weather.index])
+    --         weatherLib.transitPresetColors(weatherLib.basePresets[weather.index], weatherLib.baseColors[weather.index])
+    --         weatherLib.setWeatherBase(weather, weatherLib.basePresets[weather.index])
+    --         tes3.worldController.weatherController:updateVisuals()
+    --     end
+    -- end}
+
     timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}
 
