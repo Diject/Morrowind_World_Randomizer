@@ -21,11 +21,37 @@ return {
         "\n\nFor example, in a list of 100 objects, you need to randomize the 50th with a region of 20% and an offset of -10%. The result will be a random object with "..
         "a range of 30 to 50.\n\nMost of the lists are sorted by object level.",
 
+    ["modConfig.description.regionMinMax"] =  "Principle of the randomizer:\nFirst, the position of the object (or value) to be randomized is found in the sorted list,\n"..
+        "then the boundary values of the region are calculated relative to it.\nLeft shift decrease(increase if negative) the minimum boundary value\n"..
+        "by the shift value multiplied by the list length.\nRight shift increase(decrease if negative) the maximum boundary value\n"..
+        "by the shift value multiplied by the list length.\n\n"..
+        "For example, in a list of 100 elements,\nyou need to randomize the 50th with the left shift of 20% and the right of 10%.\n"..
+        "The result will be a random object with a range of 30 to 60.\n"..
+        "If the left shift is 100% and the right is 100% the result will be between 1 and 100.\n"..
+        "If the left shift is -20% and the right is 40% the result will be between 70 and 90.\n"..
+        "If the left shift is 40% and the right is -20% the result will be between 10 and 30.\n"..
+        "If the left shift is 100% and the right is 0% the result will be between 1 and 50.\n"..
+        "If the left shift is 0% and the right is 100% the result will be between 50 and 100.\n\nThe minimum range is 5% or 3 items.\nMost of the lists are sorted by object level.",
+
+    ["modConfig.button.apply"] = "Set",
+
     ["modConfig.label.regionSize"] = "Region size %%s%%%%",
     ["modConfig.label.regionOffset"] = "Offset %%s%%%%",
 
     ["modConfig.label.minMultiplier"] = "Minimum multiplier %%s%%%%",
     ["modConfig.label.maxMultiplier"] = "Maximum multiplier %%s%%%%",
+
+    ["modConfig.label.min"] = "Minimum",
+    ["modConfig.label.max"] = "Maximum",
+
+    ["modConfig.label.leftShift"] = "Left shift %%",
+    ["modConfig.label.rightShift"] = "Right shift %%",
+
+    ["modConfig.label.multiply"] = "Multiply",
+    ["modConfig.label.add"] = "Add",
+
+    ["modConfig.label.multiplyBetween"] = "Multiply between",
+    ["modConfig.label.addBetween"] = "Add between",
 
     ["modConfig.label.minVal"] = "Minimum %%s",
     ["modConfig.label.maxVal"] = "Maximum %%s",

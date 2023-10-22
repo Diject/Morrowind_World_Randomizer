@@ -439,7 +439,9 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
 
             elseif stack.object.isGold and config.gold.randomize then
 
-                local newCount = math.floor(math.max(count * (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+                local newGoldCount = config.gold.additive and count + random.GetBetween(config.gold.region.min, config.gold.region.max) or
+                    count * random.GetBetween(config.gold.region.min, config.gold.region.max)
+                local newCount = math.floor(math.max(1, newGoldCount))
                 log("Gold count %s to %s", tostring(stack.count), tostring(newCount))
                 stack.count = newCount
 
@@ -808,8 +810,9 @@ function this.randomizeCell(cell)
         elseif object ~= nil and object.baseObject.objectType == tes3.objectType.miscItem and object.itemData ~= nil and
                 object.object.isGold and config.gold.randomize then
 
-            local newCount = math.floor(math.max(object.itemData.count *
-                (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+            local newGoldVal = config.gold.additive and object.itemData.count + random.GetBetween(config.gold.region.min, config.gold.region.max) or
+                object.itemData.count * random.GetBetween(config.gold.region.min, config.gold.region.max)
+            local newCount = math.floor(math.max(newGoldVal, 1))
             object.itemData.count = newCount
 
         elseif object ~= nil and config.items.randomize and object.baseObject.objectType == tes3.objectType.ammunition then
@@ -929,12 +932,20 @@ function this.randomizeMobileActor(mobile)
         end
     end
 
-    local setNew = function(attribute, region, limit, useRangeVal)
+    local setNew = function(attribute, region, limit, useRangeVal, min)
         if limit == nil then limit = math.huge end
         local base = attribute.base
         local normalized = attribute.normalized
-        local newVal = useRangeVal and random.GetRandom(base, limit, region.min, region.max) or
-            math.floor(math.min(base * (region.min + math.random() * (region.max - region.min)), limit))
+        local newVal = 0
+        if useRangeVal then
+            newVal = random.GetRandom(base, limit, region.min, region.max)
+        else
+            if region.additive then
+                newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
+            else
+                newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
+            end
+        end
         log("%s to %s", tostring(attribute.base), tostring(newVal))
         attribute.base = newVal
         attribute.current = newVal * normalized
@@ -946,7 +957,7 @@ function this.randomizeMobileActor(mobile)
             log("Attributes %s", tostring(mobile.object))
             for i, attributeVal in ipairs(mobile.attributes) do
                 local limit = math.max(attributeVal.base, configTable.attributes.limit)
-                setNew(attributeVal, configTable.attributes.region, limit)
+                setNew(attributeVal, configTable.attributes.region, limit, nil, 1)
             end
         end
     end
@@ -1122,8 +1133,10 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
         for i, val in ipairs(object.attacks) do
-            local min = val.min * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
-            local max = val.max * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
+            local min = configTable.attack.region.additive and val.min + random.GetBetween(configTable.attack.region.min, configTable.attack.region.max) or
+                val.min * math.abs(random.GetBetween(configTable.attack.region.min, configTable.attack.region.max))
+            local max = configTable.attack.region.additive and val.max + random.GetBetween(configTable.attack.region.min, configTable.attack.region.max) or
+                val.max * math.abs(random.GetBetween(configTable.attack.region.min, configTable.attack.region.max))
             if min > max then max = min end
             log("min %s to %s max %s to %s", tostring(val.min), tostring(min), tostring(val.max), tostring(max))
             val.min = min
@@ -1211,6 +1224,9 @@ function this.randomizeActorBaseObject(object, actorType)
     local spellsAddCount = configTable.spells.add.count
     for i = 1, spellsAddCount do
         if configTable.spells.add.chance > math.random() then
+            if configTable.spells.add.bySkill then
+                
+            end
             local newSpellGroup = spellsData.SpellGroups[tostring(math.random(10, 15))]
             local pos = random.GetRandom(math.floor(math.min(newSpellGroup.Count * (object.level / configTable.spells.add.levelReference), newSpellGroup.Count)),
                 newSpellGroup.Count, configTable.spells.region.min, configTable.spells.region.max)
@@ -1258,8 +1274,10 @@ function this.randomizeActorBaseObject(object, actorType)
     end
 
     if configData.barterGold.randomize and object.barterGold ~= nil then
-        local newVal = math.floor(object.barterGold * (configData.barterGold.region.min + math.random() *
-            (configData.barterGold.region.max - configData.barterGold.region.min)))
+        local newVal = math.floor(configData.barterGold.region.additive and
+            object.barterGold + random.GetBetween(configData.barterGold.region.min, configData.barterGold.region.max) or
+            object.barterGold * random.GetBetween(configData.barterGold.region.min, configData.barterGold.region.max))
+        if newVal < 0 then newVal = 0 end
         log("Barter gold %s %s to %s", tostring(object), tostring(object.barterGold), tostring(newVal))
         object.barterGold = newVal
     end
@@ -1323,7 +1341,9 @@ function this.randomizeScale(reference)
 
     if configData ~= nil then
         if configData.scale.randomize then
-            local newVal = reference.object.scale * (configData.scale.region.min + math.random() * (configData.scale.region.max - configData.scale.region.min))
+            local newVal = configData.scale.region.additive and reference.object.scale + random.GetBetween(configData.scale.region.min, configData.scale.region.max) or
+                reference.object.scale * random.GetBetween(configData.scale.region.min, configData.scale.region.max)
+            if newVal <= 0 then newVal = 1 end
             log("Scale %s %s to %s", tostring(reference), tostring(reference.scale), tostring(newVal))
             reference.scale = newVal
         end

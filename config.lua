@@ -60,6 +60,7 @@ local function applyChanges(toTable, fromTable)
 end
 
 this.global = mwse.loadConfig(globalConfigName)
+---@class mwr.config.local.data
 this.data = nil
 
 this.globalDefault = {
@@ -90,6 +91,7 @@ else
     addMissing(this.global, this.globalDefault)
 end
 
+---@class mwr.config.local.data
 this.default = {
     enabled = false,
     trees = {
@@ -146,7 +148,7 @@ this.default = {
     },
     gold = {
         randomize = true,
-        region = {min = 0.25, max = 1.75},
+        region = {min = 0.25, max = 1.75, additive = false,},
     },
     creatures = {
         randomizeOnlyOnce = false,
@@ -158,7 +160,7 @@ this.default = {
         },
         attack = {
             randomize = true,
-            region = {min = 0.75, max = 1.25},
+            region = {min = 0.75, max = 1.25, additive = false,},
         },
         spells = {
             randomize = true,
@@ -166,7 +168,7 @@ this.default = {
             add = {
                 chance = 0.1,
                 count = 3,
-                levelReference = 20,
+                levelReference = 15,
             },
         },
         abilities = {
@@ -187,32 +189,32 @@ this.default = {
         },
         health = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         magicka = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         fatigue = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         skills = {
             randomize = true,
             limit = 100,
             combat = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.2, max = 0.2, additive = false,},
             },
             magic = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.2, max = 0.2, additive = false,},
             },
             stealth = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.2, max = 0.2, additive = false,},
             },
         },
         scale = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         effects = {
             positive = {
@@ -282,32 +284,32 @@ this.default = {
         },
         health = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         magicka = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 50, max = 150, additive = true,},
         },
         fatigue = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         attributes = {
             randomize = true,
             limit = 255,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         skills = {
             randomize = true,
             limit = 100,
             combat = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
             magic = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
             stealth = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
         },
         head = {
@@ -322,7 +324,7 @@ this.default = {
         },
         scale = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         effects = {
             positive = {

@@ -12,6 +12,7 @@ local menus = include("Morrowind_World_Randomizer.menu")(i18n)
 local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
+local random = include("Morrowind_World_Randomizer.Random")
 
 local currentMenu = nil
 
@@ -262,24 +263,6 @@ local function leveledItemPicked(e)
                 itemLib.itemTypeForUnique[e.pick.objectType])) and
                 not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
 
-            if e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
-
-                local newCount = randomizer.config.data.gold.region.min + math.random() *
-                    (randomizer.config.data.gold.region.max - randomizer.config.data.gold.region.min)
-
-                goldToAdd = goldToAdd + newCount
-                if goldToAdd >= 2 then
-                    local count = math.floor(goldToAdd - 1)
-                    tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
-                    goldToAdd = goldToAdd - count
-                end
-                if goldToAdd < 1 then
-                    e.block = true
-                else
-                    goldToAdd = goldToAdd - 1
-                end
-
-            end
             local newId = randomizer.getNewRandomItemId(e.pick.id)
             if newId or randomizer.config.data.item.unique then
                 local item = randomizer.getNewItem(newId or e.pick.id)
@@ -288,6 +271,24 @@ local function leveledItemPicked(e)
                     e.pick = item
                 end
             end
+        end
+        if e.pick ~= nil and e.pick.id ~= nil and e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
+
+            local newCount = randomizer.config.data.gold.additive and random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max) or
+                random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max)
+
+            goldToAdd = goldToAdd + newCount
+            if goldToAdd >= 2 then
+                local count = math.floor(goldToAdd - 1)
+                tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
+                goldToAdd = goldToAdd - count
+            end
+            if goldToAdd < 1 then
+                e.block = true
+            else
+                goldToAdd = goldToAdd - 1
+            end
+
         end
     end
 end
