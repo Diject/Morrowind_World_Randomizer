@@ -72,7 +72,7 @@ end
 ---@field varTable any
 ---@field varStr string
 ---@field buttonVarStr string|nil
----@field ingame boolean
+---@field ingame boolean|nil
 ---@field button boolean|nil
 ---@field link boolean|nil
 ---@field integer boolean|nil
@@ -1724,6 +1724,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrees"), this.config.data.trees, "randomize"),
+                            createSettingsBlock_number(this.config.data.trees, "typesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {
@@ -1732,6 +1733,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeStones"), this.config.data.stones, "randomize"),
+                            createSettingsBlock_number(this.config.data.stones, "typesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {

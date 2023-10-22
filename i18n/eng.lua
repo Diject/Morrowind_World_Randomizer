@@ -324,7 +324,7 @@ return {
 
     ["modConfig.label.flora"] = "Other static flora",
     ["modConfig.label.randomizeFlora"] = "Randomize flora",
-    ["modConfig.label.speciesPerCell"] = "Species per cell %%s",
+    ["modConfig.label.speciesPerCell"] = "Species per cell",
     ["modConfig.label.linkMeshToParts"] = "Use the same model with the wearable part and the world object",
     ["modConfig.description.linkMeshToParts"] = "Without this option, wearable items may have different models in the world and on the player/NPC.",
 

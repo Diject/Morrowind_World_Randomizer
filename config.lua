@@ -96,10 +96,12 @@ this.default = {
     enabled = false,
     trees = {
         randomize = true,
+        typesPerCell = 2,
         exceptScale = 2.5,
     },
     stones = {
         randomize = true,
+        typesPerCell = 2,
         exceptScale = 2.5,
     },
     flora = {

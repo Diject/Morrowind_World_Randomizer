@@ -530,10 +530,14 @@ function this.randomizeCell(cell)
     local newObjects = {}
     local config = this.config.data
 
-    local newTreeGroupId = math.random(1, #treesData.Groups)
-    local newRockGroupId = math.random(1, #rocksData.Groups)
-    local newTreeGroup = treesData.Groups[newTreeGroupId]
-    local newRockGroup = rocksData.Groups[newRockGroupId]
+    local newTreeGroupList = {}
+    local newRockGroupList = {}
+    for i = 1, math.max(1, config.trees.typesPerCell) do
+        table.insert(newTreeGroupList, treesData.Groups[math.random(1, #treesData.Groups)])
+    end
+    for i = 1, math.max(1, config.stones.typesPerCell) do
+        table.insert(newRockGroupList, rocksData.Groups[math.random(1, #rocksData.Groups)])
+    end
     local newFloraGroup = {}
     for i = 1, this.config.data.flora.typesPerCell do
         local groupId = math.random(1, #floraData.Groups)
@@ -616,12 +620,12 @@ function this.randomizeCell(cell)
                     local arr
                     if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
                         configLink = config.trees
-                        grp = newTreeGroup
+                        grp = newTreeGroupList[math.random(1, #newTreeGroupList)]
                         arr = treesData
                         success = true
                     elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
                         configLink = config.stones
-                        grp = newRockGroup
+                        grp = newRockGroupList[math.random(1, #newRockGroupList)]
                         arr = rocksData
                         success = true
                     elseif floraAdvData ~= nil then
