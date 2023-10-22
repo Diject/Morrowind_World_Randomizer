@@ -312,6 +312,18 @@ local function createOnOffIngameNegativeButton(label, varTable, varId, descripti
     return data
 end
 
+local function enableRandomizerCallback(e)
+    if e.button == 1 then
+        this.funcs.randomizeLoadedCellsFunc()
+    end
+end
+
+local function enableRandomizerMessage()
+    tes3.messageBox({ message = this.i18n("modConfig.message.modEnabled"),
+        buttons = {tes3.findGMST(tes3.gmst.sOK).value, this.i18n("modConfig.button.runInitialization"),},
+        callback = enableRandomizerCallback, showInDialog = false})
+end
+
 function this.registerModConfig()
     local data = {
         name = this.name,
@@ -338,7 +350,7 @@ function this.registerModConfig()
                                     set = function(self, val)
                                         this.config.data.enabled = val
                                         if val then
-                                            this.funcs.randomizeLoadedCellsFunc()
+                                            enableRandomizerMessage()
                                         end
                                     end,
                                 },
