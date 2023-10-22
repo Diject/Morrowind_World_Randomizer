@@ -35,11 +35,11 @@ return {
 
     ["modConfig.button.apply"] = "Set",
 
-    ["modConfig.label.regionSize"] = "Region size %%s%%%%",
-    ["modConfig.label.regionOffset"] = "Offset %%s%%%%",
+    ["modConfig.label.regionSize"] = "Region size %%",
+    ["modConfig.label.regionOffset"] = "Offset %%",
 
-    ["modConfig.label.minMultiplier"] = "Minimum multiplier %%s%%%%",
-    ["modConfig.label.maxMultiplier"] = "Maximum multiplier %%s%%%%",
+    ["modConfig.label.minMultiplier"] = "Minimum multiplier %%",
+    ["modConfig.label.maxMultiplier"] = "Maximum multiplier %%",
 
     ["modConfig.label.min"] = "Minimum",
     ["modConfig.label.max"] = "Maximum",
@@ -53,8 +53,8 @@ return {
     ["modConfig.label.multiplyBetween"] = "Multiply between",
     ["modConfig.label.addBetween"] = "Add between",
 
-    ["modConfig.label.minVal"] = "Minimum %%s",
-    ["modConfig.label.maxVal"] = "Maximum %%s",
+    ["modConfig.label.minVal"] = "Minimum ",
+    ["modConfig.label.maxVal"] = "Maximum ",
 
     ["modConfig.label.enableRandomizer"] = "Enable Randomizer",
 
@@ -159,45 +159,45 @@ return {
     ["modConfig.label.stones"] = "Rocks",
     ["modConfig.label.weather"] = "Weather",
 
-    ["modConfig.label.maxValueOfSkill"] = "The maximum value of a skill is %%s",
-    ["modConfig.label.chanceToAdd"] = "%%s%%%% chance to add",
-    ["modConfig.label.addXMore"] = "Add %%s more",
+    ["modConfig.label.maxValueOfSkill"] = "The maximum value of a skill is ",
+    ["modConfig.label.chanceToAdd"] = "%% chance to add",
+    ["modConfig.label.addXMore"] = "Add  more",
 
     ["modConfig.description.listLimiter"] = "The level of the creature, in proportion to which the list of spells is limited. If a creature has this level, the whole spell list will be available for randomization.",
     ["modConfig.description.positiveEffects"] = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
     ["modConfig.description.negativeEffects"] = "Negative effects are \"Sound\", \"Silence\", \"Blind\", \"Paralyze\" and \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\" with negative value",
 
-    ["modConfig.label.maxValueOfAttribute"] = "The maximum value of a attribute is %%s",
-    ["modConfig.label.minAttributeVal"] = "Minimum attribute value %%s%%%% relative to the limit",
-    ["modConfig.label.maxAttributeVal"] = "Maximum attribute value %%s%%%% relative to the limit",
-    ["modConfig.label.numOfDestinationsWithoutRand"] = "Number of Destinations without randomization %%s",
-    ["modConfig.label.numOfDestinationsToDoor"] = "Number of Destinations to a door %%s",
+    ["modConfig.label.maxValueOfAttribute"] = "The maximum value of a attribute is ",
+    ["modConfig.label.minAttributeVal"] = "Minimum attribute value %% relative to the limit",
+    ["modConfig.label.maxAttributeVal"] = "Maximum attribute value %% relative to the limit",
+    ["modConfig.label.numOfDestinationsWithoutRand"] = "Number of Destinations without randomization ",
+    ["modConfig.label.numOfDestinationsToDoor"] = "Number of Destinations to a door ",
 
     ["modConfig.label.randomizeTransport"] = "Randomize transport destinations",
     ["modConfig.label.randomizeMerchantGold"] = "Randomize merchant's gold supply",
 
-    ["modConfig.label.maxValMulOfTrapSpell"] = "Multiplier of the maximum value of the trap spell list %%s",
+    ["modConfig.label.maxValMulOfTrapSpell"] = "Multiplier of the maximum value of the trap spell list ",
 
-    ["modConfig.description.trapSpellListSize"] = "Spell list size %%%% = multiplier * player level",
+    ["modConfig.description.trapSpellListSize"] = "Spell list size %% = multiplier * player level",
 
-    ["modConfig.label.chanceToRandomize"] = "%%s%%%% chance to randomize",
-    ["modConfig.label.cooldownGameHours"] = "Cooldown %%s game hours",
+    ["modConfig.label.chanceToRandomize"] = "%% chance to randomize",
+    ["modConfig.label.cooldownGameHours"] = "Cooldown  game hours",
 
     ["modConfig.label.radiusInCellsForCell"] = "Radius in cells for list of nearest cells",
 
-    ["modConfig.label.chanceToLock"] = "%%s%%%% chance to lock",
-    ["modConfig.label.lockLevMul"] = "Lock level multiplier %%s",
+    ["modConfig.label.chanceToLock"] = "%% chance to lock",
+    ["modConfig.label.lockLevMul"] = "Lock level multiplier ",
 
     ["modConfig.description.lockLevMul"] = "New lock level = random (1, multiplier * player level)",
 
-    ["modConfig.label.herbSpeciesPerCell"] = "Number of herb species per cell %%s",
+    ["modConfig.label.herbSpeciesPerCell"] = "Number of herb species per cell ",
 
-    ["modConfig.label.minEffectVal"] = "Minimum effect value %%s",
-    ["modConfig.label.maxEffectVal"] = "Maximum effect value %%s",
+    ["modConfig.label.minEffectVal"] = "Minimum effect value ",
+    ["modConfig.label.maxEffectVal"] = "Maximum effect value ",
 
     ["modConfig.description.abilitiesCategory"] = "Abilities like the dunmer fire resistance.",
 
-    ["modConfig.label.levelLimiter"] = "Level limiter %%s",
+    ["modConfig.label.levelLimiter"] = "Level limiter ",
 
     ["modConfig.description.chanceToAddAbility"] = "Chance to add for each new ability.",
     ["modConfig.description.chanceToAddDisease"] = "Chance to add for each new disease.",
@@ -207,8 +207,8 @@ return {
     ["modConfig.label.logging"] = "Logging",
 
     ["modConfig.label.cellRandomization"] = "Cell randomization",
-    ["modConfig.label.cellRandomizationIntervalRealTime"] = "Cell randomization interval. Real-time %%ss",
-    ["modConfig.label.cellRandomizationIntervalGameTime"] = "Cell randomization interval. Game-time %%sh",
+    ["modConfig.label.cellRandomizationIntervalRealTime"] = "Cell randomization interval. Real-time s",
+    ["modConfig.label.cellRandomizationIntervalGameTime"] = "Cell randomization interval. Game-time h",
 
     ["modConfig.label.artifactsAsSeparate"] = "Randomize artifacts as a separate category",
 
@@ -338,10 +338,10 @@ return {
 
     ["modConfig.message.uniqueItems"] = "Do you want to make each wearable item unique with random stats and enchantments?\n\nOnce enabled, it cannot be disabled.\nIn order not to break quests, the original item will be placed in the inventory. But it will be hidden. Some inventory mods may break this feature.\n\nIf you want items to be less random, try using DRIP instead.",
 
-    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%s%%%%",
+    ["modConfig.label.arrowPower"] = "Arrow enchantment power multiplier is %%",
 
     ["modConfig.label.scrollEnchCapacity"] = "Base enchantment capacity for a scroll",
-    ["modConfig.label.restoreForAlchemyChance"] = "Chance to add a restore health/fatigue/magicka effect for a potion %%s%%%%",
+    ["modConfig.label.restoreForAlchemyChance"] = "Chance to add a restore health/fatigue/magicka effect for a potion %%",
 
     ["modConfig.description.itemStatsGeneration"] = "The options below will work after item stat randomization, which is triggered by the button below. The exception is unique wearable items. With them, the options will work on the next generated new item.",
 
