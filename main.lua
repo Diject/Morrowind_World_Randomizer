@@ -36,10 +36,9 @@ end
 local function forcedActorRandomization(reference)
     local mobile = reference.mobile
     if mobile then
+        randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
         randomizer.randomizeMobileActor(mobile)
         randomizer.randomizeScale(reference)
-
-        randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
 
         local configGroup
         if reference.object.objectType == tes3.objectType.npc then

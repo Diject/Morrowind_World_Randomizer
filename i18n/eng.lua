@@ -344,4 +344,7 @@ return {
     ["modConfig.label.restoreForAlchemyChance"] = "Chance to add a restore health/fatigue/magicka effect for a potion %%s%%%%",
 
     ["modConfig.description.itemStatsGeneration"] = "The options below will work after item stat randomization, which is triggered by the button below. The exception is unique wearable items. With them, the options will work on the next generated new item.",
+
+    ["modConfig.label.spellsBySkill"] = "This will be the new spell from the schools with the highest skill value",
+    ["modConfig.label.spellsBySkillMax"] = "Number of spell schools with the highest skills value",
 }

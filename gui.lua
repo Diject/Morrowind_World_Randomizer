@@ -1358,6 +1358,8 @@ function this.registerModConfig()
                                 components = {
                                     createSettingsBlock_number(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
                                     createSettingsBlock_number(this.config.data.NPCs.spells.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.spellsBySkill"), this.config.data.NPCs.spells.add, "bySkill"),
+                                    createSettingsBlock_number(this.config.data.NPCs.spells.add, "bySkillMax", 1, 1, nil, 1, {label = this.i18n("modConfig.label.spellsBySkillMax")}),
                                     createSettingsBlock_number(this.config.data.NPCs.spells.add, "levelReference", 1, 1, 50, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
                                 },
                             },

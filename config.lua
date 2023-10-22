@@ -203,13 +203,13 @@ this.default = {
             randomize = true,
             limit = 100,
             combat = {
-                region = {min = 0.2, max = 0.2, additive = false,},
+                region = {min = 0.2, max = 0.2},
             },
             magic = {
-                region = {min = 0.2, max = 0.2, additive = false,},
+                region = {min = 0.2, max = 0.2},
             },
             stealth = {
-                region = {min = 0.2, max = 0.2, additive = false,},
+                region = {min = 0.2, max = 0.2},
             },
         },
         scale = {
@@ -263,7 +263,9 @@ this.default = {
             add = {
                 chance = 1,
                 count = 3,
-                levelReference = 20,
+                bySkill = true,
+                bySkillMax = 2,
+                levelReference = 15,
             },
         },
         abilities = {
@@ -288,7 +290,7 @@ this.default = {
         },
         magicka = {
             randomize = true,
-            region = {min = 50, max = 150, additive = true,},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         fatigue = {
             randomize = true,

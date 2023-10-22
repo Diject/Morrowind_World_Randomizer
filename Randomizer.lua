@@ -951,38 +951,6 @@ function this.randomizeMobileActor(mobile)
         attribute.current = newVal * normalized
     end
 
-
-    if mobile.actorType == tes3.actorType.npc then
-        if configTable.attributes.randomize then
-            log("Attributes %s", tostring(mobile.object))
-            for i, attributeVal in ipairs(mobile.attributes) do
-                local limit = math.max(attributeVal.base, configTable.attributes.limit)
-                setNew(attributeVal, configTable.attributes.region, limit, nil, 1)
-            end
-        end
-    end
-    if configTable.skills.randomize then
-        if mobile.actorType == tes3.actorType.npc then
-            log("Combat skills %s", tostring(mobile.object))
-            for _, skillId in pairs(combatSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
-            end
-            log("Magic skills %s", tostring(mobile.object))
-            for _, skillId in pairs(magicSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
-            end
-            log("Stealth skills %s", tostring(mobile.object))
-            for _, skillId in pairs(stealthSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
-            end
-        elseif mobile.actorType == tes3.actorType.creature then
-            log("Skills %s", tostring(mobile.object))
-            setNew(mobile.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
-            setNew(mobile.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
-            setNew(mobile.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
-        end
-    end
-
     if configTable.health.randomize then
         log("Health %s", tostring(mobile.object))
         setNew(mobile.health, configTable.health.region)
@@ -1070,6 +1038,26 @@ function this.randomizeMobileActor(mobile)
 
     for param, val in pairs(negEffects) do
         mobile[param] = mobile[param] + val
+    end
+
+    local object = mobile.object
+    local baseObject = object.baseObject
+    for skillId, skillVal in ipairs(baseObject.skills) do
+        if skillVal ~= mobile.skills[skillId].base then
+            local diff = mobile.skills[skillId].current - mobile.skills[skillId].base
+            mobile.skills[skillId].base = skillVal
+            mobile.skills[skillId].current = math.max(0, skillVal + diff)
+        end
+    end
+
+    if object.objectType == tes3.objectType.npc then
+        for id, val in ipairs(baseObject.attributes) do
+            if val ~= mobile.attributes[id].base then
+                local diff = mobile.attributes[id].current - mobile.attributes[id].base
+                mobile.attributes[id].base = val
+                mobile.attributes[id].current = math.max(1, val + diff)
+            end
+        end
     end
 
     mobile.reference.modified = true
@@ -1193,6 +1181,54 @@ function this.randomizeActorBaseObject(object, actorType)
         end
     end
 
+    local setNew = function(attribute, region, limit, useRangeVal, min)
+        if limit == nil then limit = math.huge end
+        local base = attribute
+        local newVal = 0
+        if useRangeVal then
+            newVal = random.GetRandom(base, limit, region.min, region.max)
+        else
+            if region.additive then
+                newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
+            else
+                newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
+            end
+        end
+        log("%s to %s", tostring(attribute), tostring(newVal))
+        return newVal
+    end
+
+    if object.objectType == tes3.objectType.npc then
+        if configTable.attributes.randomize then
+            log("Attributes %s", tostring(object))
+            for id, attributeVal in ipairs(object.attributes) do
+                local limit = math.max(attributeVal, configTable.attributes.limit)
+                object.attributes[id] = setNew(attributeVal, configTable.attributes.region, limit, nil, 1)
+            end
+        end
+    end
+
+    if configTable.skills.randomize then
+        if object.objectType == tes3.objectType.npc then
+            log("Combat skills %s", tostring(object))
+            for _, skillId in pairs(combatSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            end
+            log("Magic skills %s", tostring(object))
+            for _, skillId in pairs(magicSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            end
+            log("Stealth skills %s", tostring(object))
+            for _, skillId in pairs(stealthSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
+            end
+        elseif object.objectType == tes3.objectType.creature then
+            log("Skills %s", tostring(object))
+            object.skills[tes3.specialization.combat + 1] = setNew(object.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            object.skills[tes3.specialization.magic + 1] = setNew(object.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            object.skills[tes3.specialization.stealth + 1] = setNew(object.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
+        end
+    end
 
     local spellList = object.spells
     local newSpells = {}
@@ -1224,10 +1260,18 @@ function this.randomizeActorBaseObject(object, actorType)
     local spellsAddCount = configTable.spells.add.count
     for i = 1, spellsAddCount do
         if configTable.spells.add.chance > math.random() then
+            local skillSchoolId = 10
             if configTable.spells.add.bySkill then
-                
+                local skillValue = {}
+                for j = 10, 15 do
+                    table.insert(skillValue, {id = j, value = object.skills[j + 1]})
+                end
+                table.sort(skillValue, function(a, b) return a.value > b.value end)
+                skillSchoolId = skillValue[math.random(1, math.min(6, configTable.spells.add.bySkillMax))].id
+            else
+                skillSchoolId = math.random(10, 15)
             end
-            local newSpellGroup = spellsData.SpellGroups[tostring(math.random(10, 15))]
+            local newSpellGroup = spellsData.SpellGroups[tostring(skillSchoolId)]
             local pos = random.GetRandom(math.floor(math.min(newSpellGroup.Count * (object.level / configTable.spells.add.levelReference), newSpellGroup.Count)),
                 newSpellGroup.Count, configTable.spells.region.min, configTable.spells.region.max)
             local j = 20
