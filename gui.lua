@@ -706,6 +706,7 @@ function this.registerModConfig()
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSoulsInGems"), this.config.data.soulGems.soul, "randomize"),
                             createSettingsBlock_regionMinMax(this.config.data.soulGems.soul),
+                            createSettingsBlock_number(this.config.data.soulGems.soul.add, "chance", 100, 1, 100, 1, {label = this.i18n("modConfig.label.chanceToAddSoul")}),
                         },
                     },
                     {

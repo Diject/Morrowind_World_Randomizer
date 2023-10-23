@@ -244,6 +244,16 @@ local function randomizeSoulgemItemData(itemData)
     end
 end
 
+function this.getRandomSoulIdForGem(creaGroup, soulgemCapacity)
+    local soulId
+    if creaGroup then
+        soulId = creaGroup.Items[random.GetRandom(math.floor(#creaGroup.Items * math.min(1, soulgemCapacity / this.config.data.soulGems.maxCapacity)),
+            #creaGroup.Items, this.config.data.soulGems.soul.region.min, this.config.data.soulGems.soul.region.max)]
+        log("New soul %s", tostring(soulId))
+    end
+    return soulId
+end
+
 function this.isOrigin(object)
     local data = dataSaver.getObjectData(object)
     return data.origin or false
@@ -446,9 +456,22 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
                 stack.count = newCount
 
             elseif stack.object.isSoulGem and config.soulGems.soul.randomize then
-
-                for _, itemData in pairs(stack.variables or {}) do
-                    randomizeSoulgemItemData(itemData)
+                if stack.variables then
+                    for _, itemData in pairs(stack.variables) do
+                        randomizeSoulgemItemData(itemData)
+                    end
+                else
+                    table.insert(oldItems, {id = item.id, count = count})
+                    for i = 1, count do
+                        local soulId = nil
+                        if config.soulGems.soul.add.chance > math.random() then
+                            local creaGroup = creaturesData.CreatureGroups[tostring(math.random(0, 3))]
+                            if creaGroup then
+                                soulId = this.getRandomSoulIdForGem(creaGroup, item.soulGemCapacity)
+                            end
+                        end
+                        table.insert(newItems, {id = item.id, count = 1, soul = soulId})
+                    end
                 end
 
             elseif this.config.data.item.unique and item.sourceMod and itemLib.itemTypeForUnique[item.objectType] then
@@ -470,7 +493,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             local it = this.getNewItem(item.id)
             local count = math.abs(item.count)
             if it then
-                tes3.addItem({ reference = reference, item = it, count = count, updateGUI = false })
+                tes3.addItem({ reference = reference, item = it, count = count, soul = item.soul, updateGUI = false })
                 if item.count < 0 then
                     negativeStock[it.id] = item.count
                 end

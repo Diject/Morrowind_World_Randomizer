@@ -258,36 +258,46 @@ end
 local goldToAdd = 0
 local function leveledItemPicked(e)
     if randomizer.config.getConfig().enabled then
-        if e.pick ~= nil and e.pick.id ~= nil and (randomizer.config.data.containers.items.randomize or (randomizer.config.data.item.unique and
-                itemLib.itemTypeForUnique[e.pick.objectType])) and
-                not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
+        if e.pick ~= nil and e.pick.id ~= nil then
+            if (randomizer.config.data.containers.items.randomize or (randomizer.config.data.item.unique and
+                    itemLib.itemTypeForUnique[e.pick.objectType])) and
+                    not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
 
-            local newId = randomizer.getNewRandomItemId(e.pick.id)
-            if newId or randomizer.config.data.item.unique then
-                local item = randomizer.getNewItem(newId or e.pick.id)
-                if item then
-                    log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(item))
-                    e.pick = item
+                local newId = randomizer.getNewRandomItemId(e.pick.id)
+                if newId or randomizer.config.data.item.unique then
+                    local item = randomizer.getNewItem(newId or e.pick.id)
+                    if item then
+                        log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(item))
+                        e.pick = item
+                    end
                 end
             end
-        end
-        if e.pick ~= nil and e.pick.id ~= nil and e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
+            if e.pick.objectType == tes3.objectType.miscItem and e.spawner ~= nil then
+                if e.pick.id == "Gold_001" then
+                    local newCount = randomizer.config.data.gold.additive and random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max) or
+                        random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max)
 
-            local newCount = randomizer.config.data.gold.additive and random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max) or
-                random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max)
-
-            goldToAdd = goldToAdd + newCount
-            if goldToAdd >= 2 then
-                local count = math.floor(goldToAdd - 1)
-                tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
-                goldToAdd = goldToAdd - count
+                    goldToAdd = goldToAdd + newCount
+                    if goldToAdd >= 2 then
+                        local count = math.floor(goldToAdd - 1)
+                        tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
+                        goldToAdd = goldToAdd - count
+                    end
+                    if goldToAdd < 1 then
+                        e.block = true
+                    else
+                        goldToAdd = goldToAdd - 1
+                    end
+                elseif e.pick.isSoulGem then
+                    if randomizer.config.soulGems.soul.add.chance > math.random() then
+                        local creaGroup = randomizer.creaturesData.CreatureGroups[tostring(math.random(0, 3))]
+                        if creaGroup then
+                            tes3.addItem{ reference = e.spawner, item = e.pick.id, count = 1, soul = randomizer.getRandomSoulIdForGem(creaGroup, e.pick.soulGemCapacity)}
+                            e.pick = nil
+                        end
+                    end
+                end
             end
-            if goldToAdd < 1 then
-                e.block = true
-            else
-                goldToAdd = goldToAdd - 1
-            end
-
         end
     end
 end

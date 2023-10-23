@@ -145,6 +145,9 @@ this.default = {
         maxCapacity = 400,
         soul = {
             randomize = true,
+            add = {
+                chance = 0.33,
+            },
             region = {min = 0.2, max = 0.2},
         },
     },

@@ -350,4 +350,6 @@ return {
 
     ["modConfig.button.runInitialization"] = "Run initialization messages",
     ["modConfig.message.modEnabled"] = "The randomizer is enabled",
+
+    ["modConfig.label.chanceToAddSoul"] = "Chance to add a soul to an empty soulgem",
 }
