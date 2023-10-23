@@ -313,7 +313,9 @@ local function createOnOffIngameNegativeButton(label, varTable, varId, descripti
 end
 
 local function enableRandomizerCallback(e)
-    if e.button == 1 then
+    if e.button == 0 then
+        this.funcs.randomizeLoadedCells()
+    elseif e.button == 1 then
         this.funcs.randomizeLoadedCellsFunc()
     end
 end
