@@ -370,7 +370,7 @@ this.default = {
     },
     barterGold = {
         randomize = true,
-        region = {min = 0.5, max = 1.5},
+        region = {min = 0.5, max = 1.5, additive = false,},
     },
     transport = {
         randomize = true,
@@ -391,7 +391,7 @@ this.default = {
         },
         onlyNearest = true,
         nearestCellDepth = 2,
-        chance = 0.2,
+        chance = 0.1,
         cooldown = 10,
         restoreOriginal = true,
         lockTrapCooldown = 72,
