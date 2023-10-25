@@ -94,6 +94,7 @@ end
 ---@class mwr.config.local.data
 this.default = {
     enabled = false,
+    version = 6,
     trees = {
         randomize = true,
         typesPerCell = 2,
@@ -516,6 +517,7 @@ end
 
 -- if not this.profiles["extreme"] then
 if true then
+    ---@type mwr.config.local.data
     local preset = deepcopy(this.default)
     local setMinMax
     setMinMax = function(toTable)
@@ -562,7 +564,7 @@ if true then
     preset.transport.toDoorsCount = 1
 
     preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.3
+    preset.doors.chance = 0.15
     preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.useExisting = false
@@ -579,6 +581,13 @@ if true then
     preset.item.linkMeshToParts = false
     preset.item.stats.region.min = 0.5
     preset.item.stats.region.max = 2
+
+    preset.creatures.magicka.region.min = 40
+    preset.creatures.magicka.region.max = 100
+    preset.creatures.magicka.region.additive = true
+    preset.NPCs.magicka.region.min = 40
+    preset.NPCs.magicka.region.max = 100
+    preset.NPCs.magicka.region.additive = true
 
     this.profiles["extended"] = preset
 end
