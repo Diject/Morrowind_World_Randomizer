@@ -338,11 +338,11 @@ function this.updatePlayerInventory()
                     local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
                     if wasCreated then
                         if data.count > 0 then
-                            tes3.addItem{reference = player, item = origId, count = data.count,}
+                            tes3.addItem{reference = player, item = origId, count = data.count, playSound = false}
                             updated = true
                             log("Added original item %s", tostring(origId))
                         elseif data.count < 0 then
-                            tes3.removeItem{reference = player, item = origId, count = -data.count,}
+                            tes3.removeItem{reference = player, item = origId, count = -data.count, playSound = false}
                             updated = true
                             log("Removed original item %s", tostring(origId))
                         end
@@ -350,7 +350,7 @@ function this.updatePlayerInventory()
                         if data.count > 0 then
                             local item = this.getNewItem(id)
                             if item then
-                                tes3.addItem{reference = player, item = item, count = data.count,}
+                                tes3.addItem{reference = player, item = item, count = data.count, playSound = false}
                                 updated = true
                                 log("Added unoriginal item %s", tostring(item))
                                 local origItem = tes3.getObject(id)
@@ -374,7 +374,7 @@ function this.updatePlayerInventory()
                             for _, stack in pairs(player.inventory) do
                                 local _, itOrigId = itemLib.isItemWasCreated(stack.object.id)
                                 if data.id == itOrigId then
-                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count}
+                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count, playSound = false}
                                     updated = true
                                     log("Removed unoriginal item %s", tostring(stack.object))
                                 end
