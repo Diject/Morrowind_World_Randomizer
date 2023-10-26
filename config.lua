@@ -95,6 +95,7 @@ end
 this.default = {
     enabled = false,
     version = 6,
+    playerId = nil,
     trees = {
         randomize = true,
         typesPerCell = 2,
@@ -674,6 +675,7 @@ function this.load()
                 this.fullyLoaded = true
             else
                 applyChanges(this.data, this.default)
+                this.data.playerId = os.time()
                 playerData.config = this.data
                 this.fullyLoaded = true
             end

@@ -218,11 +218,16 @@ local function saved(e)
     else
         saveName = filename
     end
-    storage.saveToFile(saveName)
+    storage.saveToFile(saveName, randomizer.config.data.playerId)
     randomizer.config.saveOnlyGlobal()
 end
 
 local function loaded(e)
+    if storage.data.playerId and randomizer.config.getConfig().playerId ~= storage.data.playerId then
+        storage.restoreAllActors(true)
+        storage.restoreAllItems(true, true)
+        storage.restoreAllEnchantments(true)
+    end
     timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}
 
@@ -513,7 +518,7 @@ event.register(tes3.event.initialized, function(e)
     require("Morrowind_World_Randomizer.customSaveFix")
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
-    event.register(tes3.event.load, load)
+    event.register(tes3.event.load, load, {priority = 9999})
     event.register(tes3.event.saved, saved)
     event.register(tes3.event.loaded, loaded)
     event.register(tes3.event.leveledItemPicked, leveledItemPicked)
