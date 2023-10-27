@@ -235,6 +235,7 @@ local function loaded(e)
         storage.restoreAllActors(true)
         storage.restoreAllItems(true, true)
         storage.restoreAllEnchantments(true)
+        storage.resetStorageData()
     end
     timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}

@@ -671,6 +671,9 @@ function this.load()
         local playerData = dataSaver.getObjectData(tes3.player)
         if playerData then
             if playerData.config then
+                if not playerData.config.playerId then
+                    playerData.config.playerId = os.time()
+                end
                 applyChanges(this.data, playerData.config)
                 this.fullyLoaded = true
             else

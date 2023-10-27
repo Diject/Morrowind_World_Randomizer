@@ -12,6 +12,12 @@ this.version = 6
 this.data = {items = {}, actors = {}, enchantments = {}, version = this.version, playerId = nil}
 this.initial = {items = {}, actors = {}, enchantments = {}, version = this.version}
 
+function this.resetStorageData()
+    this.data.items = {}
+    this.data.actors = {}
+    this.data.enchantments = {}
+end
+
 ---@param fileName string
 function this.saveToFile(fileName, playerId)
     log("Saving data to %s", fileName)
