@@ -348,7 +348,7 @@ return {
     ["modConfig.label.spellsBySkill"] = "This will be the new spell from the schools with the highest skill value",
     ["modConfig.label.spellsBySkillMax"] = "Number of spell schools with the highest skills value",
 
-    ["modConfig.button.runInitialization"] = "Run initialization messages",
+    ["modConfig.button.runInitialization"] = "Run initialization",
     ["modConfig.message.modEnabled"] = "The randomizer is enabled",
 
     ["modConfig.label.chanceToAddSoul"] = "Chance to add a soul to an empty soulgem",
