@@ -34,28 +34,33 @@ local function setCellLastRandomizeTime(cellId, timestamp, gameTime)
 end
 
 local function forcedActorRandomization(reference)
-    local mobile = reference.mobile
-    if mobile then
-        randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
-        randomizer.randomizeMobileActor(mobile)
-        randomizer.randomizeScale(reference)
+    timer.delayOneFrame(function()
+        local mobile = reference.mobile
+        if mobile then
+            randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
+            randomizer.randomizeMobileActor(mobile)
+            randomizer.randomizeScale(reference)
 
-        local configGroup
-        if reference.object.objectType == tes3.objectType.npc then
-            configGroup = randomizer.config.data.NPCs
-        elseif reference.object.objectType == tes3.objectType.creature then
-            configGroup = randomizer.config.data.creatures
+            local configGroup
+            if reference.object.objectType == tes3.objectType.npc then
+                configGroup = randomizer.config.data.NPCs
+            elseif reference.object.objectType == tes3.objectType.creature then
+                configGroup = randomizer.config.data.creatures
+            end
+            if configGroup.items.randomize then
+                randomizer.randomizeContainerItems(reference, configGroup.items.region.min, configGroup.items.region.max)
+            end
+            if configGroup.randomizeOnlyOnce then
+                randomizer.StopRandomization(reference)
+            else
+                randomizer.StopRandomizationTemp(reference)
+            end
+            if reference.baseObject.objectType == tes3.objectType.npc then
+                reference.object:reevaluateEquipment()
+                reference:updateEquipment()
+            end
         end
-        if configGroup.items.randomize then
-            randomizer.randomizeContainerItems(reference, configGroup.items.region.min, configGroup.items.region.max)
-        end
-        if configGroup.randomizeOnlyOnce then
-            randomizer.StopRandomization(reference)
-        else
-            randomizer.StopRandomizationTemp(reference)
-        end
-        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
-    end
+    end)
 end
 
 local function randomizeActor(reference)
@@ -65,7 +70,10 @@ local function randomizeActor(reference)
             randomizer.StopRandomization(reference)
         end
     else
-        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
+        if reference.baseObject.objectType == tes3.objectType.npc then
+            reference.object:reevaluateEquipment()
+            reference:updateEquipment()
+        end
     end
 end
 
