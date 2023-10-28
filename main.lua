@@ -229,12 +229,14 @@ local function saved(e)
 end
 
 local function loaded(e)
+
     if storage.data.playerId and randomizer.config.getConfig().playerId ~= storage.data.playerId then
         storage.restoreAllActors(true)
         storage.restoreAllItems(true, true)
         storage.restoreAllEnchantments(true)
         storage.resetStorageData()
     end
+
     timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}
 
