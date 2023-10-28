@@ -244,6 +244,16 @@ local function randomizeSoulgemItemData(itemData)
     end
 end
 
+function this.getRandomSoulIdForGem(creaGroup, soulgemCapacity)
+    local soulId
+    if creaGroup then
+        soulId = creaGroup.Items[random.GetRandom(math.floor(#creaGroup.Items * math.min(1, soulgemCapacity / this.config.data.soulGems.maxCapacity)),
+            #creaGroup.Items, this.config.data.soulGems.soul.region.min, this.config.data.soulGems.soul.region.max)]
+        log("New soul %s", tostring(soulId))
+    end
+    return soulId
+end
+
 function this.isOrigin(object)
     local data = dataSaver.getObjectData(object)
     return data.origin or false
@@ -328,11 +338,11 @@ function this.updatePlayerInventory()
                     local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
                     if wasCreated then
                         if data.count > 0 then
-                            tes3.addItem{reference = player, item = origId, count = data.count,}
+                            tes3.addItem{reference = player, item = origId, count = data.count, playSound = false}
                             updated = true
                             log("Added original item %s", tostring(origId))
                         elseif data.count < 0 then
-                            tes3.removeItem{reference = player, item = origId, count = -data.count,}
+                            tes3.removeItem{reference = player, item = origId, count = -data.count, playSound = false}
                             updated = true
                             log("Removed original item %s", tostring(origId))
                         end
@@ -340,7 +350,7 @@ function this.updatePlayerInventory()
                         if data.count > 0 then
                             local item = this.getNewItem(id)
                             if item then
-                                tes3.addItem{reference = player, item = item, count = data.count,}
+                                tes3.addItem{reference = player, item = item, count = data.count, playSound = false}
                                 updated = true
                                 log("Added unoriginal item %s", tostring(item))
                                 local origItem = tes3.getObject(id)
@@ -364,7 +374,7 @@ function this.updatePlayerInventory()
                             for _, stack in pairs(player.inventory) do
                                 local _, itOrigId = itemLib.isItemWasCreated(stack.object.id)
                                 if data.id == itOrigId then
-                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count}
+                                    count = count - tes3.removeItem{reference = player, item = stack.object, count = count, playSound = false}
                                     updated = true
                                     log("Removed unoriginal item %s", tostring(stack.object))
                                 end
@@ -439,14 +449,29 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
 
             elseif stack.object.isGold and config.gold.randomize then
 
-                local newCount = math.floor(math.max(count * (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+                local newGoldCount = config.gold.additive and count + random.GetBetween(config.gold.region.min, config.gold.region.max) or
+                    count * random.GetBetween(config.gold.region.min, config.gold.region.max)
+                local newCount = math.floor(math.max(1, newGoldCount))
                 log("Gold count %s to %s", tostring(stack.count), tostring(newCount))
                 stack.count = newCount
 
             elseif stack.object.isSoulGem and config.soulGems.soul.randomize then
-
-                for _, itemData in pairs(stack.variables or {}) do
-                    randomizeSoulgemItemData(itemData)
+                if stack.variables then
+                    for _, itemData in pairs(stack.variables) do
+                        randomizeSoulgemItemData(itemData)
+                    end
+                else
+                    table.insert(oldItems, {id = item.id, count = count})
+                    for i = 1, count do
+                        local soulId = nil
+                        if config.soulGems.soul.add.chance > math.random() then
+                            local creaGroup = creaturesData.CreatureGroups[tostring(math.random(0, 3))]
+                            if creaGroup then
+                                soulId = this.getRandomSoulIdForGem(creaGroup, item.soulGemCapacity)
+                            end
+                        end
+                        table.insert(newItems, {id = item.id, count = 1, soul = soulId})
+                    end
                 end
 
             elseif this.config.data.item.unique and item.sourceMod and itemLib.itemTypeForUnique[item.objectType] then
@@ -468,7 +493,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
             local it = this.getNewItem(item.id)
             local count = math.abs(item.count)
             if it then
-                tes3.addItem({ reference = reference, item = it, count = count, updateGUI = false })
+                tes3.addItem({ reference = reference, item = it, count = count, soul = item.soul, updateGUI = false })
                 if item.count < 0 then
                     negativeStock[it.id] = item.count
                 end
@@ -528,10 +553,14 @@ function this.randomizeCell(cell)
     local newObjects = {}
     local config = this.config.data
 
-    local newTreeGroupId = math.random(1, #treesData.Groups)
-    local newRockGroupId = math.random(1, #rocksData.Groups)
-    local newTreeGroup = treesData.Groups[newTreeGroupId]
-    local newRockGroup = rocksData.Groups[newRockGroupId]
+    local newTreeGroupList = {}
+    local newRockGroupList = {}
+    for i = 1, math.max(1, config.trees.typesPerCell) do
+        table.insert(newTreeGroupList, treesData.Groups[math.random(1, #treesData.Groups)])
+    end
+    for i = 1, math.max(1, config.stones.typesPerCell) do
+        table.insert(newRockGroupList, rocksData.Groups[math.random(1, #rocksData.Groups)])
+    end
     local newFloraGroup = {}
     for i = 1, this.config.data.flora.typesPerCell do
         local groupId = math.random(1, #floraData.Groups)
@@ -614,12 +643,12 @@ function this.randomizeCell(cell)
                     local arr
                     if treeAdvData ~= nil and objectScale < config.trees.exceptScale then
                         configLink = config.trees
-                        grp = newTreeGroup
+                        grp = newTreeGroupList[math.random(1, #newTreeGroupList)]
                         arr = treesData
                         success = true
                     elseif rockAdvData ~= nil and objectScale < config.stones.exceptScale then
                         configLink = config.stones
-                        grp = newRockGroup
+                        grp = newRockGroupList[math.random(1, #newRockGroupList)]
                         arr = rocksData
                         success = true
                     elseif floraAdvData ~= nil then
@@ -808,8 +837,9 @@ function this.randomizeCell(cell)
         elseif object ~= nil and object.baseObject.objectType == tes3.objectType.miscItem and object.itemData ~= nil and
                 object.object.isGold and config.gold.randomize then
 
-            local newCount = math.floor(math.max(object.itemData.count *
-                (config.gold.region.min + math.random() * (config.gold.region.max - config.gold.region.min)), 1))
+            local newGoldVal = config.gold.additive and object.itemData.count + random.GetBetween(config.gold.region.min, config.gold.region.max) or
+                object.itemData.count * random.GetBetween(config.gold.region.min, config.gold.region.max)
+            local newCount = math.floor(math.max(newGoldVal, 1))
             object.itemData.count = newCount
 
         elseif object ~= nil and config.items.randomize and object.baseObject.objectType == tes3.objectType.ammunition then
@@ -929,47 +959,23 @@ function this.randomizeMobileActor(mobile)
         end
     end
 
-    local setNew = function(attribute, region, limit, useRangeVal)
+    local setNew = function(attribute, region, limit, useRangeVal, min)
         if limit == nil then limit = math.huge end
         local base = attribute.base
         local normalized = attribute.normalized
-        local newVal = useRangeVal and random.GetRandom(base, limit, region.min, region.max) or
-            math.floor(math.min(base * (region.min + math.random() * (region.max - region.min)), limit))
+        local newVal = 0
+        if useRangeVal then
+            newVal = random.GetRandom(base, limit, region.min, region.max)
+        else
+            if region.additive then
+                newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
+            else
+                newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
+            end
+        end
         log("%s to %s", tostring(attribute.base), tostring(newVal))
         attribute.base = newVal
         attribute.current = newVal * normalized
-    end
-
-
-    if mobile.actorType == tes3.actorType.npc then
-        if configTable.attributes.randomize then
-            log("Attributes %s", tostring(mobile.object))
-            for i, attributeVal in ipairs(mobile.attributes) do
-                local limit = math.max(attributeVal.base, configTable.attributes.limit)
-                setNew(attributeVal, configTable.attributes.region, limit)
-            end
-        end
-    end
-    if configTable.skills.randomize then
-        if mobile.actorType == tes3.actorType.npc then
-            log("Combat skills %s", tostring(mobile.object))
-            for _, skillId in pairs(combatSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
-            end
-            log("Magic skills %s", tostring(mobile.object))
-            for _, skillId in pairs(magicSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
-            end
-            log("Stealth skills %s", tostring(mobile.object))
-            for _, skillId in pairs(stealthSkillIds) do
-                setNew(mobile.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
-            end
-        elseif mobile.actorType == tes3.actorType.creature then
-            log("Skills %s", tostring(mobile.object))
-            setNew(mobile.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
-            setNew(mobile.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
-            setNew(mobile.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
-        end
     end
 
     if configTable.health.randomize then
@@ -1061,6 +1067,26 @@ function this.randomizeMobileActor(mobile)
         mobile[param] = mobile[param] + val
     end
 
+    local object = mobile.object
+    local baseObject = object.baseObject
+    for skillId, skillVal in ipairs(baseObject.skills) do
+        if skillVal ~= mobile.skills[skillId].base then
+            local diff = mobile.skills[skillId].current - mobile.skills[skillId].base
+            mobile.skills[skillId].base = skillVal
+            mobile.skills[skillId].current = math.max(0, skillVal + diff)
+        end
+    end
+
+    if object.objectType == tes3.objectType.npc then
+        for id, val in ipairs(baseObject.attributes) do
+            if val ~= mobile.attributes[id].base then
+                local diff = mobile.attributes[id].current - mobile.attributes[id].base
+                mobile.attributes[id].base = val
+                mobile.attributes[id].current = math.max(1, val + diff)
+            end
+        end
+    end
+
     mobile.reference.modified = true
     mobile:updateDerivedStatistics()
     mobile:updateOpacity()
@@ -1122,8 +1148,10 @@ function this.randomizeActorBaseObject(object, actorType)
     if configTable.attack ~= nil and configTable.attack.randomize and object.attacks ~= nil then
         log("Attack bonus %s", tostring(object))
         for i, val in ipairs(object.attacks) do
-            local min = val.min * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
-            local max = val.max * (configTable.attack.region.min + math.random() * (configTable.attack.region.max - configTable.attack.region.min))
+            local min = configTable.attack.region.additive and val.min + random.GetBetween(configTable.attack.region.min, configTable.attack.region.max) or
+                val.min * math.abs(random.GetBetween(configTable.attack.region.min, configTable.attack.region.max))
+            local max = configTable.attack.region.additive and val.max + random.GetBetween(configTable.attack.region.min, configTable.attack.region.max) or
+                val.max * math.abs(random.GetBetween(configTable.attack.region.min, configTable.attack.region.max))
             if min > max then max = min end
             log("min %s to %s max %s to %s", tostring(val.min), tostring(min), tostring(val.max), tostring(max))
             val.min = min
@@ -1180,6 +1208,54 @@ function this.randomizeActorBaseObject(object, actorType)
         end
     end
 
+    local setNew = function(attribute, region, limit, useRangeVal, min)
+        if limit == nil then limit = math.huge end
+        local base = attribute
+        local newVal = 0
+        if useRangeVal then
+            newVal = random.GetRandom(base, limit, region.min, region.max)
+        else
+            if region.additive then
+                newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
+            else
+                newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
+            end
+        end
+        log("%s to %s", tostring(attribute), tostring(newVal))
+        return newVal
+    end
+
+    if object.objectType == tes3.objectType.npc then
+        if configTable.attributes.randomize then
+            log("Attributes %s", tostring(object))
+            for id, attributeVal in ipairs(object.attributes) do
+                local limit = math.max(attributeVal, configTable.attributes.limit)
+                object.attributes[id] = setNew(attributeVal, configTable.attributes.region, limit, nil, 1)
+            end
+        end
+    end
+
+    if configTable.skills.randomize then
+        if object.objectType == tes3.objectType.npc then
+            log("Combat skills %s", tostring(object))
+            for _, skillId in pairs(combatSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            end
+            log("Magic skills %s", tostring(object))
+            for _, skillId in pairs(magicSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            end
+            log("Stealth skills %s", tostring(object))
+            for _, skillId in pairs(stealthSkillIds) do
+                object.skills[skillId + 1] = setNew(object.skills[skillId + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
+            end
+        elseif object.objectType == tes3.objectType.creature then
+            log("Skills %s", tostring(object))
+            object.skills[tes3.specialization.combat + 1] = setNew(object.skills[tes3.specialization.combat + 1], configTable.skills.combat.region, configTable.skills.limit, true)
+            object.skills[tes3.specialization.magic + 1] = setNew(object.skills[tes3.specialization.magic + 1], configTable.skills.magic.region, configTable.skills.limit, true)
+            object.skills[tes3.specialization.stealth + 1] = setNew(object.skills[tes3.specialization.stealth + 1], configTable.skills.stealth.region, configTable.skills.limit, true)
+        end
+    end
 
     local spellList = object.spells
     local newSpells = {}
@@ -1211,7 +1287,18 @@ function this.randomizeActorBaseObject(object, actorType)
     local spellsAddCount = configTable.spells.add.count
     for i = 1, spellsAddCount do
         if configTable.spells.add.chance > math.random() then
-            local newSpellGroup = spellsData.SpellGroups[tostring(math.random(10, 15))]
+            local skillSchoolId = 10
+            if configTable.spells.add.bySkill then
+                local skillValue = {}
+                for j = 10, 15 do
+                    table.insert(skillValue, {id = j, value = object.skills[j + 1]})
+                end
+                table.sort(skillValue, function(a, b) return a.value > b.value end)
+                skillSchoolId = skillValue[math.random(1, math.min(6, configTable.spells.add.bySkillMax))].id
+            else
+                skillSchoolId = math.random(10, 15)
+            end
+            local newSpellGroup = spellsData.SpellGroups[tostring(skillSchoolId)]
             local pos = random.GetRandom(math.floor(math.min(newSpellGroup.Count * (object.level / configTable.spells.add.levelReference), newSpellGroup.Count)),
                 newSpellGroup.Count, configTable.spells.region.min, configTable.spells.region.max)
             local j = 20
@@ -1258,8 +1345,10 @@ function this.randomizeActorBaseObject(object, actorType)
     end
 
     if configData.barterGold.randomize and object.barterGold ~= nil then
-        local newVal = math.floor(object.barterGold * (configData.barterGold.region.min + math.random() *
-            (configData.barterGold.region.max - configData.barterGold.region.min)))
+        local newVal = math.floor(configData.barterGold.region.additive and
+            object.barterGold + random.GetBetween(configData.barterGold.region.min, configData.barterGold.region.max) or
+            object.barterGold * random.GetBetween(configData.barterGold.region.min, configData.barterGold.region.max))
+        if newVal < 0 then newVal = 0 end
         log("Barter gold %s %s to %s", tostring(object), tostring(object.barterGold), tostring(newVal))
         object.barterGold = newVal
     end
@@ -1323,7 +1412,9 @@ function this.randomizeScale(reference)
 
     if configData ~= nil then
         if configData.scale.randomize then
-            local newVal = reference.object.scale * (configData.scale.region.min + math.random() * (configData.scale.region.max - configData.scale.region.min))
+            local newVal = configData.scale.region.additive and reference.object.scale + random.GetBetween(configData.scale.region.min, configData.scale.region.max) or
+                reference.object.scale * random.GetBetween(configData.scale.region.min, configData.scale.region.max)
+            if newVal <= 0 then newVal = 1 end
             log("Scale %s %s to %s", tostring(reference), tostring(reference.scale), tostring(newVal))
             reference.scale = newVal
         end

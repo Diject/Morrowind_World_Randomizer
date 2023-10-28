@@ -60,6 +60,7 @@ local function applyChanges(toTable, fromTable)
 end
 
 this.global = mwse.loadConfig(globalConfigName)
+---@class mwr.config.local.data
 this.data = nil
 
 this.globalDefault = {
@@ -90,14 +91,19 @@ else
     addMissing(this.global, this.globalDefault)
 end
 
+---@class mwr.config.local.data
 this.default = {
     enabled = false,
+    version = 6,
+    playerId = nil,
     trees = {
         randomize = true,
+        typesPerCell = 2,
         exceptScale = 2.5,
     },
     stones = {
         randomize = true,
+        typesPerCell = 2,
         exceptScale = 2.5,
     },
     flora = {
@@ -141,12 +147,15 @@ this.default = {
         maxCapacity = 400,
         soul = {
             randomize = true,
+            add = {
+                chance = 0.33,
+            },
             region = {min = 0.2, max = 0.2},
         },
     },
     gold = {
         randomize = true,
-        region = {min = 0.25, max = 1.75},
+        region = {min = 0.25, max = 1.75, additive = false,},
     },
     creatures = {
         randomizeOnlyOnce = false,
@@ -158,7 +167,7 @@ this.default = {
         },
         attack = {
             randomize = true,
-            region = {min = 0.75, max = 1.25},
+            region = {min = 0.75, max = 1.25, additive = false,},
         },
         spells = {
             randomize = true,
@@ -166,7 +175,7 @@ this.default = {
             add = {
                 chance = 0.1,
                 count = 3,
-                levelReference = 20,
+                levelReference = 15,
             },
         },
         abilities = {
@@ -187,15 +196,15 @@ this.default = {
         },
         health = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         magicka = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         fatigue = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         skills = {
             randomize = true,
@@ -212,7 +221,7 @@ this.default = {
         },
         scale = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         effects = {
             positive = {
@@ -261,7 +270,9 @@ this.default = {
             add = {
                 chance = 1,
                 count = 3,
-                levelReference = 20,
+                bySkill = true,
+                bySkillMax = 2,
+                levelReference = 15,
             },
         },
         abilities = {
@@ -282,32 +293,32 @@ this.default = {
         },
         health = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         magicka = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         fatigue = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         attributes = {
             randomize = true,
             limit = 255,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         skills = {
             randomize = true,
             limit = 100,
             combat = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
             magic = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
             stealth = {
-                region = {min = 0.2, max = 0.2},
+                region = {min = 0.3, max = 0.3},
             },
         },
         head = {
@@ -322,7 +333,7 @@ this.default = {
         },
         scale = {
             randomize = true,
-            region = {min = 0.5, max = 1.5},
+            region = {min = 0.5, max = 1.5, additive = false,},
         },
         effects = {
             positive = {
@@ -361,7 +372,7 @@ this.default = {
     },
     barterGold = {
         randomize = true,
-        region = {min = 0.5, max = 1.5},
+        region = {min = 0.5, max = 1.5, additive = false,},
     },
     transport = {
         randomize = true,
@@ -382,7 +393,7 @@ this.default = {
         },
         onlyNearest = true,
         nearestCellDepth = 2,
-        chance = 0.2,
+        chance = 0.1,
         cooldown = 10,
         restoreOriginal = true,
         lockTrapCooldown = 72,
@@ -514,6 +525,7 @@ end
 
 -- if not this.profiles["extreme"] then
 if true then
+    ---@type mwr.config.local.data
     local preset = deepcopy(this.default)
     local setMinMax
     setMinMax = function(toTable)
@@ -560,7 +572,7 @@ if true then
     preset.transport.toDoorsCount = 1
 
     preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.3
+    preset.doors.chance = 0.15
     preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.useExisting = false
@@ -577,6 +589,13 @@ if true then
     preset.item.linkMeshToParts = false
     preset.item.stats.region.min = 0.5
     preset.item.stats.region.max = 2
+
+    preset.creatures.magicka.region.min = 40
+    preset.creatures.magicka.region.max = 100
+    preset.creatures.magicka.region.additive = true
+    preset.NPCs.magicka.region.min = 40
+    preset.NPCs.magicka.region.max = 100
+    preset.NPCs.magicka.region.additive = true
 
     this.profiles["extended"] = preset
 end
@@ -659,10 +678,14 @@ function this.load()
         local playerData = dataSaver.getObjectData(tes3.player)
         if playerData then
             if playerData.config then
+                if not playerData.config.playerId then
+                    playerData.config.playerId = os.time()
+                end
                 applyChanges(this.data, playerData.config)
                 this.fullyLoaded = true
             else
                 applyChanges(this.data, this.default)
+                this.data.playerId = os.time()
                 playerData.config = this.data
                 this.fullyLoaded = true
             end

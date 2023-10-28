@@ -33,119 +33,249 @@ function this.show()
     this.data.hidden = false
 end
 
-local function createSettingsBlock_slider(varTable, varStr, varMul, min, max, step, labels)
-    local slider = {
-        class = "Slider",
-        label = labels.label or "",
-        description = labels.descr or "",
-        min = min,
-        max = max,
-        step = step,
-        jump = step * 10,
-        inGameOnly = true,
-        variable = EasyMCM.createVariable{
-            get = function(self)
-                if varTable ~= nil and varTable[varStr] ~= nil then
-                    return varTable[varStr] * varMul
-                end
-                return min
-            end,
-            set = function(self, val)
-                if varTable ~= nil and varTable[varStr] ~= nil then
-                    varTable[varStr] = val / varMul
-                end
-            end,
-        },
+local function createText(label, description)
+    return {
+        class = "Info",
+        label = label,
+        text = description
     }
-    return slider
 end
 
-local function createSettingsBlock_minmaxp(varRegionTable, varStr, varMul, min, max, step, labels)
-    local slider = {
-        class = "Slider",
-        label = labels.label or "",
-        description = labels.descr or "",
-        min = min,
-        max = max,
-        step = step,
-        jump = step * 10,
-        inGameOnly = true,
-        variable = EasyMCM.createVariable{
-            get = function(self)
-                if varRegionTable ~= nil and varRegionTable[varStr] ~= nil then
-                    return varRegionTable[varStr] * varMul
-                end
-                return min
-            end,
-            set = function(self, val)
-                if varRegionTable ~= nil then
-                    varRegionTable[varStr] = val / varMul
-                    if varRegionTable.min > varRegionTable.max then
-                        varRegionTable.max = varRegionTable.min
+local currentFreeElementId = 0
+local elementData = {}
+local function getElementIds(count)
+    local ids = {}
+    for i = 1, count do
+        table.insert(ids, currentFreeElementId)
+        currentFreeElementId = currentFreeElementId + 1
+    end
+    return ids
+end
+
+---@class mwr.gui.lebelBlock
+---@field label string|nil
+---@field descr string|nil
+---@field text string|nil
+
+---@class mwr.gui.buttonBlock
+---@field label string|nil
+---@field descr string|nil
+---@field onText string|nil
+---@field offText string|nil
+
+---@class mwr.gui.lebelBlockForMinmax
+---@field min mwr.gui.lebelBlock|nil
+---@field max mwr.gui.lebelBlock|nil
+---@field button mwr.gui.buttonBlock|nil
+
+---@class mwr.gui.minmaxSettingFuncParams
+---@field varTable any
+---@field varStr string
+---@field buttonVarStr string|nil
+---@field ingame boolean|nil
+---@field button boolean|nil
+---@field link boolean|nil
+---@field integer boolean|nil
+---@field min number|nil
+---@field max number|nil
+---@field mul number|nil
+---@field text mwr.gui.lebelBlockForMinmax|nil
+
+---@param data mwr.gui.minmaxSettingFuncParams
+---@return table
+local function createSettingsBlock_minmax_alt(data)
+    local ids = getElementIds(3)
+    local ret = {
+        class = "SideBySideBlock",
+        components = {},
+    }
+    if data.button then
+        table.insert(ret.components, {
+            class = "Category",
+            label = "",
+            components = {
+                {
+                    label = (data.text and data.text.button) and data.text.button.label or "",
+                    description = (data.text and data.text.button) and data.text.button.descr or "",
+                    buttonText = data.varTable[data.varStr][data.buttonVarStr] and
+                        ((data.text and data.text.button and data.text.button.onText) and data.text.button.onText or tes3.findGMST(tes3.gmst.sYes).value) or
+                        ((data.text and data.text.button and data.text.button.offText) and data.text.button.offText or tes3.findGMST(tes3.gmst.sNo).value),
+                    class = "Button",
+                    inGameOnly = data.ingame or true,
+                    postCreate = function(self)
+                        elementData[ids[1]] = self
+                        elementData[ids[1]].elements.button.text = data.varTable[data.varStr][data.buttonVarStr] and
+                            ((data.text and data.text.button and data.text.button.onText) and data.text.button.onText or tes3.findGMST(tes3.gmst.sYes).value) or
+                            ((data.text and data.text.button and data.text.button.offText) and data.text.button.offText or tes3.findGMST(tes3.gmst.sNo).value)
+                    end,
+                    callback = function(self)
+                        local val = not data.varTable[data.varStr][data.buttonVarStr]
+                        data.varTable[data.varStr][data.buttonVarStr] = val
+                        if val then
+                            elementData[ids[1]].elements.button.text = (data.text and data.text.button and data.text.button.onText) and data.text.button.onText or
+                                tes3.findGMST(tes3.gmst.sYes).value
+                        else
+                            elementData[ids[1]].elements.button.text = (data.text and data.text.button and data.text.button.offText) and data.text.button.offText or
+                                tes3.findGMST(tes3.gmst.sNo).value
+                        end
+                    end,
+                },
+            },
+        })
+    end
+    table.insert(ret.components, {
+        class = "TextField",
+        label = (data.text and data.text.min and data.text.min.label) and data.text.min.label or "",
+        description = (data.text and data.text.min and data.text.min.descr) and data.text.min.descr or "",
+        inGameOnly = data.ingame or true,
+        postCreate = function(self)
+            elementData[ids[2]] = self
+            self.elements.submitButton:destroy()
+            self.elements.inputField:register("destroy", function()
+                local val = tonumber(self.elements.inputField.text)
+                if not val then return end
+                if data.max and data.max < val then val = data.max end
+                if data.min and data.min > val then val = data.min end
+                if data.link then
+                    local maxVal = (elementData[ids[3]] and tonumber(elementData[ids[3]].elements.inputField.text)) and
+                        tonumber(elementData[ids[3]].elements.inputField.text) or (data.varTable[data.varStr].max * (data.mul or 1))
+                    if val > maxVal then
+                        val = data.min and data.min or (data.varTable[data.varStr].min * (data.mul or 1))
                     end
                 end
+                local res = data.integer and math.floor(val / (data.mul or 1)) or val / (data.mul or 1)
+                data.varTable[data.varStr].min = res
+            end)
+        end,
+        variable = EasyMCM.createVariable{
+            numbersOnly = true,
+            get = function(self)
+                return data.varTable[data.varStr].min * (data.mul or 1)
+            end,
+            set = function(self, strVal)
+                local val = tonumber(strVal)
+                if data.max and data.max < val then val = data.max end
+                if data.min and data.min > val then val = data.min end
+                if data.link then
+                    if val > data.varTable[data.varStr].max * (data.mul or 1) then
+                        val = data.min and data.min or (data.varTable[data.varStr].min * (data.mul or 1))
+                    end
+                end
+                local res = data.integer and math.floor(val / (data.mul or 1)) or val / (data.mul or 1)
+                data.varTable[data.varStr].min = res
             end,
         },
-    }
-    return slider
+    })
+    table.insert(ret.components, {
+        class = "TextField",
+        label = (data.text and data.text.max and data.text.max.label) and data.text.max.label or "",
+        description = (data.text and data.text.max and data.text.max.descr) and data.text.max.descr or "",
+        numbersOnly = true,
+        inGameOnly = data.ingame or true,
+        postCreate = function(self)
+            elementData[ids[3]] = self
+            self.elements.submitButton:destroy()
+            self.elements.inputField:register("destroy", function()
+                local val = tonumber(self.elements.inputField.text)
+                if not val then return end
+                if data.max and data.max < val then val = data.max end
+                if data.min and data.min > val then val = data.min end
+                if data.link then
+                    local minVal = (elementData[ids[2]] and tonumber(elementData[ids[2]].elements.inputField.text)) and
+                        tonumber(elementData[ids[2]].elements.inputField.text) or (data.varTable[data.varStr].min * (data.mul or 1))
+                    if val < minVal then
+                        val = data.max and data.max or (data.varTable[data.varStr].max * (data.mul or 1))
+                    end
+                end
+                local res = data.integer and math.floor(val / (data.mul or 1)) or val / (data.mul or 1)
+                data.varTable[data.varStr].max = res
+            end)
+        end,
+        variable = EasyMCM.createVariable{
+            numbersOnly = true,
+            get = function(self)
+                return data.varTable[data.varStr].max * (data.mul or 1)
+            end,
+            set = function(self, strVal)
+                local val = tonumber(strVal)
+                if data.max and data.max < val then val = data.max end
+                if data.min and data.min > val then val = data.min end
+                if data.link then
+                    if val < data.varTable[data.varStr].min * (data.mul or 1) then
+                        val = data.max and data.max or (data.varTable[data.varStr].max * (data.mul or 1))
+                    end
+                end
+                local res = data.integer and math.floor(val / (data.mul or 1)) or val / (data.mul or 1)
+                data.varTable[data.varStr].max = res
+            end,
+        },
+    })
+    return ret
 end
 
-local function createSettingsBlock_region(varTable, labels)
-    local slider = {
-        class = "Slider",
-        label = labels.label or "",
-        description = labels.descr or "",
-        min = 0,
-        max = 200,
-        step = 1,
-        jump = 5,
-        inGameOnly = true,
-        variable = EasyMCM.createVariable{
-            get = function(self)
-                if varTable ~= nil then
-                    return math.floor((varTable.max - -varTable.min) * 100 + 0.5)
-                end
-                return 0
-            end,
-            set = function(self, val)
-                if varTable ~= nil then
-                    local offset = (varTable.max - -varTable.min) / 2
-                    varTable.min = varTable.min - offset + val / 200
-                    varTable.max = varTable.max - offset + val / 200
-                end
-            end,
+local function createSettingsBlock_number(varTable, varStr, varMul, min, max, step, labels, ingame)
+    return {
+        class = "Category",
+        components = {
+            {
+                class = "Info",
+                text = labels.label,
+                description = labels.descr,
+            },
+            {
+                class = "SideBySideBlock",
+                components = {
+                    {
+                        class = "Info",
+                        description = labels.descr,
+                        text = labels.text or " ",
+                    },
+                    {
+                        class = "TextField",
+                        description = labels.descr,
+                        inGameOnly = ingame == nil and true or ingame,
+                        postCreate = function(self)
+                            self.elements.submitButton:destroy()
+                            self.elements.border.maxWidth = 150
+                            self.elements.inputField:register("destroy", function()
+                                local val = tonumber(self.elements.inputField.text)
+                                if not val then return end
+                                if max and max < val then val = max end
+                                if min and min > val then val = min end
+                                if varTable ~= nil and varTable[varStr] ~= nil then
+                                    varTable[varStr] = val / varMul
+                                end
+                            end)
+                        end,
+                        variable = EasyMCM.createVariable{
+                            numbersOnly = true,
+                            get = function(self)
+                                if varTable ~= nil and varTable[varStr] ~= nil then
+                                    return varTable[varStr] * varMul
+                                end
+                                return min
+                            end,
+                            set = function(self, strVal)
+                                local val = tonumber(strVal)
+                                if not val then return end
+                                if max and max < val then val = max end
+                                if min and min > val then val = min end
+                                if varTable ~= nil and varTable[varStr] ~= nil then
+                                    varTable[varStr] = val / varMul
+                                end
+                            end,
+                        },
+                    },
+                }
+            },
         },
     }
-    return slider
 end
 
-local function createSettingsBlock_offset(varTable, labels)
-    local slider = {
-        class = "Slider",
-        label = labels.label or "",
-        description = labels.descr or "",
-        min = -100,
-        max = 100,
-        step = 1,
-        jump = 5,
-        inGameOnly = true,
-        variable = EasyMCM.createVariable{
-            get = function(self)
-                if varTable ~= nil then
-                    return math.floor((-varTable.min + (varTable.max - -varTable.min) / 2) * 100  + 0.5)
-                end
-                return 0
-            end,
-            set = function(self, val)
-                if varTable ~= nil then
-                    local offset = -varTable.min + (varTable.max - -varTable.min) / 2
-                    varTable.min = varTable.min + offset - val / 100
-                    varTable.max = varTable.max - offset + val / 100
-                end
-            end,
-        },
-    }
-    return slider
+local function createSettingsBlock_regionMinMax(varTable)
+    return createSettingsBlock_minmax_alt{varTable = varTable, varStr = "region", min = 0, max = 100, mul = 100, text = {
+        min = {label = this.i18n("modConfig.label.leftShift"), descr = this.i18n("modConfig.description.regionMinMax")},
+        max = {label = this.i18n("modConfig.label.rightShift"), descr = this.i18n("modConfig.description.regionMinMax")}}}
 end
 
 local function createOnOffIngameButton(label, varTable, varId, description)
@@ -182,12 +312,18 @@ local function createOnOffIngameNegativeButton(label, varTable, varId, descripti
     return data
 end
 
-local function createText(label, description)
-    return {
-        class = "Info",
-        label = label,
-        text = description
-    }
+local function enableRandomizerCallback(e)
+    if e.button == 0 then
+        this.funcs.randomizeLoadedCells()
+    elseif e.button == 1 then
+        this.funcs.randomizeLoadedCellsFunc()
+    end
+end
+
+local function enableRandomizerMessage()
+    tes3.messageBox({ message = this.i18n("modConfig.message.modEnabled"),
+        buttons = {tes3.findGMST(tes3.gmst.sOK).value, this.i18n("modConfig.button.runInitialization"),},
+        callback = enableRandomizerCallback, showInDialog = false})
 end
 
 function this.registerModConfig()
@@ -216,7 +352,7 @@ function this.registerModConfig()
                                     set = function(self, val)
                                         this.config.data.enabled = val
                                         if val then
-                                            this.funcs.randomizeLoadedCellsFunc()
+                                            enableRandomizerMessage()
                                         end
                                     end,
                                 },
@@ -358,32 +494,8 @@ function this.registerModConfig()
                         class = "Category",
                         label = this.i18n("modConfig.label.cellRandomization"),
                         components = {
-                            {
-                                class = "Slider",
-                                label = this.i18n("modConfig.label.cellRandomizationIntervalRealTime"),
-                                min = 0,
-                                max = 1800,
-                                step = 60,
-                                jump = 300,
-                                variable = {
-                                    class = "TableVariable",
-                                    id = "cellRandomizationCooldown",
-                                    table = this.config.global,
-                                },
-                            },
-                            {
-                                class = "Slider",
-                                label = this.i18n("modConfig.label.cellRandomizationIntervalGameTime"),
-                                min = 0,
-                                max = 336,
-                                step = 1,
-                                jump = 24,
-                                variable = {
-                                    class = "TableVariable",
-                                    id = "cellRandomizationCooldown_gametime",
-                                    table = this.config.global,
-                                },
-                            },
+                            createSettingsBlock_number(this.config.global, "cellRandomizationCooldown", 1, 0, nil, 1, {label = this.i18n("modConfig.label.cellRandomizationIntervalRealTime")}, false),
+                            createSettingsBlock_number(this.config.global, "cellRandomizationCooldown_gametime", 1, 0, nil, 1, {label = this.i18n("modConfig.label.cellRandomizationIntervalGameTime")}, false),
                         },
                     },
                     {
@@ -557,8 +669,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemInCont"), this.config.data.containers.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.containers.items),
                         },
                     },
                     {
@@ -567,8 +678,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemWithoutCont"), this.config.data.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.items),
                         },
                     },
                     {
@@ -577,8 +687,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeNPCItems"), this.config.data.NPCs.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.items),
                         },
                     },
                     {
@@ -587,8 +696,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatureItems"), this.config.data.creatures.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.items),
                         },
                     },
                     {
@@ -597,8 +705,8 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSoulsInGems"), this.config.data.soulGems.soul, "randomize"),
-                            createSettingsBlock_region(this.config.data.soulGems.soul.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.soulGems.soul.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.soulGems.soul),
+                            createSettingsBlock_number(this.config.data.soulGems.soul.add, "chance", 100, 1, 100, 1, {label = this.i18n("modConfig.label.chanceToAddSoul")}),
                         },
                     },
                     {
@@ -607,8 +715,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeGold"), this.config.data.gold, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.gold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.gold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.gold, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
                 },
@@ -662,15 +771,17 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemStats"), this.config.data.item.stats, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
-                            createSettingsBlock_minmaxp(this.config.data.item.stats.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.item.stats, varStr = "region", link = true, min = 10, mul = 100,
+                                text = {min = {label = this.i18n("modConfig.label.minMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandValue")},
+                                max = {label = this.i18n("modConfig.label.maxMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandValue")}}}),
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.weaponDamageStats"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "min", 100, 10, 500, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
-                                    createSettingsBlock_minmaxp(this.config.data.item.stats.weapon.region, "max", 100, 10, 500, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandValue")}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.item.stats.weapon, varStr = "region", link = true, min = 10, mul = 100,
+                                        text = {min = {label = this.i18n("modConfig.label.minMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandValue")},
+                                        max = {label = this.i18n("modConfig.label.maxMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandValue")}}}),
                                 },
                             },
                         },
@@ -690,8 +801,7 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.existedEnchValue"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.item.enchantment.existing.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.item.enchantment.existing.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.item.enchantment.existing),
                                 },
                             },
                             {
@@ -699,9 +809,10 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.newEnchPower"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment, "arrowPower", 100, 1, 300, 1, {label = this.i18n("modConfig.label.arrowPower")}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment, varStr = "region", link = true, mul = 100, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandEnch")},
+                                        max = {label = this.i18n("modConfig.label.maxMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandEnch")}}}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment, "arrowPower", 100, 1, nil, 1, {label = this.i18n("modConfig.label.arrowPower")}),
                                 },
                             },
                             {
@@ -709,8 +820,8 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.numberOfEnchCasts"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.numberOfCasts, "min", 1, 1, 50, 1, {label = this.i18n("modConfig.label.minVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.numberOfCasts, "max", 1, 1, 50, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment, varStr = "numberOfCasts", link = true, min = 1, integer = true,
+                                        text = {min = {label = this.i18n("modConfig.label.minVal")}, max = {label = this.i18n("modConfig.label.maxVal")}}}),
                                 },
                             },
                             {
@@ -718,9 +829,9 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.enchCost"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "min", 1, 1, 100, 1, {label = this.i18n("modConfig.label.minVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.item.enchantment.cost, "max", 1, 1, 5000, 1, {label = this.i18n("modConfig.label.maxVal"),}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment, "scrollBase", 1, 1, 400, 1, {label = this.i18n("modConfig.label.scrollEnchCapacity")}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment, varStr = "cost", link = true, integer = true, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minVal")}, max = {label = this.i18n("modConfig.label.maxVal")}}}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment, "scrollBase", 1, 1, nil, 1, {label = this.i18n("modConfig.label.scrollEnchCapacity")}),
                                 },
                             },
                             {
@@ -728,23 +839,23 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.enchEffects"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, 200, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, 500, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "durationForConstant", 1, 10, 500, 1, {label = this.i18n("modConfig.label.durationForConstant"), description = this.i18n("modConfig.description.durationForConstant")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.effects, "restoreForAlchemyChance", 100, 0, 50, 1, {label = this.i18n("modConfig.label.restoreForAlchemyChance")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "maxDuration", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxEnchEffectDuration")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "maxRadius", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxEnchEffectRadius")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "maxMagnitude", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxEnchEffectMagnitude")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "durationForConstant", 1, 10, nil, 1, {label = this.i18n("modConfig.label.durationForConstant"), description = this.i18n("modConfig.description.durationForConstant")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "fortifyForSelfChance", 100, 0, nil, 1, {label = this.i18n("modConfig.label.fortifyForSelfChance")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "damageForTargetChance", 100, 0, nil, 1, {label = this.i18n("modConfig.label.damageForTargetChance")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.effects, "restoreForAlchemyChance", 100, 0, nil, 1, {label = this.i18n("modConfig.label.restoreForAlchemyChance")}),
                                     {
                                         class = "Category",
                                         label = this.i18n("modConfig.label.itemEnchantment"),
                                         description = "",
                                         components = {
                                             createOnOffIngameButton(this.i18n("modConfig.label.safeEnchantmentForConstant"), this.config.data.item.enchantment.effects, "safeMode"),
-                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "oneTypeChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.oneEnchTypeChance")}),
-                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "maxCount", 1, 1, 8, 1, {label = this.i18n("modConfig.label.maxEnchEffCount")}),
-                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegative", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForConstant")}),
-                                            createSettingsBlock_slider(this.config.data.item.enchantment.effects, "chanceToNegativeForTarget", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForTarget")}),
+                                            createSettingsBlock_number(this.config.data.item.enchantment.effects, "oneTypeChance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.oneEnchTypeChance")}),
+                                            createSettingsBlock_number(this.config.data.item.enchantment.effects, "maxCount", 1, 1, 8, 1, {label = this.i18n("modConfig.label.maxEnchEffCount")}),
+                                            createSettingsBlock_number(this.config.data.item.enchantment.effects, "chanceToNegative", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForConstant")}),
+                                            createSettingsBlock_number(this.config.data.item.enchantment.effects, "chanceToNegativeForTarget", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToNegativeEffectForTarget")}),
                                         },
                                     },
                                     {
@@ -752,8 +863,8 @@ function this.registerModConfig()
                                         label = this.i18n("modConfig.label.potionEffNum"),
                                         description = "",
                                         components = {
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.alchemyCount, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.alchemyCount, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                            createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment.effects, varStr = "alchemyCount", link = true, min = 1, max = 4, integer = true,
+                                                text = {min = {label = this.i18n("modConfig.label.minVal")}, max = {label = this.i18n("modConfig.label.maxVal")}}}),
                                         },
                                     },
                                     {
@@ -761,8 +872,8 @@ function this.registerModConfig()
                                         label = this.i18n("modConfig.label.ingredientEffNum"),
                                         description = "",
                                         components = {
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "min", 1, 1, 4, 1, {label = this.i18n("modConfig.label.minVal"),}),
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.effects.ingredient.count, "max", 1, 1, 4, 1, {label = this.i18n("modConfig.label.maxVal"),}),
+                                            createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment.effects.ingredient, varStr = "count", link = true, min = 1, max = 4, integer = true,
+                                                text = {min = {label = this.i18n("modConfig.label.minVal")}, max = {label = this.i18n("modConfig.label.maxVal")}}}),
                                         },
                                     },
                                 },
@@ -773,14 +884,15 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.dontAddToScrolls"), this.config.data.item.enchantment.add, "exceptScrolls"),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceAddEnchantment")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceAddEnchantment")}),
                                     {
                                         class = "Category",
                                         label = this.i18n("modConfig.label.addedEnchPower"),
                                         description = "",
                                         components = {
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
-                                            createSettingsBlock_minmaxp(this.config.data.item.enchantment.add.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"), description = this.i18n("modConfig.description.itemStatsRandEnch")}),
+                                            createSettingsBlock_minmax_alt({varTable = this.config.data.item.enchantment.add, varStr = "region", link = true, min = 0,
+                                                text = {min = {label = this.i18n("modConfig.label.minMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandEnch")},
+                                                max = {label = this.i18n("modConfig.label.maxMultiplier"), descr = this.i18n("modConfig.description.itemStatsRandEnch")}}}),
                                         },
                                     },
                                 },
@@ -791,7 +903,7 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.dontRemoveFromScrolls"), this.config.data.item.enchantment.remove, "exceptScrolls"),
-                                    createSettingsBlock_slider(this.config.data.item.enchantment.remove, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceRemoveEnchantment")}),
+                                    createSettingsBlock_number(this.config.data.item.enchantment.remove, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceRemoveEnchantment")}),
                                 },
                             },
                         },
@@ -809,8 +921,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeCreatures"), this.config.data.creatures, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures),
                         },
                     },
 
@@ -820,8 +931,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItems"), this.config.data.creatures.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.items),
                         },
                     },
 
@@ -831,8 +941,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHealth"), this.config.data.creatures.health, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.health.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.health, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -842,8 +953,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeMagicka"), this.config.data.creatures.magicka, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.magicka.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.magicka, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -853,8 +965,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeFatigue"), this.config.data.creatures.fatigue, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.fatigue.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.fatigue, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -864,8 +977,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDamage"), this.config.data.creatures.attack, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.attack.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.attack, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -875,8 +989,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeScale"), this.config.data.creatures.scale, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "min", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.creatures.scale.region, "max", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.scale, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -886,15 +1001,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.creatures.skills, "randomize"),
-                            createSettingsBlock_slider(this.config.data.creatures.skills, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
+                            createSettingsBlock_number(this.config.data.creatures.skills, "limit", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.combatSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.combat.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.combat.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.creatures.skills.combat),
                                 },
                             },
 
@@ -903,8 +1017,7 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.magicSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.magic.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.magic.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.creatures.skills.magic),
                                 },
                             },
 
@@ -913,8 +1026,7 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.stealthSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.creatures.skills.stealth.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.creatures.skills.stealth.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.creatures.skills.stealth),
                                 },
                             },
                         },
@@ -926,20 +1038,16 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFight"), this.config.data.creatures.ai.fight, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.fight.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.fight.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.ai.fight),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFlee"), this.config.data.creatures.ai.flee, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.flee.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.flee.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.ai.flee),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIAlarm"), this.config.data.creatures.ai.alarm, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.alarm.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.alarm.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.ai.alarm),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIHello"), this.config.data.creatures.ai.hello, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.ai.hello.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.ai.hello.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.ai.hello),
                         },
                     },
 
@@ -949,17 +1057,16 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSpells"), this.config.data.creatures.spells, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.spells.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.spells.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.spells),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.spells.add, "levelReference", 1, 1, 50, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
+                                    createSettingsBlock_number(this.config.data.creatures.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
+                                    createSettingsBlock_number(this.config.data.creatures.spells.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.creatures.spells.add, "levelReference", 1, 1, nil, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
                                 },
                             },
                         },
@@ -971,16 +1078,15 @@ function this.registerModConfig()
                         description = this.i18n("modConfig.description.abilitiesCategory"),
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.creatures.abilities, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.abilities.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.abilities),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.abilities.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.creatures.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
+                                    createSettingsBlock_number(this.config.data.creatures.abilities.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -992,16 +1098,15 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDiseases"), this.config.data.creatures.diseases, "randomize"),
-                            createSettingsBlock_region(this.config.data.creatures.diseases.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.creatures.diseases.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.creatures.diseases),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.diseases.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.creatures.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
+                                    createSettingsBlock_number(this.config.data.creatures.diseases.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -1017,11 +1122,11 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.positiveEffects"),
                                 description = this.i18n("modConfig.description.positiveEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.creatures.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_number(this.config.data.creatures.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.positive.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.effects.positive.add, varStr = "region", link = true, integer = true, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minEffectVal")}, max = {label = this.i18n("modConfig.label.maxEffectVal")}}}),
                                 },
                             },
 
@@ -1030,11 +1135,11 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.negativeEffects"),
                                 description = this.i18n("modConfig.description.negativeEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
-                                    createSettingsBlock_slider(this.config.data.creatures.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.creatures.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_number(this.config.data.creatures.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.creatures.effects.negative.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.creatures.effects.negative.add, varStr = "region", link = true, integer = true, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minEffectVal")}, max = {label = this.i18n("modConfig.label.maxEffectVal")}}}),
                                 },
                             },
                         },
@@ -1052,8 +1157,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItems"), this.config.data.NPCs.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.items),
                         },
                     },
 
@@ -1063,8 +1167,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHealth"), this.config.data.NPCs.health, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.health.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.health, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1074,8 +1179,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeMagicka"), this.config.data.NPCs.magicka, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.magicka.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.magicka, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1085,8 +1191,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeFatigue"), this.config.data.NPCs.fatigue, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.fatigue.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.fatigue, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1096,8 +1203,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeScale"), this.config.data.NPCs.scale, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "min", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.scale.region, "max", 100, 10, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.scale, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1129,15 +1237,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSkills"), this.config.data.NPCs.skills, "randomize"),
-                            createSettingsBlock_slider(this.config.data.NPCs.skills, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
+                            createSettingsBlock_number(this.config.data.NPCs.skills, "limit", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxValueOfSkill")}),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.combatSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.combat.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.combat.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.NPCs.skills.combat),
                                 },
                             },
 
@@ -1146,8 +1253,7 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.magicSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.magic.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.magic.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.NPCs.skills.magic),
                                 },
                             },
 
@@ -1156,8 +1262,7 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.stealthSkills"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_region(this.config.data.NPCs.skills.stealth.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                                    createSettingsBlock_offset(this.config.data.NPCs.skills.stealth.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                                    createSettingsBlock_regionMinMax(this.config.data.NPCs.skills.stealth),
                                 },
                             },
                         },
@@ -1169,10 +1274,11 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAttributes"), this.config.data.NPCs.attributes, "randomize"),
-                            createSettingsBlock_slider(this.config.data.NPCs.attributes, "limit", 1, 1, 255, 1, {label = this.i18n("modConfig.label.maxValueOfAttribute")}),
+                            createSettingsBlock_number(this.config.data.NPCs.attributes, "limit", 1, 1, nil, 1, {label = this.i18n("modConfig.label.maxValueOfAttribute")}),
 
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "min", 100, 0, 100, 1, {label = this.i18n("modConfig.label.minAttributeVal"),}),
-                            createSettingsBlock_minmaxp(this.config.data.NPCs.attributes.region, "max", 100, 0, 100, 1, {label = this.i18n("modConfig.label.maxAttributeVal"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.attributes, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1182,20 +1288,16 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFight"), this.config.data.NPCs.ai.fight, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.fight.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.fight.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.ai.fight),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIFlee"), this.config.data.NPCs.ai.flee, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.flee.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.flee.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.ai.flee),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIAlarm"), this.config.data.NPCs.ai.alarm, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.alarm.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.alarm.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.ai.alarm),
 
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAIHello"), this.config.data.NPCs.ai.hello, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.ai.hello.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.ai.hello.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.ai.hello),
                         },
                     },
 
@@ -1205,17 +1307,18 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeSpells"), this.config.data.NPCs.spells, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.spells.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.spells.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.spells),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewSpells"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.spells.add, "levelReference", 1, 1, 50, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.spells.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddSpell")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.spells.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createOnOffIngameButton(this.i18n("modConfig.label.spellsBySkill"), this.config.data.NPCs.spells.add, "bySkill"),
+                                    createSettingsBlock_number(this.config.data.NPCs.spells.add, "bySkillMax", 1, 1, nil, 1, {label = this.i18n("modConfig.label.spellsBySkillMax")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.spells.add, "levelReference", 1, 1, nil, 1, {label = this.i18n("modConfig.label.levelLimiter"), descr = this.i18n("modConfig.description.listLimiter")}),
                                 },
                             },
                         },
@@ -1227,16 +1330,15 @@ function this.registerModConfig()
                         description = this.i18n("modConfig.description.abilitiesCategory"),
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeAbilities"), this.config.data.NPCs.abilities, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.abilities.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.abilities.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.abilities),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewAbilities"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.abilities.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.abilities.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddAbility")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.abilities.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -1248,16 +1350,15 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDiseases"), this.config.data.NPCs.diseases, "randomize"),
-                            createSettingsBlock_region(this.config.data.NPCs.diseases.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.NPCs.diseases.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.NPCs.diseases),
 
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addNewDiseases"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.diseases.add, "count", 1, 0, 50, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.diseases.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddDisease")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.diseases.add, "count", 1, 0, nil, 1, {label = this.i18n("modConfig.label.addXMore")}),
                                 },
                             },
                         },
@@ -1273,11 +1374,11 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.positiveEffects"),
                                 description = this.i18n("modConfig.description.positiveEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.effects.positive.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.effects.positive.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.positive.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.effects.positive.add, varStr = "region", link = true, integer = true, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minEffectVal")}, max = {label = this.i18n("modConfig.label.maxEffectVal")}}}),
                                 },
                             },
 
@@ -1286,11 +1387,11 @@ function this.registerModConfig()
                                 label = this.i18n("modConfig.label.negativeEffects"),
                                 description = this.i18n("modConfig.description.negativeEffects"),
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
-                                    createSettingsBlock_slider(this.config.data.NPCs.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.effects.negative.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd"), descr = this.i18n("modConfig.description.chanceToAddEffect")}),
+                                    createSettingsBlock_number(this.config.data.NPCs.effects.negative.add, "count", 1, 0, 10, 1, {label = this.i18n("modConfig.label.addXMore")}),
 
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "min", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minEffectVal"),}),
-                                    createSettingsBlock_minmaxp(this.config.data.NPCs.effects.negative.add.region, "max", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxEffectVal"),}),
+                                    createSettingsBlock_minmax_alt({varTable = this.config.data.NPCs.effects.negative.add, varStr = "region", link = true, integer = true, min = 0,
+                                        text = {min = {label = this.i18n("modConfig.label.minEffectVal")}, max = {label = this.i18n("modConfig.label.maxEffectVal")}}}),
                                 },
                             },
                         },
@@ -1307,8 +1408,9 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeMerchantGold"), this.config.data.barterGold, "randomize"),
-                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "min", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.minMultiplier"),}),
-                            createSettingsBlock_minmaxp(this.config.data.barterGold.region, "max", 100, 0, 1000, 1, {label = this.i18n("modConfig.label.maxMultiplier"),}),
+                            createSettingsBlock_minmax_alt({varTable = this.config.data.barterGold, varStr = "region", button = true, link = true,
+                                buttonVarStr = "additive", text = {button = {onText = this.i18n("modConfig.label.addBetween"), offText = this.i18n("modConfig.label.multiplyBetween")},
+                                min = {label = this.i18n("modConfig.label.min")}, max = {label = this.i18n("modConfig.label.max")}}}),
                         },
                     },
 
@@ -1318,8 +1420,8 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeTransport"), this.config.data.transport, "randomize"),
-                            createSettingsBlock_slider(this.config.data.transport, "unrandomizedCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsWithoutRand")}),
-                            createSettingsBlock_slider(this.config.data.transport, "toDoorsCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsToDoor")}),
+                            createSettingsBlock_number(this.config.data.transport, "unrandomizedCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsWithoutRand")}),
+                            createSettingsBlock_number(this.config.data.transport, "toDoorsCount", 1, 0, 4, 1, {label = this.i18n("modConfig.label.numOfDestinationsToDoor")}),
                         },
                     },
                 },
@@ -1334,8 +1436,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeItemInCont"), this.config.data.containers.items, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.containers.items.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.containers.items),
                         },
                     },
 
@@ -1345,15 +1446,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeLock"), this.config.data.containers.lock, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.lock.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.containers.lock.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.containers.lock),
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
-                                    createSettingsBlock_slider(this.config.data.containers.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
+                                    createSettingsBlock_number(this.config.data.containers.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
+                                    createSettingsBlock_number(this.config.data.containers.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
                         },
@@ -1365,15 +1465,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrap"), this.config.data.containers.trap, "randomize"),
-                            createSettingsBlock_region(this.config.data.containers.trap.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.containers.trap.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.containers.trap),
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
-                                    createSettingsBlock_slider(this.config.data.containers.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
+                                    createSettingsBlock_number(this.config.data.containers.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
+                                    createSettingsBlock_number(this.config.data.containers.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.containers.trap.add, "onlyDestructionSchool"),
                                 },
                             },
@@ -1391,8 +1490,8 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoors"), this.config.data.doors, "randomize"),
-                            createSettingsBlock_slider(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
-                            createSettingsBlock_slider(this.config.data.doors, "cooldown", 1, 0, 500, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
+                            createSettingsBlock_number(this.config.data.doors, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToRandomize")}),
+                            createSettingsBlock_number(this.config.data.doors, "cooldown", 1, 0, nil, 1, {label = this.i18n("modConfig.label.cooldownGameHours")}),
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeDoorsWhenCellLoading"), this.config.data.doors, "onlyOnCellRandomization"),
                             createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInToIn"), this.config.data.doors, "doNotRandomizeInToIn"),
                             {
@@ -1401,7 +1500,7 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.randomizeOnlyToNearestDoors"), this.config.data.doors, "onlyNearest"),
-                                    createSettingsBlock_slider(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
+                                    createSettingsBlock_number(this.config.data.doors, "nearestCellDepth", 1, 1, 10, 1, {label = this.i18n("modConfig.label.radiusInCellsForCell")}),
                                     {
                                         class = "Category",
                                         label = this.i18n("modConfig.label.smartAlgorithm"),
@@ -1422,15 +1521,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeLock"), this.config.data.doors.lock, "randomize"),
-                            createSettingsBlock_region(this.config.data.doors.lock.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.doors.lock.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.doors.lock),
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addLock"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
-                                    createSettingsBlock_slider(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
+                                    createSettingsBlock_number(this.config.data.doors.lock.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToLock")}),
+                                    createSettingsBlock_number(this.config.data.doors.lock.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.lockLevMul"), descr = this.i18n("modConfig.description.lockLevMul")}),
                                 },
                             },
                             {
@@ -1439,7 +1537,7 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.doNotLockIfNoEnemy"), this.config.data.doors.lock.safeCellMode, "enabled"),
-                                    createSettingsBlock_slider(this.config.data.doors.lock.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
+                                    createSettingsBlock_number(this.config.data.doors.lock.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
                                 },
                             },
                         },
@@ -1451,15 +1549,14 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrap"), this.config.data.doors.trap, "randomize"),
-                            createSettingsBlock_region(this.config.data.doors.trap.region, {label = this.i18n("modConfig.label.regionSize"), descr = this.i18n("modConfig.description.region")}),
-                            createSettingsBlock_offset(this.config.data.doors.trap.region, {label = this.i18n("modConfig.label.regionOffset"), descr = this.i18n("modConfig.description.region")}),
+                            createSettingsBlock_regionMinMax(this.config.data.doors.trap),
                             {
                                 class = "Category",
                                 label = this.i18n("modConfig.label.addTrap"),
                                 description = "",
                                 components = {
-                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
-                                    createSettingsBlock_slider(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
+                                    createSettingsBlock_number(this.config.data.doors.trap.add, "chance", 100, 0, 100, 1, {label = this.i18n("modConfig.label.chanceToAdd")}),
+                                    createSettingsBlock_number(this.config.data.doors.trap.add, "levelMultiplier", 1, 0, 100, 1, {label = this.i18n("modConfig.label.maxValMulOfTrapSpell"), descr = this.i18n("modConfig.description.trapSpellListSize")}),
                                     createOnOffIngameButton(this.i18n("modConfig.label.useOnlyDestruction"), this.config.data.doors.trap.add, "onlyDestructionSchool"),
                                 },
                             },
@@ -1469,7 +1566,7 @@ function this.registerModConfig()
                                 description = "",
                                 components = {
                                     createOnOffIngameButton(this.i18n("modConfig.label.doNotTrapIfNoEnemy"), this.config.data.doors.trap.safeCellMode, "enabled"),
-                                    createSettingsBlock_slider(this.config.data.doors.trap.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
+                                    createSettingsBlock_number(this.config.data.doors.trap.safeCellMode, "fightValue", 1, 0, 100, 1, {label = this.i18n("modConfig.label.minFightToBeEnemy")}),
                                 },
                             },
                         },
@@ -1576,7 +1673,7 @@ function this.registerModConfig()
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeHerbs"), this.config.data.herbs, "randomize"),
                             createOnOffIngameButton(this.i18n("modConfig.label.doNotRandomizeInventoryForHerb"), this.config.data.herbs, "doNotRandomizeInventory"),
-                            createSettingsBlock_slider(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 20, 1, {label = this.i18n("modConfig.label.herbSpeciesPerCell")}),
+                            createSettingsBlock_number(this.config.data.herbs, "herbSpeciesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.herbSpeciesPerCell")}),
                         },
                     },
                     {
@@ -1585,6 +1682,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeTrees"), this.config.data.trees, "randomize"),
+                            createSettingsBlock_number(this.config.data.trees, "typesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {
@@ -1593,6 +1691,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeStones"), this.config.data.stones, "randomize"),
+                            createSettingsBlock_number(this.config.data.stones, "typesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {
@@ -1601,7 +1700,7 @@ function this.registerModConfig()
                         description = "",
                         components = {
                             createOnOffIngameButton(this.i18n("modConfig.label.randomizeFlora"), this.config.data.flora, "randomize"),
-                            createSettingsBlock_slider(this.config.data.flora, "typesPerCell", 1, 1, 10, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
+                            createSettingsBlock_number(this.config.data.flora, "typesPerCell", 1, 1, 50, 1, {label = this.i18n("modConfig.label.speciesPerCell")}),
                         },
                     },
                     {

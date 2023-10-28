@@ -7,18 +7,24 @@ local extension = ".mwrdata"
 ---@class mwrStorage
 local this = {}
 
-this.version = 5
+this.version = 6
 
-this.data = {items = {}, actors = {}, enchantments = {}, version = this.version}
+this.data = {items = {}, actors = {}, enchantments = {}, version = this.version, playerId = nil}
 this.initial = {items = {}, actors = {}, enchantments = {}, version = this.version}
 
+function this.resetStorageData()
+    this.data.items = {}
+    this.data.actors = {}
+    this.data.enchantments = {}
+end
+
 ---@param fileName string
-function this.saveToFile(fileName)
+function this.saveToFile(fileName, playerId)
     log("Saving data to %s", fileName)
     local itemsJson = json.encode(this.data.items, nil)
     local actorsJson = json.encode(this.data.actors, nil)
     local enchantmentsJson = json.encode(this.data.enchantments, nil)
-    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson, enchantmentsJson = enchantmentsJson, version = this.version}
+    local fileTable = {itemsJson = itemsJson, actorsJson = actorsJson, enchantmentsJson = enchantmentsJson, version = this.version, playerId = playerId}
     file.save.toSaveDirectory(fileName..extension, fileTable)
 end
 
@@ -29,6 +35,7 @@ function this.loadFromFile(fileName)
     local fileTable = file.load.fromSaveDirectory(fileName..extension)
     if fileTable then
         this.data.version = fileTable.version
+        this.data.playerId = fileTable.playerId
         local items = json.decode(fileTable.itemsJson)
         local actors = json.decode(fileTable.actorsJson)
         local enchantments = json.decode(fileTable.enchantmentsJson)

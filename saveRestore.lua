@@ -222,10 +222,19 @@ end
 
 ---@return table
 function this.serializeActorBaseObject(object)
-    local data = {spells = {}}
+    local data = {spells = {}, skills = {}}
 
     for i, spell in pairs(object.spells) do
         table.insert(data.spells, spell.id)
+    end
+    for i, val in ipairs(object.skills) do
+        table.insert(data.skills, val)
+    end
+    if object.attributes then
+        data.attributes = {}
+        for i, val in ipairs(object.attributes) do
+            table.insert(data.attributes, val)
+        end
     end
     data.barterGold = object.barterGold
 
@@ -265,6 +274,18 @@ function this.restoreActorBaseObject(object, data)
         end
         for i, spellId in ipairs(data.spells) do
             object.spells:add(spellId)
+        end
+    end
+
+    if data.skills then
+        for id, val in ipairs(data.skills) do
+            object.skills[id] = val
+        end
+    end
+
+    if data.attributes then
+        for id, val in ipairs(data.attributes) do
+            object.attributes[id] = val
         end
     end
 
