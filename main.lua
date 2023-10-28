@@ -56,7 +56,6 @@ local function forcedActorRandomization(reference)
                 randomizer.StopRandomizationTemp(reference)
             end
             if reference.baseObject.objectType == tes3.objectType.npc then
-                reference.object:reevaluateEquipment()
                 reference:updateEquipment()
             end
         end
@@ -71,7 +70,6 @@ local function randomizeActor(reference)
         end
     else
         if reference.baseObject.objectType == tes3.objectType.npc then
-            reference.object:reevaluateEquipment()
             reference:updateEquipment()
         end
     end
