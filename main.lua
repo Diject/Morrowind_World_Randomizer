@@ -303,7 +303,7 @@ local function leveledItemPicked(e)
                         goldToAdd = goldToAdd - 1
                     end
                 elseif e.pick.isSoulGem then
-                    if randomizer.config.soulGems.soul.add.chance > math.random() then
+                    if randomizer.config.data.soulGems.soul.add.chance > math.random() then
                         local creaGroup = randomizer.creaturesData.CreatureGroups[tostring(math.random(0, 3))]
                         if creaGroup then
                             tes3.addItem{ reference = e.spawner, item = e.pick.id, count = 1, soul = randomizer.getRandomSoulIdForGem(creaGroup, e.pick.soulGemCapacity)}
