@@ -45,13 +45,8 @@ function this.genStaticData()
     --     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
     --     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
     -- end
-    mwse.log("old rocks %d", #rocksData.Groups)
-    mwse.log("old trees %d", #treesData.Groups)
     rocksData = generator.fillRocks()
-    treesData = generator.fillTrees()
-    mwse.log("new rocks %d", #rocksData.Groups)
-    mwse.log("new trees %d", #treesData.Groups)
-    -- generator.correctStaticsData(treesData)
+    generator.correctStaticsData(treesData)
     -- generator.correctStaticsData(rocksData)
     floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
@@ -107,10 +102,10 @@ function this.genStaticData()
     travelDestinationsData = generator.findTravelDestinations()
     itemLibData = itemLib.generateData()
 
-    local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
-    local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
-    json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", newRocksData)
-    json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
+    -- local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
+    -- local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", newRocksData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -529,22 +524,15 @@ function this.createObject(object)
     return nil
 end
 
-local treesGroupId = 1
-local rocksGroupId = 1
 function this.randomizeCell(cell)
     log("Cell randomization %s", tostring(cell.editorName))
     local newObjects = {}
     local config = this.config.data
 
-
-    -- local newTreeGroupId = math.random(1, #treesData.Groups)
-    -- local newRockGroupId = math.random(1, #rocksData.Groups)
-    -- local newTreeGroup = treesData.Groups[newTreeGroupId]
-    -- local newRockGroup = rocksData.Groups[newRockGroupId]
-    treesGroupId = treesGroupId == #treesData.Groups and 1 or treesGroupId + 1
-    rocksGroupId = rocksGroupId == #rocksData.Groups and 1 or rocksGroupId + 1
-    local newTreeGroup = treesData.Groups[treesGroupId]
-    local newRockGroup = rocksData.Groups[rocksGroupId]
+    local newTreeGroupId = math.random(1, #treesData.Groups)
+    local newRockGroupId = math.random(1, #rocksData.Groups)
+    local newTreeGroup = treesData.Groups[newTreeGroupId]
+    local newRockGroup = rocksData.Groups[newRockGroupId]
     local newFloraGroup = {}
     for i = 1, this.config.data.flora.typesPerCell do
         local groupId = math.random(1, #floraData.Groups)
