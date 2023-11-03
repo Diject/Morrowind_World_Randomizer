@@ -1,6 +1,9 @@
 local log = require("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 
+local profilesDirectory = "\\Data Files\\MWSE\\mods\\Morrowind_World_Randomizer\\Presets\\"
+local profilesPath = tes3.installDirectory..profilesDirectory
+
 local this = {}
 
 this.fullyLoaded = false;
@@ -525,6 +528,13 @@ if this.profiles == nil then
     this.profiles = mwse.loadConfig(profileFileName)
 end
 
+for file in lfs.dir(profilesPath) do
+    if file:sub(-4) == ".toml" then
+        local profileName = file:sub(#file - 4)
+        this.loadProfileFromFile(profilesDirectory..profileName, profileName:lower())
+    end
+end
+
 -- if not this.profiles["default"] then
     this.profiles["default"] = deepcopy(this.default)
 -- end
@@ -717,16 +727,29 @@ function this.getProfile(profileName)
 end
 
 function this.saveProfiles()
+    for name, data in pairs(this.profiles) do
+        if not this.defaultProfileNames[name] then
+            local nameLower = name:lower()
+            this.saveProfileToFile(nameLower, profilesPath..nameLower..".toml")
+        end
+    end
     mwse.saveConfig(profileFileName, this.profiles)
 end
 
 function this.saveCurrentProfile(profileName)
     this.profiles[profileName] = this.data
+    this.profiles[profileName].enabled = nil
+    this.profiles[profileName].playerId = nil
+    this.profiles[profileName].version = nil
 end
 
 function this.deleteProfile(profileName)
     if this.profiles[profileName] then
         this.profiles[profileName] = nil
+        local filePath = profilesPath..(profileName:lower())..".toml"
+        if lfs.fileexists(filePath) then
+            os.remove(filePath)
+        end
     end
 end
 
@@ -734,12 +757,36 @@ function this.loadProfile(profileName)
     local data = this.getProfile(profileName)
     if data then
         local enabled = this.data.enabled
+        local plId = this.data.playerId
+        local ver = this.data.version
         addMissing(data, this.default)
         applyChanges(this.data, data)
         this.data.enabled = enabled
+        this.data.playerId = plId
+        this.data.version = ver
         return true
     end
     return false
+end
+
+function this.loadProfileFromFile(path, profileName)
+    local data, error = toml.loadFile(path)
+    if data then
+        this.profiles[profileName] = deepcopy(this.default)
+        applyChanges(this.profiles[profileName], data)
+        log("Profile %s from \"%s\" loaded", profileName, path)
+    elseif error then
+        for _, err in pairs(error) do
+            log("Profile loading error "..err)
+        end
+    end
+end
+
+function this.saveProfileToFile(profileName, path)
+    if this.profiles[profileName] then
+        toml.saveFile(path, this.profiles[profileName])
+        log("Profile %s saved to \"%s\"", profileName, path)
+    end
 end
 
 if this.global.globalConfig then

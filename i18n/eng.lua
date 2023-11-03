@@ -355,6 +355,6 @@ return {
 
     ["modConfig.label.generateTreeData"] = "Generate tree data after the game starts",
     ["modConfig.label.generateRockData"] = "Generate rock data after the game starts",
-    ["modConfig.text.dataGeneration"] = "By default, the mod uses pregenerated data tables (with base game data, TR Data v10 and OAAB Data) for randomization of rock and tree static objects. You can enable the options below to generate this data when the game starts.",
+    ["modConfig.text.dataGeneration"] = "By default, the mod uses pregenerated data tables (with base game data, Tamriel Data v10 and OAAB Data) for randomization of rock and tree static objects. You can enable the options below to generate this data when the game starts.",
     ["modConfig.label.regenerateData"] = "Re-generate all data",
 }

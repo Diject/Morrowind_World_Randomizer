@@ -382,14 +382,15 @@ function this.registerModConfig()
                                         return ""
                                     end,
                                     set = function(self, val)
-                                        local exists = false
-                                        for i, profileVal in pairs(profilesList) do
-                                            if profileVal.value == val then
-                                                exists = true
-                                                break
-                                            end
-                                        end
-                                        if not exists then
+                                        val = val:lower()
+                                        -- local exists = false
+                                        -- for i, profileVal in pairs(profilesList) do
+                                        --     if profileVal.value == val then
+                                        --         exists = true
+                                        --         break
+                                        --     end
+                                        -- end
+                                        if not this.config.defaultProfileNames[val] then
                                             currentConfig = nil
                                             table.insert(profilesList, {label = val, value = val})
                                             if updateProfileDropdown then updateProfileDropdown() end
