@@ -135,11 +135,16 @@ this.forbiddenIds = {
 
 this.forbiddenModels = { -- lowercase
     ["pc\\f\\pc_help_deprec_01.nif"] = true,
+    ["td\\td_help_deprec_01.nif"] = true,
 }
 
 this.scriptWhiteList = {
     ["LegionUniform"] = true,
     ["OrdinatorUniform"] = true,
+}
+
+this.staticWhiteList = {
+    ["ex_t_menhir_l_01"] = true,
 }
 
 this.obtainableArtifacts = {["boots_apostle_unique"]=true,["tenpaceboots"]=true,["cuirass_savior_unique"]=true,["dragonbone_cuirass_unique"]=true,["lords_cuirass_unique"]=true,["daedric_helm_clavicusvile"]=true,["ebony_shield_auriel"]=true,["towershield_eleidon_unique"]=true,["spell_breaker_unique"]=true,["ring_vampiric_unique"]=true,["ring_warlock_unique"]=true,["warhammer_crusher_unique"]=true,["staff_hasedoki_unique"]=true,["staff_magnus_unique"]=true,["ebony_bow_auriel"]=true,["longbow_shadows_unique"]=true,["claymore_chrysamere_unique"]=true,["claymore_iceblade_unique"]=true,["longsword_umbra_unique"]=true,["dagger_fang_unique"]=true,["mace of slurring"]=true,["robe_lich_unique"]=true,}
