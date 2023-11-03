@@ -69,6 +69,9 @@ local function randomizeActor(reference)
             randomizer.StopRandomization(reference)
         end
     else
+        if reference.mobile.chameleon > 0 then
+            reference.mobile:updateOpacity()
+        end
         if reference.baseObject.objectType == tes3.objectType.npc then
             reference:updateEquipment()
         end
