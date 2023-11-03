@@ -12,6 +12,7 @@ local menus = include("Morrowind_World_Randomizer.menu")(i18n)
 local storage = include("Morrowind_World_Randomizer.storage")
 local saveRestore = include("Morrowind_World_Randomizer.saveRestore")
 local inventoryEvents = include("Morrowind_World_Randomizer.inventoryEvents")
+local random = include("Morrowind_World_Randomizer.Random")
 
 local currentMenu = nil
 
@@ -33,29 +34,32 @@ local function setCellLastRandomizeTime(cellId, timestamp, gameTime)
 end
 
 local function forcedActorRandomization(reference)
-    local mobile = reference.mobile
-    if mobile then
-        randomizer.randomizeMobileActor(mobile)
-        randomizer.randomizeScale(reference)
+    timer.delayOneFrame(function()
+        local mobile = reference.mobile
+        if mobile then
+            randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
+            randomizer.randomizeMobileActor(mobile)
+            randomizer.randomizeScale(reference)
 
-        randomizer.randomizeActorBaseObject(mobile.object.baseObject, mobile.actorType)
-
-        local configGroup
-        if reference.object.objectType == tes3.objectType.npc then
-            configGroup = randomizer.config.data.NPCs
-        elseif reference.object.objectType == tes3.objectType.creature then
-            configGroup = randomizer.config.data.creatures
+            local configGroup
+            if reference.object.objectType == tes3.objectType.npc then
+                configGroup = randomizer.config.data.NPCs
+            elseif reference.object.objectType == tes3.objectType.creature then
+                configGroup = randomizer.config.data.creatures
+            end
+            if configGroup.items.randomize then
+                randomizer.randomizeContainerItems(reference, configGroup.items.region.min, configGroup.items.region.max)
+            end
+            if configGroup.randomizeOnlyOnce then
+                randomizer.StopRandomization(reference)
+            else
+                randomizer.StopRandomizationTemp(reference)
+            end
+            if reference.baseObject.objectType == tes3.objectType.npc then
+                reference:updateEquipment()
+            end
         end
-        if configGroup.items.randomize then
-            randomizer.randomizeContainerItems(reference, configGroup.items.region.min, configGroup.items.region.max)
-        end
-        if configGroup.randomizeOnlyOnce then
-            randomizer.StopRandomization(reference)
-        else
-            randomizer.StopRandomizationTemp(reference)
-        end
-        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
-    end
+    end)
 end
 
 local function randomizeActor(reference)
@@ -65,7 +69,9 @@ local function randomizeActor(reference)
             randomizer.StopRandomization(reference)
         end
     else
-        if reference.baseObject.objectType == tes3.objectType.npc then reference:updateEquipment() end
+        if reference.baseObject.objectType == tes3.objectType.npc then
+            reference:updateEquipment()
+        end
     end
 end
 
@@ -218,11 +224,19 @@ local function saved(e)
     else
         saveName = filename
     end
-    storage.saveToFile(saveName)
+    storage.saveToFile(saveName, randomizer.config.data.playerId)
     randomizer.config.saveOnlyGlobal()
 end
 
 local function loaded(e)
+
+    if storage.data.playerId and randomizer.config.getConfig().playerId ~= storage.data.playerId then
+        storage.restoreAllActors(true)
+        storage.restoreAllItems(true, true)
+        storage.restoreAllEnchantments(true)
+        storage.resetStorageData()
+    end
+
     timer.start{duration = 0.5, callback = oneSecRealTimerCallback, iterations = -1,
             persist  = false, type = timer.real}
 
@@ -258,34 +272,44 @@ end
 local goldToAdd = 0
 local function leveledItemPicked(e)
     if randomizer.config.getConfig().enabled then
-        if e.pick ~= nil and e.pick.id ~= nil and (randomizer.config.data.containers.items.randomize or (randomizer.config.data.item.unique and
-                itemLib.itemTypeForUnique[e.pick.objectType])) and
-                not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
+        if e.pick ~= nil and e.pick.id ~= nil then
+            if (randomizer.config.data.containers.items.randomize or (randomizer.config.data.item.unique and
+                    itemLib.itemTypeForUnique[e.pick.objectType])) and
+                    not randomizer.isRandomizationStoppedTemp(e.spawner) and not randomizer.isRandomizationStopped(e.spawner) then
 
-            if e.pick.objectType == tes3.objectType.miscItem and e.pick.id == "Gold_001" and e.spawner ~= nil then
-
-                local newCount = randomizer.config.data.gold.region.min + math.random() *
-                    (randomizer.config.data.gold.region.max - randomizer.config.data.gold.region.min)
-
-                goldToAdd = goldToAdd + newCount
-                if goldToAdd >= 2 then
-                    local count = math.floor(goldToAdd - 1)
-                    tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
-                    goldToAdd = goldToAdd - count
+                local newId = randomizer.getNewRandomItemId(e.pick.id)
+                if newId or randomizer.config.data.item.unique then
+                    local item = randomizer.getNewItem(newId or e.pick.id)
+                    if item then
+                        log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(item))
+                        e.pick = item
+                    end
                 end
-                if goldToAdd < 1 then
-                    e.block = true
-                else
-                    goldToAdd = goldToAdd - 1
-                end
-
             end
-            local newId = randomizer.getNewRandomItemId(e.pick.id)
-            if newId or randomizer.config.data.item.unique then
-                local item = randomizer.getNewItem(newId or e.pick.id)
-                if item then
-                    log("Leveled item picked %s to %s", tostring(e.pick.id), tostring(item))
-                    e.pick = item
+            if e.pick.objectType == tes3.objectType.miscItem and e.spawner ~= nil then
+                if e.pick.id == "Gold_001" then
+                    local newCount = randomizer.config.data.gold.additive and random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max) or
+                        random.GetBetween(randomizer.config.data.gold.region.min, randomizer.config.data.gold.region.max)
+
+                    goldToAdd = goldToAdd + newCount
+                    if goldToAdd >= 2 then
+                        local count = math.floor(goldToAdd - 1)
+                        tes3.addItem({ reference = e.spawner, item = e.pick.id, count = count, })
+                        goldToAdd = goldToAdd - count
+                    end
+                    if goldToAdd < 1 then
+                        e.block = true
+                    else
+                        goldToAdd = goldToAdd - 1
+                    end
+                elseif e.pick.isSoulGem then
+                    if randomizer.config.data.soulGems.soul.add.chance > math.random() then
+                        local creaGroup = randomizer.creaturesData.CreatureGroups[tostring(math.random(0, 3))]
+                        if creaGroup then
+                            tes3.addItem{ reference = e.spawner, item = e.pick.id, count = 1, soul = randomizer.getRandomSoulIdForGem(creaGroup, e.pick.soulGemCapacity)}
+                            e.pick = nil
+                        end
+                    end
                 end
             end
         end
@@ -503,7 +527,7 @@ event.register(tes3.event.initialized, function(e)
     require("Morrowind_World_Randomizer.customSaveFix")
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
-    event.register(tes3.event.load, load)
+    event.register(tes3.event.load, load, {priority = 9999})
     event.register(tes3.event.saved, saved)
     event.register(tes3.event.loaded, loaded)
     event.register(tes3.event.leveledItemPicked, leveledItemPicked)
