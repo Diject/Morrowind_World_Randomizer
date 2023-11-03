@@ -633,10 +633,10 @@ function this.fillRocks()
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object then
             local id = object.id:lower()
-            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) and
+            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) and (genData.staticWhiteList[id] or
                     not forbiddenModels[object.mesh:lower()] and (id:find("rock") or id:find("menhir")) and not (id:find("grass") or id:find("bush") or id:find("flora") or
                     id:find("log") or id:find("root") or id:find("tree") or id:find("parasol") or id:find("entr") or
-                    id:find("plane")) then
+                    id:find("plane"))) then
                 local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
                 if str then
                     if not data[str] then data[str] = {} end
@@ -710,7 +710,7 @@ function this.fillRocks()
                         }
                         if res then r = r + 1 end
                     end
-                    if r > 6 then
+                    if r > 6 or genData.staticWhiteList[id] then
                         out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.1, Radius = l / 2}
                         table.insert(ids, id)
                     end
@@ -730,9 +730,9 @@ function this.fillTrees()
     for _, object in pairs(tes3.dataHandler.nonDynamicData.objects) do
         if object then
             local id = object.id:lower()
-            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) and
+            if object.objectType == tes3.objectType.static and object.mesh and tes3.getFileSource("meshes\\"..object.mesh) and (genData.staticWhiteList[id] or
                     not forbiddenModels[object.mesh:lower()] and (id:find("tree") or id:find("parasol")) and not (id:find("rock") or id:find("plane") or
-                    id:find("log")) then
+                    id:find("log"))) then
                 local str = ((id:gsub("[_ ]", "") or ""):match(".+%d+") or ""):match("%a+")
                 if str then
                     if not data[str] then data[str] = {} end

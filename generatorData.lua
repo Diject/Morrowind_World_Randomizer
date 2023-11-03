@@ -143,6 +143,10 @@ this.scriptWhiteList = {
     ["OrdinatorUniform"] = true,
 }
 
+this.staticWhiteList = {
+    ["ex_t_menhir_l_01"] = true,
+}
+
 this.obtainableArtifacts = {["boots_apostle_unique"]=true,["tenpaceboots"]=true,["cuirass_savior_unique"]=true,["dragonbone_cuirass_unique"]=true,["lords_cuirass_unique"]=true,["daedric_helm_clavicusvile"]=true,["ebony_shield_auriel"]=true,["towershield_eleidon_unique"]=true,["spell_breaker_unique"]=true,["ring_vampiric_unique"]=true,["ring_warlock_unique"]=true,["warhammer_crusher_unique"]=true,["staff_hasedoki_unique"]=true,["staff_magnus_unique"]=true,["ebony_bow_auriel"]=true,["longbow_shadows_unique"]=true,["claymore_chrysamere_unique"]=true,["claymore_iceblade_unique"]=true,["longsword_umbra_unique"]=true,["dagger_fang_unique"]=true,["mace of slurring"]=true,["robe_lich_unique"]=true,}
 
 this.skillByEffectId = {[0]=11,[1]=11,[2]=11,[3]=11,[4]=11,[5]=11,[6]=11,[7]=11,[8]=11,[9]=11,[10]=11,[11]=11,[12]=11,[13]=11,[14]=10,[15]=10,[16]=10,[17]=10,[18]=10,[19]=10,[20]=10,[21]=10,[22]=10,[23]=10,[24]=10,[25]=10,[26]=10,[27]=10,[28]=10,[29]=10,[30]=10,[31]=10,[32]=10,[33]=10,[34]=10,[35]=10,[36]=10,[37]=10,[38]=10,[39]=12,[40]=12,[41]=12,[42]=12,[43]=12,[44]=12,[45]=12,[46]=12,[47]=12,[48]=12,[49]=12,[50]=12,[51]=12,[52]=12,[53]=14,[54]=12,[55]=12,[56]=12,[57]=14,[58]=14,[59]=14,[60]=14,[61]=14,[62]=14,[63]=14,[64]=14,[65]=14,[66]=14,[67]=14,[68]=14,[69]=15,[70]=15,[71]=15,[72]=15,[73]=15,[74]=15,[75]=15,[76]=15,[77]=15,[78]=15,[79]=15,[80]=15,[81]=15,[82]=15,[83]=15,[84]=15,[85]=14,[86]=14,[87]=14,[88]=14,[89]=14,[90]=15,[91]=15,[92]=15,[93]=15,[94]=15,[95]=15,[96]=15,[97]=15,[98]=15,[99]=15,[100]=15,[101]=13,[102]=13,[103]=13,[104]=13,[105]=13,[106]=13,[107]=13,[108]=13,[109]=13,[110]=13,[111]=13,[112]=13,[113]=13,[114]=13,[115]=13,[116]=13,[117]=15,[118]=13,[119]=13,[120]=13,[121]=13,[122]=13,[123]=13,[124]=13,[125]=13,[126]=13,[127]=13,[128]=13,[129]=13,[130]=13,[131]=13,[132]=10,[133]=10,[134]=13,[135]=10,[136]=10,[137]=nil,[138]=13,[139]=13,[140]=13,}
