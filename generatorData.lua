@@ -135,6 +135,7 @@ this.forbiddenIds = {
 
 this.forbiddenModels = { -- lowercase
     ["pc\\f\\pc_help_deprec_01.nif"] = true,
+    ["td\\td_help_deprec_01.nif"] = true,
 }
 
 this.scriptWhiteList = {
