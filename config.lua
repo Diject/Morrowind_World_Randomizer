@@ -59,18 +59,24 @@ local function applyChanges(toTable, fromTable)
     end
 end
 
+---@class mwr.config.global.data
 this.global = mwse.loadConfig(globalConfigName)
 ---@class mwr.config.local.data
 this.data = nil
 
+---@class mwr.config.global.data
 this.globalDefault = {
-    dataTables = {
+    dataTables = { -- deprecated
         forceTRData = false,
         usePregeneratedItemData = false,
         usePregeneratedCreatureData = false,
         usePregeneratedHeadHairData = false,
         usePregeneratedSpellData = false,
         usePregeneratedHerbData = false,
+    },
+    generation = {
+        generateTreeData = false,
+        generateRockData = false,
     },
     globalConfig = false,
     logging = false,

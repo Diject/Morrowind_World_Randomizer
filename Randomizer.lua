@@ -47,8 +47,17 @@ function this.genStaticData()
     -- end
     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
-    generator.correctStaticsData(treesData)
-    generator.correctStaticsData(rocksData)
+    if this.config.global.generation.generateTreeDataData then
+        treesData = generator.fillTrees()
+    else
+        generator.correctStaticsData(treesData)
+    end
+    if this.config.global.generation.generateRockData then
+        rocksData = generator.fillRocks()
+    else
+        generator.correctStaticsData(rocksData)
+    end
+
     floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
     --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
