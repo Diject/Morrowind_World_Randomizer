@@ -614,7 +614,7 @@ function this.fillFlora()
                     local boundingBox = ms:createBoundingBox()
                     local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
                     if l < 250 then
-                        out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.05, Radius = l / 2}
+                        out.Data[id] = {Offset = -boundingBox.min.z - math.abs((boundingBox.max.z - boundingBox.min.z) * 0.05), Radius = l / 2}
                         table.insert(ids, id)
                     end
                 end
@@ -711,7 +711,7 @@ function this.fillRocks()
                         if res then r = r + 1 end
                     end
                     if r > 6 or genData.staticWhiteList[id] then
-                        out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.1, Radius = l / 2}
+                        out.Data[id] = {Offset = -boundingBox.min.z - math.abs((boundingBox.max.z - boundingBox.min.z) * 0.1), Radius = l / 2}
                         table.insert(ids, id)
                     end
                 end
@@ -750,7 +750,7 @@ function this.fillTrees()
                 local boundingBox = ms:createBoundingBox()
                 if boundingBox then
                     local l = math.max(math.abs(boundingBox.max.x - boundingBox.min.x), math.abs(boundingBox.max.y - boundingBox.min.y))
-                    out.Data[id] = {Offset = -boundingBox.min.z - (boundingBox.max.z - boundingBox.min.z) * 0.1, Radius = l / 2}
+                    out.Data[id] = {Offset = -boundingBox.min.z - math.abs((boundingBox.max.z - boundingBox.min.z) * 0.1), Radius = l / 2}
                     table.insert(ids, id)
                 end
             end
