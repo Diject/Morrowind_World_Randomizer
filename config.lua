@@ -1,7 +1,7 @@
 local log = require("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 
-local profilesDirectory = "\\Data Files\\MWSE\\mods\\Morrowind_World_Randomizer\\Presets\\"
+local profilesDirectory = "/Data Files/MWSE/mods/Morrowind_World_Randomizer/Presets/"
 local profilesPath = tes3.installDirectory..profilesDirectory
 
 local this = {}
@@ -522,6 +522,26 @@ this.default = {
 
 this.data = deepcopy(this.default)
 
+function this.loadProfileDataFromFile(path, profileName)
+    local data, error = toml.loadFile(path)
+    if data then
+        this.profiles[profileName] = deepcopy(this.default)
+        applyChanges(this.profiles[profileName], data)
+        log("Preset \"%s\" from \"%s\" loaded", profileName, path)
+    elseif error then
+        for _, err in pairs(error) do
+            log("Preset loading error "..err)
+        end
+    end
+end
+
+function this.saveProfileDataToFile(profileName, path)
+    if this.profiles[profileName] then
+        toml.saveFile(path, this.profiles[profileName])
+        log("Preset \"%s\" saved to \"%s\"", profileName, path)
+    end
+end
+
 this.profiles = mwse.loadConfig(profileFileName)
 if this.profiles == nil then
     mwse.saveConfig(profileFileName, {})
@@ -529,9 +549,9 @@ if this.profiles == nil then
 end
 
 for file in lfs.dir(profilesPath) do
-    if file:sub(-4) == ".toml" then
-        local profileName = file:sub(#file - 4)
-        this.loadProfileFromFile(profilesDirectory..profileName, profileName:lower())
+    if file:sub(-5) == ".toml" then
+        local profileName = file:sub(1, #file - 5)
+        this.loadProfileDataFromFile(profilesPath..file, profileName:lower())
     end
 end
 
@@ -730,7 +750,7 @@ function this.saveProfiles()
     for name, data in pairs(this.profiles) do
         if not this.defaultProfileNames[name] then
             local nameLower = name:lower()
-            this.saveProfileToFile(nameLower, profilesPath..nameLower..".toml")
+            this.saveProfileDataToFile(nameLower, profilesPath..nameLower..".toml")
         end
     end
     mwse.saveConfig(profileFileName, this.profiles)
@@ -767,26 +787,6 @@ function this.loadProfile(profileName)
         return true
     end
     return false
-end
-
-function this.loadProfileFromFile(path, profileName)
-    local data, error = toml.loadFile(path)
-    if data then
-        this.profiles[profileName] = deepcopy(this.default)
-        applyChanges(this.profiles[profileName], data)
-        log("Profile %s from \"%s\" loaded", profileName, path)
-    elseif error then
-        for _, err in pairs(error) do
-            log("Profile loading error "..err)
-        end
-    end
-end
-
-function this.saveProfileToFile(profileName, path)
-    if this.profiles[profileName] then
-        toml.saveFile(path, this.profiles[profileName])
-        log("Profile %s saved to \"%s\"", profileName, path)
-    end
 end
 
 if this.global.globalConfig then
