@@ -47,7 +47,7 @@ function this.genStaticData()
     -- end
     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
-    if this.config.global.generation.generateTreeDataData then
+    if this.config.global.generation.generateTreeData then
         treesData = generator.fillTrees()
     else
         generator.correctStaticsData(treesData)
