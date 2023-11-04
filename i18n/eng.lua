@@ -58,7 +58,7 @@ return {
 
     ["modConfig.label.enableRandomizer"] = "Enable Randomizer",
 
-    ["modConfig.label.pregeneratedDataTables"] = "Pregenerated data tables",
+    ["modConfig.label.pregeneratedDataTables"] = "Data tables",
     ["modConfig.label.forceTTRData"] = "Force to use Tamriel Rebuilt data",
     ["modConfig.label.pregeneratedItems"] = "Use pregenerated item data",
     ["modConfig.label.pregeneratedCreatures"] = "Use pregenerated creature data",
@@ -352,4 +352,9 @@ return {
     ["modConfig.message.modEnabled"] = "The randomizer is enabled",
 
     ["modConfig.label.chanceToAddSoul"] = "Chance to add a soul to an empty soulgem",
+
+    ["modConfig.label.generateTreeData"] = "Generate tree data after the game starts",
+    ["modConfig.label.generateRockData"] = "Generate rock data after the game starts",
+    ["modConfig.text.dataGeneration"] = "By default, the mod uses pregenerated data tables (with base game data, Tamriel Data v10 and OAAB Data) for randomization of rock and tree static objects. You can enable the options below to generate this data when the game starts.",
+    ["modConfig.label.regenerateData"] = "Re-generate all data",
 }

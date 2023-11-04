@@ -45,8 +45,19 @@ function this.genStaticData()
     --     treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
     --     rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
     -- end
-    generator.correctStaticsData(treesData)
-    generator.correctStaticsData(rocksData)
+    treesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR")
+    rocksData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR")
+    if this.config.global.generation.generateTreeData then
+        treesData = generator.fillTrees()
+    else
+        generator.correctStaticsData(treesData)
+    end
+    if this.config.global.generation.generateRockData then
+        rocksData = generator.fillRocks()
+    else
+        generator.correctStaticsData(rocksData)
+    end
+
     floraData = generator.fillFlora()
     -- if this.config.global.dataTables.usePregeneratedItemData then
     --     if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
@@ -103,8 +114,8 @@ function this.genStaticData()
 
     -- local newRocksData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.RocksData_TR"))
     -- local newTreesData = generator.rebuildRocksTreesData(require("Morrowind_World_Randomizer.Data.TreesData_TR"))
-    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", newRocksData)
-    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", newTreesData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\RocksData_TR", rocksData)
+    -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\TreesData_TR", treesData)
 
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Items", itemsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Creatures", creaturesData)
@@ -552,7 +563,7 @@ function this.randomizeCell(cell)
     log("Cell randomization %s", tostring(cell.editorName))
     local newObjects = {}
     local config = this.config.data
-
+  
     local newTreeGroupList = {}
     local newRockGroupList = {}
     for i = 1, math.max(1, config.trees.typesPerCell) do

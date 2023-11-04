@@ -382,14 +382,15 @@ function this.registerModConfig()
                                         return ""
                                     end,
                                     set = function(self, val)
-                                        local exists = false
-                                        for i, profileVal in pairs(profilesList) do
-                                            if profileVal.value == val then
-                                                exists = true
-                                                break
-                                            end
-                                        end
-                                        if not exists then
+                                        val = val:lower()
+                                        -- local exists = false
+                                        -- for i, profileVal in pairs(profilesList) do
+                                        --     if profileVal.value == val then
+                                        --         exists = true
+                                        --         break
+                                        --     end
+                                        -- end
+                                        if not this.config.defaultProfileNames[val] then
                                             currentConfig = nil
                                             table.insert(profilesList, {label = val, value = val})
                                             if updateProfileDropdown then updateProfileDropdown() end
@@ -513,78 +514,37 @@ function this.registerModConfig()
                         label = this.i18n("modConfig.label.pregeneratedDataTables"),
                         description = "",
                         components = {
+                            createText(nil, this.i18n("modConfig.text.dataGeneration")),
                             {
-                                label = this.i18n("modConfig.label.forceTTRData"),
+                                label = this.i18n("modConfig.label.generateTreeData"),
                                 class = "OnOffButton",
                                 variable = {
                                     class = "Variable",
-                                    get = function(self) return this.config.global.dataTables.forceTRData end,
+                                    get = function(self) return this.config.global.generation.generateTreeData end,
                                     set = function(self, val)
-                                        this.config.global.dataTables.forceTRData = val
-                                        this.funcs.generateStaticFunc()
+                                        this.config.global.generation.generateTreeData = val
                                     end,
                                 },
                             },
-                            -- {
-                            --     label = this.i18n("modConfig.label.pregeneratedItems"),
-                            --     class = "OnOffButton",
-                            --     variable = {
-                            --         class = "Variable",
-                            --         get = function(self) return this.config.global.dataTables.usePregeneratedItemData end,
-                            --         set = function(self, val)
-                            --             this.config.global.dataTables.usePregeneratedItemData = val
-                            --             this.funcs.generateStaticFunc()
-                            --         end,
-                            --     },
-                            -- },
-                            -- {
-                            --     label = this.i18n("modConfig.label.pregeneratedCreatures"),
-                            --     class = "OnOffButton",
-                            --     variable = {
-                            --         class = "Variable",
-                            --         get = function(self) return this.config.global.dataTables.usePregeneratedCreatureData end,
-                            --         set = function(self, val)
-                            --             this.config.global.dataTables.usePregeneratedCreatureData = val
-                            --             this.funcs.generateStaticFunc()
-                            --         end,
-                            --     },
-                            -- },
-                            -- {
-                            --     label = this.i18n("modConfig.label.pregeneratedHeadHair"),
-                            --     class = "OnOffButton",
-                            --     variable = {
-                            --         class = "Variable",
-                            --         get = function(self) return this.config.global.dataTables.usePregeneratedHeadHairData end,
-                            --         set = function(self, val)
-                            --             this.config.global.dataTables.usePregeneratedHeadHairData = val
-                            --             this.funcs.generateStaticFunc()
-                            --         end,
-                            --     },
-                            -- },
-                            -- {
-                            --     label = this.i18n("modConfig.label.pregeneratedSpells"),
-                            --     class = "OnOffButton",
-                            --     variable = {
-                            --         class = "Variable",
-                            --         get = function(self) return this.config.global.dataTables.usePregeneratedSpellData end,
-                            --         set = function(self, val)
-                            --             this.config.global.dataTables.usePregeneratedSpellData = val
-                            --             this.funcs.generateStaticFunc()
-                            --         end,
-                            --     },
-                            -- },
-                            -- {
-                            --     label = this.i18n("modConfig.label.pregeneratedHerbs"),
-                            --     class = "OnOffButton",
-                            --     variable = {
-                            --         class = "Variable",
-                            --         get = function(self) return this.config.global.dataTables.usePregeneratedHerbData end,
-                            --         set = function(self, val)
-                            --             this.config.global.dataTables.usePregeneratedHerbData = val
-                            --             this.funcs.generateStaticFunc()
-                            --         end,
-                            --     },
-                            -- },
+                            {
+                                label = this.i18n("modConfig.label.generateRockData"),
+                                class = "OnOffButton",
+                                variable = {
+                                    class = "Variable",
+                                    get = function(self) return this.config.global.generation.generateRockData end,
+                                    set = function(self, val)
+                                        this.config.global.generation.generateRockData = val
+                                    end,
+                                },
+                            },
+                            {
+                                class = "Button",
+                                buttonText = this.i18n("modConfig.label.regenerateData"),
+                                inGameOnly = false,
+                                callback = function()
+                                    this.funcs.generateStaticFunc()
+                                end,
+                            },
                         },
                     },
                     {

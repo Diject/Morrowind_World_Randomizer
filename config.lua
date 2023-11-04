@@ -1,6 +1,9 @@
 local log = require("Morrowind_World_Randomizer.log")
 local dataSaver = include("Morrowind_World_Randomizer.dataSaver")
 
+local profilesDirectory = "/Data Files/MWSE/mods/Morrowind_World_Randomizer/Presets/"
+local profilesPath = tes3.installDirectory..profilesDirectory
+
 local this = {}
 
 this.fullyLoaded = false;
@@ -59,18 +62,24 @@ local function applyChanges(toTable, fromTable)
     end
 end
 
+---@class mwr.config.global.data
 this.global = mwse.loadConfig(globalConfigName)
 ---@class mwr.config.local.data
 this.data = nil
 
+---@class mwr.config.global.data
 this.globalDefault = {
-    dataTables = {
+    dataTables = { -- deprecated
         forceTRData = false,
         usePregeneratedItemData = false,
         usePregeneratedCreatureData = false,
         usePregeneratedHeadHairData = false,
         usePregeneratedSpellData = false,
         usePregeneratedHerbData = false,
+    },
+    generation = {
+        generateTreeData = false,
+        generateRockData = false,
     },
     globalConfig = false,
     logging = false,
@@ -513,10 +522,37 @@ this.default = {
 
 this.data = deepcopy(this.default)
 
+function this.loadProfileDataFromFile(path, profileName)
+    local data, error = toml.loadFile(path)
+    if data then
+        this.profiles[profileName] = deepcopy(this.default)
+        applyChanges(this.profiles[profileName], data)
+        log("Preset \"%s\" from \"%s\" loaded", profileName, path)
+    elseif error then
+        for _, err in pairs(error) do
+            log("Preset loading error "..err)
+        end
+    end
+end
+
+function this.saveProfileDataToFile(profileName, path)
+    if this.profiles[profileName] then
+        toml.saveFile(path, this.profiles[profileName])
+        log("Preset \"%s\" saved to \"%s\"", profileName, path)
+    end
+end
+
 this.profiles = mwse.loadConfig(profileFileName)
 if this.profiles == nil then
     mwse.saveConfig(profileFileName, {})
     this.profiles = mwse.loadConfig(profileFileName)
+end
+
+for file in lfs.dir(profilesPath) do
+    if file:sub(-5) == ".toml" then
+        local profileName = file:sub(1, #file - 5)
+        this.loadProfileDataFromFile(profilesPath..file, profileName:lower())
+    end
 end
 
 -- if not this.profiles["default"] then
@@ -711,16 +747,29 @@ function this.getProfile(profileName)
 end
 
 function this.saveProfiles()
+    for name, data in pairs(this.profiles) do
+        if not this.defaultProfileNames[name] then
+            local nameLower = name:lower()
+            this.saveProfileDataToFile(nameLower, profilesPath..nameLower..".toml")
+        end
+    end
     mwse.saveConfig(profileFileName, this.profiles)
 end
 
 function this.saveCurrentProfile(profileName)
     this.profiles[profileName] = this.data
+    this.profiles[profileName].enabled = nil
+    this.profiles[profileName].playerId = nil
+    this.profiles[profileName].version = nil
 end
 
 function this.deleteProfile(profileName)
     if this.profiles[profileName] then
         this.profiles[profileName] = nil
+        local filePath = profilesPath..(profileName:lower())..".toml"
+        if lfs.fileexists(filePath) then
+            os.remove(filePath)
+        end
     end
 end
 
@@ -728,9 +777,13 @@ function this.loadProfile(profileName)
     local data = this.getProfile(profileName)
     if data then
         local enabled = this.data.enabled
+        local plId = this.data.playerId
+        local ver = this.data.version
         addMissing(data, this.default)
         applyChanges(this.data, data)
         this.data.enabled = enabled
+        this.data.playerId = plId
+        this.data.version = ver
         return true
     end
     return false
