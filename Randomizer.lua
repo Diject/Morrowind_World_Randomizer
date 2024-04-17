@@ -326,7 +326,6 @@ function this.getNewItem(id)
     local it = tes3.getObject(id)
     if it then
         if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) then
-            log("test222")
             this.storage.saveItem(it, nil, true)
             it.weight = 0
             itemLib.setDummyEnchantment(it)
