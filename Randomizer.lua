@@ -326,6 +326,7 @@ function this.getNewItem(id)
     local it = tes3.getObject(id)
     if it then
         if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) then
+            log("test222")
             this.storage.saveItem(it, nil, true)
             it.weight = 0
             itemLib.setDummyEnchantment(it)
@@ -360,7 +361,7 @@ function this.updatePlayerInventory()
                     else
                         if data.count > 0 then
                             local item = this.getNewItem(id)
-                            if item then
+                            if item and item.sourceMod then
                                 tes3.addItem{reference = player, item = item, count = data.count, playSound = false}
                                 updated = true
                                 log("Added unoriginal item %s", tostring(item))
