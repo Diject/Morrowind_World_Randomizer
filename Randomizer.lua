@@ -31,6 +31,8 @@ this.randomizeCellLight = light.randomizeCellLight
 this.restoreLightData = light.restoreLightData
 this.restoreCellLight = light.restoreCellLight
 
+this.itemsToUntrackForUnique = {}
+
 function this.genStaticData()
     local TRDataVersion = 0
     for i, mod in pairs(tes3.dataHandler.nonDynamicData.activeMods) do
@@ -360,7 +362,7 @@ function this.updatePlayerInventory()
                     else
                         if data.count > 0 then
                             local item = this.getNewItem(id)
-                            if item and item.sourceMod then
+                            if item and not this.itemsToUntrackForUnique[item.id] then
                                 tes3.addItem{reference = player, item = item, count = data.count, playSound = false}
                                 updated = true
                                 log("Added unoriginal item %s", tostring(item))

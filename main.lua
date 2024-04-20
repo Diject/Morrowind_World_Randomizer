@@ -339,6 +339,13 @@ local function mobileActivated(e)
     end
 end
 
+--- @param e enchantedItemCreatedEventData
+local function enchantedItemCreatedCallback(e)
+    if not e.object then return end
+    randomizer.itemsToUntrackForUnique[e.object.id] = true
+    itemLib.storage.saveItem(e.object)
+end
+
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -543,6 +550,7 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.filterContentsMenu, filterPlayerInventory)
     event.register(tes3.event.menuEnter, menuEnterExit)
     event.register(tes3.event.menuExit, menuEnterExit)
+    event.register(tes3.event.enchantedItemCreated, enchantedItemCreatedCallback)
     log("Morrowind World Randomizer is ready")
 end, {priority = -255})
 
