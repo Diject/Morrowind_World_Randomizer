@@ -219,6 +219,10 @@ local function load(e)
     end
 end
 
+local function save(e)
+    randomizer.config.data.version = randomizer.config.default.version
+end
+
 local function saved(e)
     local filename = e.filename
     local saveName
@@ -229,6 +233,81 @@ local function saved(e)
     end
     storage.saveToFile(saveName, randomizer.config.data.playerId)
     randomizer.config.saveOnlyGlobal()
+end
+
+local fixInventoryTimer = nil
+
+local function fixInventory()
+    if fixInventoryTimer then return end
+
+    ---@param e mwseTimerCallbackData
+    local function func(e)
+        fixInventoryTimer = nil
+
+        local mobilePlayer = tes3.mobilePlayer
+
+        if not mobilePlayer then return end
+        if not randomizer.config.data.item.unique then return end
+
+        if not randomizer.config.data.item.uniqueScriptItems then
+            local itemsToRemove = {}
+            local itemsToRandomize = {}
+            for _, stack in pairs(mobilePlayer.inventory) do
+                local item = stack.object
+                local wasCreated, origId = itemLib.isItemWasCreated(item.id)
+                if wasCreated and item.script then
+                    itemsToRandomize[origId] = true
+                    table.insert(itemsToRemove, {count = stack.count, object = item})
+                end
+            end
+
+            for _, stack in pairs(itemsToRemove) do
+                tes3.removeItem{reference = mobilePlayer, item = stack.object, count = stack.count, playSound = true, updateGUI = true}
+            end
+
+            for itemId, _ in pairs(itemsToRandomize) do
+                local storageData = randomizer.storage.getItemData(itemId, true)
+                if storageData and storageData.enchantment then
+                    randomizer.storage.restoreItem(itemId, true)
+                    timer.delayOneFrame(function()
+                        itemLib.randomizeBaseItem(tes3.getObject(itemId), {})
+                    end)
+                end
+            end
+        else
+            local originItems = {}
+            for _, stack in pairs(mobilePlayer.inventory) do
+                local item = stack.object
+                local wasCreated, origId = itemLib.isItemWasCreated(item.id)
+                if wasCreated then
+                    originItems[origId] = true
+                end
+            end
+
+            for _, stack in pairs(mobilePlayer.inventory) do
+                local item = stack.object
+                local wasCreated, origId = itemLib.isItemWasCreated(item.id)
+                if not wasCreated and not originItems[item.id] then
+                    inventoryEvents.makeItemUnadded(item.id)
+                end
+            end
+        end
+
+        e.timer:cancel()
+    end
+
+    fixInventoryTimer = timer.delayOneFrame(func)
+end
+
+local function fixesForOldVersion()
+    if (not randomizer.config.data.version or randomizer.config.data.version <= 6) and randomizer.config.data.item.unique and
+            not randomizer.config.data.item.uniqueScriptItems then
+
+        tes3.messageBox{ message = i18n("modConfig.message.fixForUnique"),
+            buttons = {i18n("messageBox.button.ok"), i18n("modConfig.button.disableFix")}, showInDialog = false}
+
+        fixInventory()
+    end
 end
 
 local function loaded(e)
@@ -270,6 +349,8 @@ local function loaded(e)
     else
         inventoryEvents.start()
     end
+
+    fixesForOldVersion()
 end
 
 local goldToAdd = 0
@@ -506,7 +587,8 @@ end
 local function filterPlayerInventory(e)
     if randomizer.config.data.item.unique then
         local wasCreated = itemLib.isItemWasCreated(e.item.id)
-        if e.item.sourceMod and not wasCreated and (itemLib.itemTypeForUnique[e.item.objectType]) then
+        if e.item.sourceMod and not wasCreated and (itemLib.itemTypeForUnique[e.item.objectType]) and
+                (not e.item.script or randomizer.config.data.item.uniqueScriptItems) then
             e.filter = false
         end
     end
@@ -538,6 +620,7 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.itemDropped, itemDropped)
     event.register(tes3.event.cellActivated, cellActivated)
     event.register(tes3.event.load, load, {priority = 9999})
+    event.register(tes3.event.save, save)
     event.register(tes3.event.saved, saved)
     event.register(tes3.event.loaded, loaded)
     event.register(tes3.event.leveledItemPicked, leveledItemPicked)
@@ -556,5 +639,5 @@ end, {priority = -255})
 
 gui.init(randomizer.config, i18n, {generateStaticFunc = randomizer.genStaticData, randomizeLoadedCellsFunc = function() enableRandomizerCallback({button = 0}) end,
     randomizeLoadedCells = randomizeLoadedCells, genRandLandTextureInd = generateRandomizedLandscapeTextureIndices, loadRandLandTextures = loadRandomizedLandscapeTextures,
-    randomizeBaseItems = randomizer.randomizeBaseItems, clearCellList = clearRandomizedCellList})
+    randomizeBaseItems = randomizer.randomizeBaseItems, clearCellList = clearRandomizedCellList, fixInventoryForUnique = fixInventory})
 event.register(tes3.event.modConfigReady, gui.registerModConfig)

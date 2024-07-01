@@ -697,12 +697,27 @@ function this.registerModConfig()
                                 return this.config.data.item.unique
                             end,
                             set = function(self, val)
-                                local newVal = true
+                                local newVal = val
                                 if not this.config.data.item.unique then
                                     newVal = true
                                     this.funcs.clearCellList()
                                 end
                                 this.config.data.item.unique = newVal
+                            end,
+                        },
+                    },
+                    {
+                        class = "OnOffButton",
+                        label = this.i18n("modConfig.label.allowQnuqueForScriptItems"),
+                        inGameOnly = false,
+                        variable = {
+                            class = "Variable",
+                            get = function(self)
+                                return this.config.data.item.uniqueScriptItems
+                            end,
+                            set = function(self, val)
+                                this.config.data.item.uniqueScriptItems = val
+                                this.funcs.fixInventoryForUnique()
                             end,
                         },
                     },

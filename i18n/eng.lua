@@ -4,6 +4,8 @@ return {
     ["messageBox.enableRandomizer.button.yes"] = "Yes, enable it",
     ["messageBox.enableRandomizer.button.no"] = "No",
 
+    ["messageBox.button.ok"] = "Ok",
+
     ["messageBox.randomize.button.yes"] = "Yes, randomize them",
 
     ["messageBox.selectDistantLandOption.message"] = "Randomization of statics does not work properly with Distant Land. You can fully disable Distant Land or "..
@@ -291,7 +293,7 @@ return {
     ["modConfig.label.excludeAlchemy"] = "Exclude potions",
     ["modConfig.label.dontAddToScrolls"] = "Don't add to scrolls",
     ["modConfig.label.addNewEnch"] = "Add a new enchantment",
-    ["modConfig.label.removeEnch"] = "Remove an enchantment",
+    ["modConfig.label.removeEnch"] = "Remove enchantment",
     ["modConfig.label.maxAlchemyEffCount"] = "Maximum number of effects for a potion",
     ["modConfig.label.dontRemoveFromScrolls"] = "Don't remove from scrolls",
 
@@ -357,4 +359,13 @@ return {
     ["modConfig.label.generateRockData"] = "Generate rock data after the game starts",
     ["modConfig.text.dataGeneration"] = "By default, the mod uses pregenerated data tables (with base game data, Tamriel Data v10 and OAAB Data) for randomization of rock and tree static objects. You can enable the options below to generate this data when the game starts.",
     ["modConfig.label.regenerateData"] = "Re-generate all data",
+
+    ["modConfig.message.fixForUnique"] = "In the new version of Morrowind World Randomizer, creation of unique items for items containing attached scripts is disabled by default.\n"..
+            "This will help fix some bugs, such as a bug with Sunder and Keening not allowing you to complete the game.\n"..
+            "All items affected by the fix will be rerandomized.\n"..
+            "But you can leave everything as it was and not enable the fix. "..
+            "Or enable/disable the fix in the mod settings -> \"Item stats\" tab -> enable \"Allow unique item creation for items with attached game scripts\"",
+
+    ["modConfig.button.disableFix"] = "Disable the fix",
+    ["modConfig.label.allowQnuqueForScriptItems"] = "Allow unique item creation for items with attached game scripts. [This will 100% break Sunder and Keening and prevent the main quest from being completed]",
 }

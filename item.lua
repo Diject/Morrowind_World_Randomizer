@@ -437,12 +437,12 @@ function this.randomizeStats(object, minMul, maxMul, weaponMin, weaponMax, baseD
 end
 
 ---@class mwr.item.randomizeBaseItem.params
----@field itemsData mwr.itemStatsData
----@field createNewItem boolean
----@field modifiedFlag boolean unused
----@field effectCount integer
+---@field itemsData mwr.itemStatsData|nil
+---@field createNewItem boolean|nil
+---@field modifiedFlag boolean|nil unused
+---@field effectCount integer|nil
 ---@field enchCost number|nil
----@field newEnchValue number
+---@field newEnchValue number|nil
 
 ---@param params mwr.item.randomizeBaseItem.params
 function this.randomizeBaseItem(object, params)
@@ -497,7 +497,7 @@ function this.randomizeBaseItem(object, params)
                 not (this.config.item.enchantment.exceptIngredient and object.objectType == tes3.objectType.ingredient) then
             local newEnch = object.enchantment
             local enchPower = enchCost or 0
-            if this.config.item.unique then
+            if this.config.item.unique and (not object.script or this.config.item.uniqueScriptItems) then
                 newEnch = nil
             end
             if newEnch ~= nil then
@@ -813,9 +813,12 @@ function this.randomizeItems(itemsData)
                     not this.config.item.enchantment.exceptIngredient then
                 this.randomizeIngredients(data)
             end
-        elseif not (this.config.item.unique and (this.itemTypeForUnique[itType])) then
+        else
             local count = #data.items
             for i, item in pairs(data.items) do
+                if this.config.item.unique and this.itemTypeForUnique[itType] and (not item.script or this.config.item.uniqueScriptItems) then
+                    goto continue
+                end
                 if item.objectType == tes3.objectType.book and item.enchantment == nil then goto continue end
                 local enchVal = data.enchantValues[item.id]
                 local mul = (i / count) ^ this.config.item.enchantment.powMul

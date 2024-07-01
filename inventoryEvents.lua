@@ -78,4 +78,11 @@ function this.start()
     this.lastItems = {}
 end
 
+---@param id string
+function this.makeItemUnadded(id)
+    local player = tes3.mobilePlayer
+    if not this.lastItems or not player then return end
+    this.lastItems[id] = nil
+end
+
 return this

@@ -327,11 +327,11 @@ end
 function this.getNewItem(id)
     local it = tes3.getObject(id)
     if it then
-        if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) then
+        if this.config.data.item.unique and it.sourceMod and (itemLib.itemTypeForUnique[it.objectType]) and
+                (not it.script or this.config.data.item.uniqueScriptItems) then
             this.storage.saveItem(it, nil, true)
             it.weight = 0
             itemLib.setDummyEnchantment(it)
-            this.storage.saveItem(it)
             it = itemLib.randomizeBaseItem(it, {createNewItem = true})
             log("New item %s to %s", id, tostring(it and it.id))
         end
@@ -347,7 +347,7 @@ function this.updatePlayerInventory()
         local changed = inventoryEvents.getInventoryChanges()
         if changed then
             for id, data in pairs(changed) do
-                if (itemLib.itemTypeForUnique[data.object.objectType]) then
+                if (itemLib.itemTypeForUnique[data.object.objectType] and (not data.object.script or this.config.data.item.uniqueScriptItems)) then
                     local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
                     if wasCreated then
                         if data.count > 0 then

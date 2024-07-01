@@ -93,20 +93,25 @@ end
 ---@param toInitial boolean|nil
 function this.saveItem(object, originalId, toInitial)
     if not object then return end
+    local data
     if not toInitial then
-        this.data.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
+        data = saveRestore.serializeItemBaseObject(object, originalId)
+        this.data.items[object.id] = data
     elseif not this.initial.items[object.id] then
-        this.initial.items[object.id] = saveRestore.serializeItemBaseObject(object, originalId)
+        data = saveRestore.serializeItemBaseObject(object, originalId)
+        this.initial.items[object.id] = data
     end
     if object.enchantment then
         this.saveEnchantment(object.enchantment)
     end
+    return data
 end
 
 ---@param id string
 ---@param restoreToInitial boolean|nil
+---@param restoreEnchantment boolean|nil
 ---@return boolean
-function this.restoreItem(id, restoreToInitial)
+function this.restoreItem(id, restoreToInitial, restoreEnchantment)
     local data
     if restoreToInitial then
         data = this.initial.items[id]
@@ -126,6 +131,9 @@ function this.restoreItem(id, restoreToInitial)
                 end
             elseif not this.initial.items[origId] then
                 this.initial.items[origId] = saveRestore.serializeItemBaseObject(object)
+            end
+            if restoreEnchantment and data.enchantment then
+                this.restoreEnchantment(data.enchantment, restoreToInitial)
             end
             saveRestore.restoreItemBaseObject(object, data, false)
             return true

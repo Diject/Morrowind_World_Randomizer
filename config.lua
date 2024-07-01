@@ -103,7 +103,7 @@ end
 ---@class mwr.config.local.data
 this.default = {
     enabled = false,
-    version = 6,
+    version = 7,
     playerId = nil,
     trees = {
         randomize = true,
@@ -513,6 +513,7 @@ this.default = {
             },
         },
         unique = false,
+        uniqueScriptItems = false,
         changeParts = true,
         changeMesh = false,
         linkMeshToParts = true,
