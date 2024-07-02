@@ -697,7 +697,7 @@ function this.registerModConfig()
                                 return this.config.data.item.unique
                             end,
                             set = function(self, val)
-                                local newVal = val
+                                local newVal = true
                                 if not this.config.data.item.unique then
                                     newVal = true
                                     this.funcs.clearCellList()
