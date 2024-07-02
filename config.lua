@@ -332,12 +332,12 @@ this.default = {
         },
         head = {
             randomize = true,
-            raceLimit = false,
+            raceLimit = true,
             genderLimit = true,
         },
         hair = {
             randomize = true,
-            raceLimit = false,
+            raceLimit = true,
             genderLimit = false,
         },
         scale = {
@@ -600,6 +600,8 @@ if true then
     preset.NPCs.spells.add.levelReference = 1
     preset.NPCs.diseases.add.count = 4
     preset.NPCs.head.genderLimit = false
+    preset.NPCs.head.raceLimit = false
+    preset.NPCs.hair.raceLimit = false
     preset.NPCs.effects.positive.add.count = 2
     preset.NPCs.effects.negative.add.count = 1
     preset.NPCs.ai.fight.region.min = 0.2
@@ -609,7 +611,6 @@ if true then
     preset.transport.toDoorsCount = 1
 
     preset.doors.nearestCellDepth = 3
-    preset.doors.chance = 0.15
     preset.doors.trap.safeCellMode.enabled = false
 
     preset.item.enchantment.useExisting = false
