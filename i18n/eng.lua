@@ -363,8 +363,7 @@ return {
     ["modConfig.message.fixForUnique"] = "In the new version of Morrowind World Randomizer, creation of unique items for items containing attached scripts is disabled by default.\n"..
             "This will help fix some bugs, such as a bug with Sunder and Keening not allowing you to complete the game.\n"..
             "All items affected by the fix will be rerandomized.\n"..
-            "But you can leave everything as it was and not enable the fix. "..
-            "Or enable/disable the fix in the mod settings -> \"Item stats\" tab -> enable \"Allow unique item creation for items with attached game scripts\"",
+            "You can enable/disable the fix on the fly in the mod settings -> \"Item stats\" tab -> enable \"Allow unique item creation for items with attached game scripts\"",
 
     ["modConfig.button.disableFix"] = "Disable the fix",
     ["modConfig.label.allowQnuqueForScriptItems"] = "Allow unique item creation for items with attached game scripts. [This will 100% break Sunder and Keening and prevent the main quest from being completed]",

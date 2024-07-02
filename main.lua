@@ -303,7 +303,7 @@ local function fixesForOldVersion()
             not randomizer.config.data.item.uniqueScriptItems then
 
         tes3.messageBox{ message = i18n("modConfig.message.fixForUnique"),
-            buttons = {i18n("messageBox.button.ok"), i18n("modConfig.button.disableFix")}, showInDialog = false}
+            buttons = {i18n("messageBox.button.ok")}, showInDialog = false}
 
         fixInventory()
     end
