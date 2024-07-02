@@ -102,8 +102,8 @@ return {
     ["modConfig.label.positiveEffects"] = "Positive effects",
     ["modConfig.label.negativeEffects"] = "Negative effects",
 
-    ["modConfig.label.randomizeHead"] = "Randomize the object's head",
-    ["modConfig.label.randomizeHair"] = "Randomize the object's hairs",
+    ["modConfig.label.randomizeHead"] = "Randomize object head",
+    ["modConfig.label.randomizeHair"] = "Randomize object hairs",
     ["modConfig.label.limitByRace"] = "Limit by race",
     ["modConfig.label.limitByGender"] = "Limit by gender",
 
@@ -114,7 +114,7 @@ return {
     ["modConfig.label.randomizeLock"] = "Randomize lock value",
     ["modConfig.label.randomizeTrap"] = "Randomize trap spells",
     ["modConfig.label.addLock"] = "Lock object without a look",
-    ["modConfig.label.addTrap"] = "Add a trap to an object without it",
+    ["modConfig.label.addTrap"] = "Add a trap to an object without one",
 
     ["modConfig.label.useOnlyDestruction"] = "Use only destruction spells",
 
@@ -163,7 +163,7 @@ return {
 
     ["modConfig.label.maxValueOfSkill"] = "The maximum value of a skill is ",
     ["modConfig.label.chanceToAdd"] = "%% chance to add",
-    ["modConfig.label.addXMore"] = "Add  more",
+    ["modConfig.label.addXMore"] = "Add more",
 
     ["modConfig.description.listLimiter"] = "The level of the creature, in proportion to which the list of spells is limited. If a creature has this level, the whole spell list will be available for randomization.",
     ["modConfig.description.positiveEffects"] = "Positive effects are \"Chameleon\", \"Water Breathing\", \"Water Walking\", \"Swift Swim\", \"Resist Normal Weapons\", \"Sanctuary\", \"Attack Bonus\", \"Resist Magicka\", \"Resist Fire\", \"Resist Frost\", \"Resist Shock\", \"Resist Common Disease\", \"Resist Blight Disease\", \"Resist Corprus\", \"Resist Poison\", \"Resist Paralysis\", \"Shield\"",
