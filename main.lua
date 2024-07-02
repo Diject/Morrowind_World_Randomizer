@@ -266,14 +266,13 @@ local function fixInventory()
             end
 
             for itemId, _ in pairs(itemsToRandomize) do
-                local storageData = randomizer.storage.getItemData(itemId, true)
-                if storageData and storageData.enchantment then
-                    randomizer.storage.restoreItem(itemId, true)
-                    timer.delayOneFrame(function()
-                        itemLib.randomizeBaseItem(tes3.getObject(itemId), {})
-                    end)
-                end
+                randomizer.storage.restoreItem(itemId, true)
+                timer.delayOneFrame(function()
+                    itemLib.randomizeBaseItem(tes3.getObject(itemId), {})
+                end)
             end
+
+            inventoryEvents.saveInventoryChanges()
         else
             local originItems = {}
             for _, stack in pairs(mobilePlayer.inventory) do

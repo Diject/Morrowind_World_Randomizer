@@ -347,9 +347,16 @@ function this.updatePlayerInventory()
         local changed = inventoryEvents.getInventoryChanges()
         if changed then
             for id, data in pairs(changed) do
-                if (itemLib.itemTypeForUnique[data.object.objectType] and (not data.object.script or this.config.data.item.uniqueScriptItems)) then
+                if itemLib.itemTypeForUnique[data.object.objectType] then
                     local wasCreated, origId = itemLib.isItemWasCreated(data.object.id)
-                    if wasCreated then
+                    if data.object.script and not this.config.data.item.uniqueScriptItems then
+                        if not wasCreated then goto continue end
+                        this.storage.restoreItem(origId, true)
+                        itemLib.randomizeBaseItem(tes3.getObject(origId), {})
+                        tes3.removeItem{reference = player, item = data.object, count = data.count, playSound = false}
+                        tes3.addItem{reference = player, item = origId, count = data.count, playSound = false}
+                        updated = true
+                    elseif wasCreated then
                         if data.count > 0 then
                             tes3.addItem{reference = player, item = origId, count = data.count, playSound = false}
                             updated = true
@@ -396,6 +403,7 @@ function this.updatePlayerInventory()
                         end
                     end
                 end
+                ::continue::
             end
             if updated then
                 itemLib.fixPlayerWeight()
