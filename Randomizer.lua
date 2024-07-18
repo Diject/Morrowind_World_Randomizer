@@ -819,16 +819,13 @@ function this.randomizeCell(cell)
 
                 end
 
-            elseif not object.isDead and object.baseObject.objectType == tes3.objectType.creature and object.leveledBaseReference ~= true then
+            elseif not object.isDead and object.baseObject.objectType == tes3.objectType.creature and
+                    this.config.data.creatures.randomize and object.leveledBaseReference ~= true then
 
-                local actorId = object.baseObject.id:lower()
-                local creature = creaturesData.Creatures[actorId]
-                if creature ~= nil and object.mobile ~= nil then
+                local newCreaId = this.getRandomCreatureId(object.baseObject.id)
+                if newCreaId ~= nil and object.mobile ~= nil then
                     object.mobile:kill()
                     object:disable()
-                    local newCreaGroup = creaturesData.CreatureGroups[creature.SubType]
-                    local newCreaId = newCreaGroup.Items[random.GetRandom(creature.Position, newCreaGroup.Count,
-                        this.config.data.creatures.region.min, this.config.data.creatures.region.max)]
                     table.insert(newObjects, {id = newCreaId, cell = cell, pos = objectPos, rot = objectRot, scale = objectScale})
                 end
 
