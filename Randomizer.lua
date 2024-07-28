@@ -332,6 +332,7 @@ function this.getNewItem(id)
             this.storage.saveItem(it, nil, true)
             it.weight = 0
             itemLib.setDummyEnchantment(it)
+            this.storage.saveItem(it, nil, false)
             it = itemLib.randomizeBaseItem(it, {createNewItem = true})
             log("New item %s to %s", id, tostring(it and it.id))
         end
