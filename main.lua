@@ -307,6 +307,21 @@ local function fixesForOldVersion()
 
         fixInventory()
     end
+    if (not randomizer.config.data.version or randomizer.config.data.version <= 7) and randomizer.config.data.item.unique then
+        for _, stack in pairs(tes3.mobilePlayer.inventory) do
+            local item = stack.object
+            local wasCreated, origId = itemLib.isItemWasCreated(item.id)
+            if wasCreated and origId then
+                local it = tes3.getObject(origId)
+                if it then
+                    it.weight = 0
+                    itemLib.setDummyEnchantment(it)
+                    randomizer.storage.saveItem(it, nil, false)
+                end
+            end
+        end
+        tes3.mobilePlayer:updateDerivedStatistics()
+    end
 end
 
 local function loaded(e)
