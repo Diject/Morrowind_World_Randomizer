@@ -103,7 +103,7 @@ end
 ---@class mwr.config.local.data
 this.default = {
     enabled = false,
-    version = 7,
+    version = 8,
     playerId = nil,
     trees = {
         randomize = true,
