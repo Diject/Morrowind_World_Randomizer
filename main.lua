@@ -426,6 +426,83 @@ local function enchantedItemCreatedCallback(e)
     itemLib.storage.saveItem(e.object)
 end
 
+local function nextWeapon(step)
+    local equippedStack = tes3.getEquippedItem{ actor = tes3.mobilePlayer, objectType = tes3.objectType.weapon}
+
+    local item = equippedStack and equippedStack.object ---@diagnostic disable-line: need-check-nil
+    local wasCreated, origId = itemLib.isItemWasCreated(item and item.id or "")
+
+    local weapons = {}
+
+    local inventory = tes3.mobilePlayer.inventory
+    for _, stack in pairs(inventory) do
+        local invItem = stack.object
+        local invWasCreated, invOrigId = itemLib.isItemWasCreated(invItem.id)
+
+        if invItem.objectType == tes3.objectType.weapon and not (invItem.sourceMod and not invWasCreated and
+                (not invItem.script or randomizer.config.data.item.uniqueScriptItems)) then
+
+            if invOrigId ~= origId then
+                weapons[invItem.name] = invItem.id
+            end
+        end
+    end
+
+    local weaponList = {}
+
+    if item then
+        table.insert(weaponList, {id = item.id, name = item.name})
+    end
+    for name, id in pairs(weapons) do
+        table.insert(weaponList, {id = id, name = name})
+    end
+
+    if #weaponList == 0 then return end
+
+    table.sort(weaponList, function(a, b) return a.name < b.name end)
+
+    local currentWeaponPos = 1
+    if item then
+        for pos, data in pairs(weaponList) do
+            if data.id == item.id then
+                currentWeaponPos = pos
+                break
+            end
+        end
+    end
+    local newPos = currentWeaponPos + step
+    local weaponPos = newPos > #weaponList and 1 or (newPos < 1 and #weaponList or newPos)
+    local newEquip = weaponList[weaponPos].id
+
+    tes3.mobilePlayer:equip{item = newEquip}
+end
+
+--- @param e keybindTestedEventData
+local function nextWeaponKeyCallback(e)
+    if e.transition ~= tes3.keyTransition.downThisFrame or not e.result then
+        return
+    end
+
+    if not randomizer.config.data.item.unique then return end
+
+    nextWeapon(1)
+
+    e.result = false
+end
+
+--- @param e keybindTestedEventData
+local function previousWeaponKeyCallback(e)
+    if e.transition ~= tes3.keyTransition.downThisFrame or not e.result then
+        return
+    end
+
+    if not randomizer.config.data.item.unique then return end
+
+    nextWeapon(-1)
+
+    e.result = false
+end
+
 local function randomizeBaseItemsCallback(e)
     if e.button == 0 then
         randomizer.randomizeBaseItems()
@@ -630,9 +707,12 @@ event.register(tes3.event.initialized, function(e)
     event.register(tes3.event.filterInventory, filterPlayerInventory)
     event.register(tes3.event.filterBarterMenu, filterPlayerInventory)
     event.register(tes3.event.filterContentsMenu, filterPlayerInventory)
+    event.register(tes3.event.filterInventorySelect, filterPlayerInventory)
     event.register(tes3.event.menuEnter, menuEnterExit)
     event.register(tes3.event.menuExit, menuEnterExit)
     event.register(tes3.event.enchantedItemCreated, enchantedItemCreatedCallback)
+    event.register(tes3.event.keybindTested, nextWeaponKeyCallback, { filter = tes3.keybind.nextWeapon })
+    event.register(tes3.event.keybindTested, previousWeaponKeyCallback, { filter = tes3.keybind.previousWeapon })
     log("Morrowind World Randomizer is ready")
 end, {priority = -255})
 
