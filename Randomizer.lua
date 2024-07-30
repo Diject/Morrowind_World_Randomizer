@@ -986,36 +986,37 @@ function this.randomizeMobileActor(mobile)
         end
     end
 
-    local setNew = function(attribute, region, limit, useRangeVal, min)
-        if limit == nil then limit = math.huge end
+    local setNew = function(attribute, region, min)
+        local limit = math.huge
         local base = attribute.base
-        local normalized = attribute.normalized
-        local newVal = 0
-        if useRangeVal then
-            newVal = random.GetRandom(base, limit, region.min, region.max)
-        else
-            if region.additive then
-                newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
-            else
-                newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
-            end
+        local additiveValue = 0
+        if attribute.current < base then
+            additiveValue = attribute.current - base
         end
-        log("%s to %s", tostring(attribute.base), tostring(newVal))
+        local newVal = 0
+        if region.additive then
+            newVal = math.floor(math.min(math.max(min or 0, base + random.GetBetween(region.min, region.max)), limit))
+        else
+            newVal = math.floor(math.min(math.max(min or 0, base * random.GetBetween(region.min, region.max)), limit))
+        end
+        local current = math.floor(math.min(math.max(min or 0, newVal + additiveValue), limit))
+        log("base %s to %s", tostring(attribute.base), tostring(newVal))
+        log("current %s to %s", tostring(attribute.current), tostring(current))
         attribute.base = newVal
-        attribute.current = newVal * normalized
+        attribute.current = current
     end
 
     if configTable.health.randomize then
         log("Health %s", tostring(mobile.object))
-        setNew(mobile.health, configTable.health.region)
+        setNew(mobile.health, configTable.health.region, 0)
     end
     if configTable.fatigue.randomize then
         log("Fatigue %s", tostring(mobile.object))
-        setNew(mobile.fatigue, configTable.fatigue.region)
+        setNew(mobile.fatigue, configTable.fatigue.region, 0)
     end
     if configTable.magicka.randomize then
         log("Magicka %s", tostring(mobile.object))
-        setNew(mobile.magicka, configTable.magicka.region)
+        setNew(mobile.magicka, configTable.magicka.region, 0)
     end
 
     if not aiBlackList[mobile.object.id] then
