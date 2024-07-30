@@ -12,12 +12,12 @@ local floraData
 
 local generator = include("Morrowind_World_Randomizer.generator")
 
-local itemsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Items")
-local creaturesData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Creatures")
-local herbsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Herbs")
-local headPartsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs")
-local travelDestinationsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\TravelDestinations")
-local spellsData = json.loadfile("mods\\Morrowind_World_Randomizer\\Data\\Spells")
+local itemsData = nil
+local creaturesData = nil
+local herbsData = nil
+local headPartsData = nil
+local travelDestinationsData = nil
+local spellsData = nil
 local itemLibData = nil
 
 local this = {}
@@ -33,13 +33,15 @@ this.restoreCellLight = light.restoreCellLight
 
 this.itemsToUntrackForUnique = {}
 
+local races = {}
+
 function this.genStaticData()
-    local TRDataVersion = 0
-    for i, mod in pairs(tes3.dataHandler.nonDynamicData.activeMods) do
-        if mod.filename:lower() == "tamriel_data.esm" then
-            TRDataVersion = tonumber(string.match(mod.description, "%d+") or "0")
-        end
-    end
+    -- local TRDataVersion = 0
+    -- for i, mod in pairs(tes3.dataHandler.nonDynamicData.activeMods) do
+    --     if mod.filename:lower() == "tamriel_data.esm" then
+    --         TRDataVersion = tonumber(string.match(mod.description, "%d+") or "0")
+    --     end
+    -- end
 
     -- if this.config.global.dataTables.forceTRData or TRDataVersion >= 9 then
     --     -- treesData = require("Morrowind_World_Randomizer.Data.TreesData_TR")
@@ -124,6 +126,10 @@ function this.genStaticData()
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\HeadsHairs", headPartsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Spells", spellsData)
     -- json.savefile("mods\\Morrowind_World_Randomizer\\Data\\Herbs", herbsData)
+
+    for race, val in pairs(headPartsData.Parts) do
+        table.insert(races, race)
+    end
 end
 
 function this.genNonStaticData()
@@ -1384,11 +1390,6 @@ function this.randomizeActorBaseObject(object, actorType)
     this.randomizeBody(object)
 
     this.storage.saveActor(object)
-end
-
-local races = {}
-for race, val in pairs(headPartsData.Parts) do
-    table.insert(races, race)
 end
 
 function this.randomizeBody(object)
