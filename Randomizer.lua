@@ -510,7 +510,7 @@ function this.randomizeContainerItems(reference, regionMin, regionMax)
                 end
 
             elseif this.config.data.item.unique and item.sourceMod and itemLib.itemTypeForUnique[item.objectType] and
-                    (not item.object.script or this.config.data.item.uniqueScriptItems or itemAdvData) then
+                    (not item.script or this.config.data.item.uniqueScriptItems or itemAdvData) then
 
                 table.insert(newItems, {id = item.id, count = stack.count})
                 table.insert(oldItems, {id = item.id, count = count})
