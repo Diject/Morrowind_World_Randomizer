@@ -221,6 +221,7 @@ end
 
 local function save(e)
     randomizer.config.data.version = randomizer.config.default.version
+    randomizer.config.save()
 end
 
 local function saved(e)
